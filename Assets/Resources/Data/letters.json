@@ -1,0 +1,122 @@
+{
+  "letters": [
+    {
+      "id": "flour_letter",
+      "title": "밀가루가 묻은 편지",
+      "senderName": "빵집 주인 미라",
+      "recipientId": "owen",
+      "recipientName": "숲 끝 오두막의 오웬",
+      "recipientHint": "주소가 번져 '동쪽 숲... 오...'까지만 읽힌다.",
+      "revealFlag": "clue:flour_sack",
+      "condition": "",
+      "deliverCondition": "",
+      "blockedLines": [],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "오늘 밤의 첫 편지. 봉투에 밀가루가 하얗게 묻어 있다." },
+        { "speaker": "우체국 창구", "text": "보낸 사람은 빵집 주인 미라. 받는 사람의 주소는 반쯤 번져서 '동쪽 숲... 오...'까지만 읽힌다." },
+        { "speaker": "우체국 창구", "text": "마을 사람에게 물어보거나, 동쪽 숲에서 단서를 찾아보자. [Tab] 키로 지도를 볼 수 있다." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "오웬", "text": "...우체부? 이런 숲 끝까지 편지가 올 리가 없는데." },
+        { "speaker": "", "text": "봉투의 밀가루를 본 오웬의 표정이 굳는다." }
+      ],
+      "choices": [
+        {
+          "text": "봉투째 그대로 건넨다",
+          "setFlag": "flour_sealed",
+          "lines": [
+            { "speaker": "오웬", "text": "미라의 글씨군. 봉투에 밀가루까지 묻혀 보내다니, 여전하네." },
+            { "speaker": "오웬", "text": "...고맙네. 내일 아침 밀가루를 마을로 보내지." },
+            { "speaker": "오웬", "text": "이 가방도 가져가게. 내가 우체부 일을 할 때 쓰던 거라 튼튼할 걸세." }
+          ]
+        },
+        {
+          "text": "번진 글씨를 소리 내어 읽어준다",
+          "setFlag": "flour_read",
+          "lines": [
+            { "speaker": "편지", "text": "\"오빠에게. 오빠가 떠난 뒤로 반죽이 자꾸 무너져. 화내지 않을 테니, 밀가루 한 자루만 보내줘. — 미라\"" },
+            { "speaker": "오웬", "text": "...'화내지 않을 테니'라. 화가 났던 건 나였는데." },
+            { "speaker": "오웬", "text": "자네가 읽어줘서 다행이야. 내 눈으론 끝까지 못 읽었을 거야. 이 가방을 가져가게. 예전에 내가 쓰던 걸세." }
+          ]
+        }
+      ],
+      "deliveredFlag": "bakery_open",
+      "rewardMaxHp": 2,
+      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +2)"
+    },
+    {
+      "id": "owen_reply",
+      "title": "오웬의 답장",
+      "senderName": "숲 끝 오두막의 오웬",
+      "recipientId": "mira",
+      "recipientName": "빵집 주인 미라",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "delivered:flour_letter",
+      "deliverCondition": "",
+      "blockedLines": [],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "숲 입구 우편함에 답장이 꽂혀 있었다. 밀가루 자루와 함께 도착한 편지다." },
+        { "speaker": "우체국 창구", "text": "보낸 사람은 오웬. 받는 사람은 빵집 주인 미라." },
+        { "speaker": "", "text": "봉투가 얇아서 마지막 줄이 비쳐 보인다. '...그래도 나는 돌아가지 않을 거다.'" }
+      ],
+      "deliverPrompt": [
+        { "speaker": "미라", "text": "오빠한테서? ...정말 답장이 왔네." },
+        { "speaker": "", "text": "미라는 편지를 직접 읽기 무섭다며, 내용을 대신 들려달라고 한다." }
+      ],
+      "choices": [
+        {
+          "text": "마지막 줄까지 전부 전한다",
+          "setFlag": "reply_full",
+          "lines": [
+            { "speaker": "미라", "text": "...'돌아가지 않을 거다', 라." },
+            { "speaker": "미라", "text": "그래도 밀가루는 매주 보낸대. 오빠다운 대답이야. 그거면 됐어." }
+          ]
+        },
+        {
+          "text": "마지막 줄은 빼고 전한다",
+          "setFlag": "reply_softened",
+          "lines": [
+            { "speaker": "미라", "text": "'잘 지내라, 빵 냄새가 여기까지 났으면 좋겠다'...?" },
+            { "speaker": "미라", "text": "...언젠가 직접 들으러 가봐야겠다. 숲 입구까지라도." }
+          ]
+        }
+      ],
+      "deliveredFlag": "reply_delivered",
+      "rewardMaxHp": 0,
+      "rewardText": "미라가 갓 구운 빵을 쥐여주었다."
+    },
+    {
+      "id": "noah_letter",
+      "title": "주소 없는 편지",
+      "senderName": "어부의 아들 노아",
+      "recipientId": "old_mailbox",
+      "recipientName": "숲 끝의 낡은 우체통",
+      "recipientHint": "받는 사람: '등대에 계신 엄마'. 주소가 없다. 노아에게 물어보자.",
+      "revealFlag": "clue:old_sign",
+      "condition": "delivered:owen_reply",
+      "deliverCondition": "boss_forest_defeated",
+      "blockedLines": [
+        { "speaker": "", "text": "우체통 앞을 먹물 같은 그림자가 막고 있다. 먼저 저것을 물리쳐야 한다." }
+      ],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "삐뚤빼뚤한 글씨의 편지. 받는 사람에는 '등대에 계신 엄마'라고만 적혀 있다." },
+        { "speaker": "우체국 창구", "text": "등대로 가는 길은 오래전에 끊겼다. 하지만 이 우체국에는 '닿지 못한 편지'를 받는 곳이 있다는 기록이 있다." },
+        { "speaker": "", "text": "오늘 밤 숲은 유난히 어둡다. 무언가 기다리고 있는 것 같다." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "", "text": "우체통 투입구에서 희미한 달빛이 새어 나온다." },
+        { "speaker": "", "text": "편지를 넣자, 우체통 안쪽에서 누군가 받아 든 것처럼 빛이 한 번 깜빡인다." }
+      ],
+      "choices": [],
+      "deliveredFlag": "lamp_lit",
+      "rewardMaxHp": 0,
+      "rewardText": "멀리 마을 쪽에서 불빛이 켜지는 것이 보인다. 우체국으로 돌아가 보자."
+    }
+  ],
+  "endingLines": [
+    { "speaker": "우체국 창구", "text": "오늘 밤 맡은 편지는 모두 배달했다." },
+    { "speaker": "", "text": "우체국 등불이 바다 쪽을 비춘다. 저 멀리, 꺼져 있던 등대 끝이 아주 잠깐 반짝인 것 같다." },
+    { "speaker": "", "text": "— 프로토타입 끝. 플레이해 주셔서 고맙습니다. (F12: 처음부터 다시) —" }
+  ]
+}

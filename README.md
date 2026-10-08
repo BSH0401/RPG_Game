@@ -4,7 +4,8 @@
 기획서는 [Docs/GameDesign.md](Docs/GameDesign.md)에 있다.
 
 현재 저장소에는 기획서의 **"첫 프로토타입 성공 기준"**(10~15분 분량)을 플레이할 수 있는 코드가 들어 있다.
-그림은 코드로 그린 픽셀 아트(`Assets/Scripts/Art`)이고, 씬을 직접 만들 필요 없이 Play를 누르면 월드가 코드로 생성된다.
+그림과 소리는 [Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack)(CC0, Pixel-boy & AAA)을 쓰고,
+에셋이 없으면 코드로 그린 픽셀 아트(`Assets/Scripts/Art`)로 자동 대체된다. 씬을 직접 만들 필요 없이 Play를 누르면 월드가 코드로 생성된다.
 **편집 화면(Scene/Hierarchy)이 비어 있는 것은 정상이다. Play를 눌러야 마을이 나타난다.**
 
 ![마을 미리보기](Docs/preview/village.png)
@@ -16,7 +17,9 @@
    - 처음 열 때 *"새 Input System을 활성화할까요?"* 창이 뜨면 Yes/No 어느 쪽을 골라도 동작한다.
 2. 열린 빈 씬(Untitled)에서 그대로 **Play** 버튼을 누른다.
    - `GameBootstrap`이 자동으로 생성되어 마을·숲·주민·적을 만든다.
-3. 한글이 □로 보이면 한글 폰트 파일(.ttf)을 `Assets/Resources/Fonts/UIFont.ttf` 이름으로 넣는다.
+3. 그림이 흐릿하거나 깨져 보이면 메뉴 **달빛 우체국 → 아트 다시 가져오기**를 누른다.
+   (`Assets/Editor/PixelArtImporter.cs`가 픽셀 아트용 가져오기 설정을 자동으로 적용한다.)
+4. 한글이 □로 보이면 한글 폰트 파일(.ttf)을 `Assets/Resources/Fonts/UIFont.ttf` 이름으로 넣는다.
    (예: 나눔고딕, Noto Sans KR. 보통 Windows·macOS에서는 없어도 보인다.)
 
 ## 플레이 흐름 (프로토타입)
@@ -53,6 +56,8 @@
 
 ```
 Assets/
+  Editor/                PixelArtImporter(픽셀 아트 가져오기 설정 자동 적용)
+  Resources/Art/NinjaAdventure/  ← 사용하는 에셋만 골라 넣은 것(타일셋, 캐릭터, 얼굴, 효과, 음악·효과음, 라이선스)
   Resources/Data/        ← 스토리 데이터(JSON). 대사·편지·단서는 여기서 고친다.
     letters.json         편지(받는 조건, 단서 플래그, 배달 선택지, 결과 플래그, 보상)
     npcs.json            주민 대사(조건별, 위에서부터 처음 맞는 대사 사용)
@@ -65,7 +70,8 @@ Assets/
     World/               LetterManager(핵심 루프), NightDirector(밤마다 바뀌는 숲),
                          WorldVisuals(플래그에 따른 마을 변화), Interactables, Spawner
     UI/                  HUD(체력·편지·지도·알림), DialogueSystem(대화·선택지)
-    Art/                 코드로 그린 픽셀 아트(Art), 바닥 칠하기(GroundPainter), 걷기 움직임, 반딧불이
+    Art/                 GameAssets(에셋 자르기·불러오기), SpriteAnimator(4방향 걷기),
+                         코드로 그린 대체 그림(Art, GroundPainter), 반딧불이
 Docs/GameDesign.md       기획서
 ```
 
@@ -88,6 +94,17 @@ Docs/GameDesign.md       기획서
 - [x] 4. 스토리 수직 단면 — 편지 3통, 주민 2명(+오웬), 보스 1종
 - [ ] 이 프로토타입을 플레이해 보고 **"다음 편지가 궁금해지는가"** 확인
 - [x] 임시 도형 → 코드로 그린 픽셀 아트, 밤 조명(가장자리 어둠·등불·반딧불이)
-- [ ] 직접 그린 픽셀 아트(걷기 프레임 애니메이션 포함), 코드 생성 지형 → Tilemap 씬
+- [x] 에셋 적용: 타일 바닥(자동 타일), 건물·나무, 4방향 걷기 캐릭터, 대화 초상화, 효과음·배경음악
+- [ ] 코드로 만드는 지형 → Unity 에디터에서 직접 편집하는 Tilemap 씬
 - [ ] 사운드, 일반 적 2종 추가, 해안·등대 지역, 장비·도구 시스템
 - [ ] 편지 12통, 주민 6명, 엔딩 2종으로 확장
+
+## 에셋 사용법과 출처
+
+- 사용 에셋: **Ninja Adventure Asset Pack** — Pixel-boy & AAA, CC0 ([itch.io](https://pixel-boy.itch.io/ninja-adventure-asset-pack)).
+  라이선스 전문은 `Assets/Resources/Art/NinjaAdventure/LICENSE.txt`.
+- 게임에서 실제로 쓰는 파일만 `Assets/Resources/Art/NinjaAdventure/`에 넣었다(약 5MB). 원본 압축 파일은 저장소에 넣지 않는다.
+- 어떤 그림을 쓰는지는 타일 좌표로 정해져 있다(`GameBootstrap.Assets.cs`, `GameAssets.cs`).
+  예: `GameAssets.Tile("TilesetHouse", 25, 7, 4, 7)` = 집 타일셋의 (25, 7) 칸부터 가로 4칸·세로 7칸(우체국).
+- 다른 캐릭터로 바꾸려면 원본 팩의 `Actor/Character/이름/SpriteSheet.png`를 `Actors/이름.png`로 복사하고,
+  `GameBootstrap`의 `Spawner.Npc(..., "이름")`을 바꾼다.

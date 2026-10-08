@@ -44,6 +44,7 @@ namespace MoonlightPost
                 GameState.SetFlag(def.setFlag);
                 GameState.Save();
                 HUD.Toast("단서를 찾았다: " + def.displayName + "  [Tab] 지도 확인");
+                Sound.Play("Clue");
             });
         }
     }

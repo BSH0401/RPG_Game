@@ -8,6 +8,10 @@ namespace MoonlightPost
         public static Transform Root;
 
         public const int GlowOrder = 1001;
+
+        /// <summary>에셋 그림(낮 색감)에 곱해 밤처럼 보이게 하는 색. 코드 그림을 쓸 때는 흰색.</summary>
+        public static Color PropTint = Color.white;
+        public static Color CharacterTint = Color.white;
         const int ShadowOrder = -450;
 
         /// <summary>보이지 않는 충돌 벽.</summary>
@@ -32,6 +36,7 @@ namespace MoonlightPost
             go.transform.position = pos;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = sprite;
+            sr.color = PropTint;
             if (colliderSize.HasValue)
             {
                 var box = go.AddComponent<BoxCollider2D>();
@@ -53,13 +58,31 @@ namespace MoonlightPost
             return Prop(name, bottom, sprite, solid ? footprintSize : (Vector2?)null, new Vector2(0f, footprintSize.y * 0.5f));
         }
 
-        public static void Tree(Vector2 pos, bool pine, int variant)
+        public static void Tree(Vector2 pos, bool pine, int variant) =>
+            Tree(pos, pine ? Art.PineTree(variant % 3) : Art.RoundTree(variant % 4));
+
+        /// <summary>나무·덤불: 밑동에만 작은 충돌체를 둔다.</summary>
+        public static GameObject Tree(Vector2 pos, Sprite sprite, float trunkRadius = 0.35f)
         {
-            var go = Prop(pine ? "Pine" : "Tree", pos, pine ? Art.PineTree(variant % 3) : Art.RoundTree(variant % 4));
+            var go = Prop("Tree", pos, sprite);
             var col = go.AddComponent<CircleCollider2D>();
-            col.radius = 0.35f;
+            col.radius = trunkRadius;
             col.offset = new Vector2(0f, 0.3f);
-            Shadow(go.transform, 2.4f, 0f);
+            Shadow(go.transform, sprite.bounds.size.x * 0.8f, 0.05f);
+            return go;
+        }
+
+        /// <summary>바닥 타일 한 칸. 칸의 왼쪽 아래 모서리가 (x, y).</summary>
+        public static void GroundTile(Transform parent, int x, int y, Sprite sprite, int order, Color? tint = null)
+        {
+            if (sprite == null) return;
+            var go = new GameObject("T");
+            go.transform.SetParent(parent, false);
+            go.transform.position = new Vector3(x, y, 0f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.color = tint ?? PropTint;
+            sr.sortingOrder = order;
         }
 
         public static SpriteRenderer Glow(Vector2 pos, float diameter, Color color, Transform parent = null)
@@ -125,12 +148,29 @@ namespace MoonlightPost
             return body;
         }
 
-        public static NpcInteractable Npc(string id, Vector2 pos, Sprite sprite, float scale = 1f)
+        /// <summary>에셋 캐릭터 시트로 몸을 만든다(4방향 걷기 애니메이션).</summary>
+        public static SpriteRenderer Character(GameObject go, CharacterSheet sheet, float feetOffset = 0.4f)
+        {
+            var bodyGo = new GameObject("Body");
+            bodyGo.transform.SetParent(go.transform, false);
+            bodyGo.transform.localPosition = new Vector3(0f, -feetOffset, 0f);
+            var body = bodyGo.AddComponent<SpriteRenderer>();
+            body.color = CharacterTint;
+            Shadow(go.transform, 0.9f, -feetOffset + 0.04f);
+            go.AddComponent<SpriteAnimator>().Init(body, sheet);
+            AddYSort(go, 0, false);
+            return body;
+        }
+
+        /// <summary>actor 시트가 있으면 그것을, 없으면 코드로 그린 sprite 를 쓴다.</summary>
+        public static NpcInteractable Npc(string id, Vector2 pos, Sprite sprite, float scale = 1f, string actor = null)
         {
             var go = new GameObject("NPC_" + id);
             go.transform.SetParent(Root, false);
             go.transform.position = pos;
-            Character(go, sprite, scale);
+            var sheet = actor != null && GameAssets.Available ? GameAssets.Sheet(actor) : null;
+            if (sheet != null) Character(go, sheet);
+            else Character(go, sprite, scale);
             go.AddComponent<CircleCollider2D>().radius = 0.35f;
             var npc = go.AddComponent<NpcInteractable>();
             npc.npcId = id;
@@ -168,13 +208,26 @@ namespace MoonlightPost
                 enemy.slamRadius = 2.8f;
                 enemy.hitRadius = 1.2f;
                 enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Lunge, EnemyAttack.Lunge };
-                body = Character(go, Art.InkBoss, 1f, 0.7f);
+                var bossFrames = GameAssets.Available ? GameAssets.BossFrames : null;
+                if (bossFrames != null)
+                {
+                    body = Character(go, bossFrames[0], 1f, 0.7f);
+                    // 하얀 영혼 그림을 먹물색으로 물들인다.
+                    body.color = new Color(0.55f, 0.38f, 0.9f);
+                    Object.Destroy(go.GetComponent<CharacterAnimator>());
+                    var anim = body.gameObject.AddComponent<FrameAnimator>();
+                    anim.frames = bossFrames;
+                    anim.fps = 7f;
+                }
+                else body = Character(go, Art.InkBoss, 1f, 0.7f);
                 Glow(pos, 5f, new Color(0.6f, 0.4f, 1f, 0.25f), go.transform);
             }
             else
             {
                 health.SetMax(3, true);
-                body = Character(go, Art.ShadowRat, 1f, 0.35f);
+                var ratSheet = GameAssets.Available ? GameAssets.Sheet("MouseBlack") : null;
+                body = ratSheet != null ? Character(go, ratSheet, 0.4f) : Character(go, Art.ShadowRat, 1f, 0.35f);
+                if (ratSheet != null) body.color = new Color(0.75f, 0.7f, 0.95f);
                 Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
             }
             enemy.Init(body);

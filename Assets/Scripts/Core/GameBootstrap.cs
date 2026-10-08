@@ -15,16 +15,17 @@ namespace MoonlightPost
     /// 그림은 Art(코드로 그린 픽셀 아트)에서 가져온다. 실제 아트와 Tilemap 씬으로 옮길 때는
     /// 이 클래스는 씬의 참조를 연결하는 역할만 남기면 된다.
     /// </summary>
-    public class GameBootstrap : MonoBehaviour
+    public partial class GameBootstrap : MonoBehaviour
     {
         /// <summary>false 로 바꾸면 빈 씬에서 자동 생성되지 않는다(직접 만든 씬을 쓸 때).</summary>
         public static bool AutoStart = true;
 
         static GameBootstrap instance;
         GameObject worldRoot;
+        bool useAssets;
 
         static readonly Rect WorldBounds = new Rect(-16f, -11f, 68f, 22f);
-        static readonly Vector2 PlayerSpawn = new Vector2(0f, 3.6f);
+        static readonly Vector2 PlayerSpawn = new Vector2(0f, 2.8f);
         static readonly Vector2 PostOfficePos = new Vector2(0f, 7.5f);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -73,9 +74,25 @@ namespace MoonlightPost
             var hud = systems.AddComponent<HUD>();
             hud.worldBounds = WorldBounds;
             hud.postOfficePos = PostOfficePos;
+            systems.AddComponent<Sound>();
 
-            BuildGround(hud);
-            BuildBorders();
+            // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
+            useAssets = GameAssets.Available;
+            Spawner.PropTint = useAssets ? GameAssets.NightTint : Color.white;
+            Spawner.CharacterTint = useAssets ? GameAssets.CharacterTint : Color.white;
+
+            BuildMapAndColliders(hud);
+            if (useAssets)
+            {
+                BuildTileGround();
+                BuildAssetScenery();
+            }
+            else
+            {
+                BuildPaintedGround();
+                BuildCodeHedges();
+                BuildBorders();
+            }
             BuildVillage();
             BuildForest();
             BuildAmbience();
@@ -88,12 +105,34 @@ namespace MoonlightPost
 
         // ------------------------------------------------------------------ 바닥
 
-        void BuildGround(HUD hud)
+        static readonly Rect VillageArea = new Rect(-16f, -11f, 33f, 22f);
+        static readonly Rect ForestArea = new Rect(17f, -11f, 35f, 22f);
+        static readonly Rect ThicketArea = new Rect(20f, -3f, 22f, 6f);
+        static readonly Rect SeaArea = new Rect(-16f, -11f, 24f, 3f);
+
+        void BuildMapAndColliders(HUD hud)
         {
-            var village = new Rect(-16f, -11f, 33f, 22f);
-            var forest = new Rect(17f, -11f, 35f, 22f);
-            var thicket = new Rect(20f, -3f, 22f, 6f);
-            var water = new Rect(-16f, -11f, 24f, 3f);
+            hud.regions.Add(new HUD.MapRegion { area = VillageArea, color = new Color(0.2f, 0.28f, 0.4f), label = "마을" });
+            hud.regions.Add(new HUD.MapRegion { area = ForestArea, color = new Color(0.1f, 0.22f, 0.2f), label = "동쪽 숲" });
+            hud.regions.Add(new HUD.MapRegion { area = ThicketArea, color = new Color(0.04f, 0.1f, 0.08f), label = "덤불" });
+            hud.regions.Add(new HUD.MapRegion { area = SeaArea, color = new Color(0.1f, 0.18f, 0.38f), label = "밤바다" });
+
+            // 충돌: 바깥 경계, 바다, 울타리, 덤불
+            Spawner.Collider("Wall_N", new Vector2(18f, 11.5f), new Vector2(70f, 1f));
+            Spawner.Collider("Wall_S", new Vector2(18f, -11.5f), new Vector2(70f, 1f));
+            Spawner.Collider("Wall_W", new Vector2(-16.5f, 0f), new Vector2(1f, 24f));
+            Spawner.Collider("Wall_E", new Vector2(52.5f, 0f), new Vector2(1f, 24f));
+            Spawner.Collider("Sea", new Vector2(-4f, -9.6f), new Vector2(24f, 2.8f));
+            Spawner.Collider("Fence_N", new Vector2(17f, 6.5f), new Vector2(1f, 9f));
+            Spawner.Collider("Fence_S", new Vector2(17f, -6.5f), new Vector2(1f, 9f));
+            Spawner.Collider("Thicket", ThicketArea.center, ThicketArea.size);
+        }
+
+        void BuildPaintedGround()
+        {
+            var village = VillageArea;
+            var forest = ForestArea;
+            var water = SeaArea;
 
             var g = new GroundPainter(WorldBounds);
             g.Fill(village, GroundPainter.Grass);
@@ -120,22 +159,10 @@ namespace MoonlightPost
             g.Fill(new Rect(44f, -8f, 5f, 1.8f), GroundPainter.Dirt, true, 13);
             g.Fill(new Rect(44f, 6.6f, 5.6f, 1.8f), GroundPainter.Dirt, true, 14);
             g.Build(worldRoot.transform, -1000);
+        }
 
-            hud.regions.Add(new HUD.MapRegion { area = village, color = new Color(0.2f, 0.28f, 0.4f), label = "마을" });
-            hud.regions.Add(new HUD.MapRegion { area = forest, color = new Color(0.1f, 0.22f, 0.2f), label = "동쪽 숲" });
-            hud.regions.Add(new HUD.MapRegion { area = thicket, color = new Color(0.04f, 0.1f, 0.08f), label = "덤불" });
-            hud.regions.Add(new HUD.MapRegion { area = water, color = new Color(0.1f, 0.18f, 0.38f), label = "밤바다" });
-
-            // 충돌: 바깥 경계, 바다, 울타리, 덤불
-            Spawner.Collider("Wall_N", new Vector2(18f, 11.5f), new Vector2(70f, 1f));
-            Spawner.Collider("Wall_S", new Vector2(18f, -11.5f), new Vector2(70f, 1f));
-            Spawner.Collider("Wall_W", new Vector2(-16.5f, 0f), new Vector2(1f, 24f));
-            Spawner.Collider("Wall_E", new Vector2(52.5f, 0f), new Vector2(1f, 24f));
-            Spawner.Collider("Sea", new Vector2(-4f, -9.6f), new Vector2(24f, 2.8f));
-            Spawner.Collider("Fence_N", new Vector2(17f, 6.5f), new Vector2(1f, 9f));
-            Spawner.Collider("Fence_S", new Vector2(17f, -6.5f), new Vector2(1f, 9f));
-            Spawner.Collider("Thicket", thicket.center, thicket.size);
-
+        void BuildCodeHedges()
+        {
             // 산울타리와 덤불은 1타일 높이 띠로 쌓아서, 캐릭터와 앞뒤가 자연스럽게 겹치게 한다.
             for (int y = 2; y < 11; y++) Hedge("Fence", new Vector2(17f, y), 1, y);
             for (int y = -11; y < -2; y++) Hedge("Fence", new Vector2(17f, y), 1, y + 50);
@@ -170,14 +197,8 @@ namespace MoonlightPost
         {
             var visuals = WorldVisuals.I;
 
-            // 우체국
-            Spawner.Building("PostOffice", PostOfficePos, new Vector2(7f, 3.5f), Art.Building("postoffice", new Art.BuildingLook
-            {
-                widthTiles = 7, heightTiles = 5, wallPx = 40, wall = "#8a5a4a", roof = "#47386a", brick = true,
-                windows = 2, windowsLit = true, door = true, sign = 1
-            }));
-            var counter = Spawner.Prop("Counter", new Vector2(0f, 4.75f), Art.Counter);
-            counter.AddComponent<PostOfficeCounter>().rangeScale = 1.2f;
+            if (useAssets) BuildVillageBuildingsFromAssets(visuals);
+            else BuildVillageBuildingsCode(visuals);
 
             // 우체국 등불: 마지막 편지를 배달하면 켜진다.
             visuals.Register(Group("PostLamp_Off", () => Spawner.Lamp(new Vector2(3.2f, 5.3f), false)), "!lamp_lit");
@@ -186,6 +207,55 @@ namespace MoonlightPost
                 Spawner.Lamp(new Vector2(3.2f, 5.3f), true);
                 Spawner.Glow(new Vector2(3.2f, 6.5f), 9f, new Color(1f, 0.85f, 0.5f, 0.25f));
             }), "lamp_lit");
+
+            Spawner.Lamp(new Vector2(-3.6f, 1.6f), true);
+            Spawner.Lamp(new Vector2(5.6f, 1.6f), true);
+            Spawner.Lamp(new Vector2(-4f, -2.4f), false);
+            Spawner.Lamp(new Vector2(15.8f, 2.2f), true);
+            Spawner.Lamp(new Vector2(15.8f, -2.8f), true);
+
+            int v = 0;
+            foreach (var p in new[]
+                     {
+                         new Vector2(-14f, 8.5f), new Vector2(14f, 8.8f), new Vector2(-14.5f, 3f), new Vector2(14.5f, -8.6f),
+                         new Vector2(-5.5f, 9f), new Vector2(5f, 9.4f), new Vector2(-14f, -6.5f), new Vector2(4.5f, -3.4f)
+                     })
+            {
+                if (useAssets) Spawner.Tree(p, VillageTreeSprite(v), 0.45f);
+                else Spawner.Tree(p, false, v);
+                v++;
+            }
+
+            // 주민: 조건에 따라 서 있는 위치가 바뀐다(같은 id 의 NPC 를 조건별로 하나씩 둔다).
+            visuals.Register(Spawner.Npc("mira", new Vector2(-9f, 3.4f), Art.Mira, 1f, "Woman").gameObject, "!reply_softened");
+            // 답장의 마지막 줄을 부드럽게 전하면, 미라는 숲 쪽 문 앞에 나와 서 있다.
+            visuals.Register(Spawner.Npc("mira", new Vector2(14.5f, 0.6f), Art.Mira, 1f, "Woman").gameObject, "reply_softened");
+            visuals.Register(Spawner.Npc("noah", new Vector2(4.5f, -7.2f), Art.Noah, 0.82f, "Child").gameObject, "!lamp_lit");
+            visuals.Register(Spawner.Npc("noah", new Vector2(1.8f, 4.3f), Art.Noah, 0.82f, "Child").gameObject, "lamp_lit");
+        }
+
+        /// <summary>build 안에서 만든 오브젝트를 하나의 부모로 묶는다(조건부 표시용).</summary>
+        GameObject Group(string name, System.Action build)
+        {
+            var group = new GameObject(name);
+            group.transform.SetParent(worldRoot.transform, false);
+            var previous = Spawner.Root;
+            Spawner.Root = group.transform;
+            build();
+            Spawner.Root = previous;
+            return group;
+        }
+
+        void BuildVillageBuildingsCode(WorldVisuals visuals)
+        {
+            // 우체국
+            Spawner.Building("PostOffice", PostOfficePos, new Vector2(7f, 3.5f), Art.Building("postoffice", new Art.BuildingLook
+            {
+                widthTiles = 7, heightTiles = 5, wallPx = 40, wall = "#8a5a4a", roof = "#47386a", brick = true,
+                windows = 2, windowsLit = true, door = true, sign = 1
+            }));
+            var counter = Spawner.Prop("Counter", new Vector2(0f, 4.75f), Art.Counter);
+            counter.AddComponent<PostOfficeCounter>().rangeScale = 1.2f;
 
             // 빵집: 첫 편지 배달 후 다시 문을 연다.
             var bakeryCenter = new Vector2(-9f, 6f);
@@ -225,38 +295,6 @@ namespace MoonlightPost
             Spawner.Glow(new Vector2(9f, 6.2f), 3.5f, new Color(1f, 0.8f, 0.45f, 0.25f));
             Spawner.Glow(new Vector2(11f, -4.6f), 3f, new Color(1f, 0.8f, 0.45f, 0.25f));
 
-            Spawner.Lamp(new Vector2(-3.6f, 1.6f), true);
-            Spawner.Lamp(new Vector2(5.6f, 1.6f), true);
-            Spawner.Lamp(new Vector2(-4f, -2.4f), false);
-            Spawner.Lamp(new Vector2(15.8f, 2.2f), true);
-            Spawner.Lamp(new Vector2(15.8f, -2.8f), true);
-
-            int v = 0;
-            foreach (var p in new[]
-                     {
-                         new Vector2(-14f, 8.5f), new Vector2(14f, 8.8f), new Vector2(-14.5f, 3f), new Vector2(14.5f, -8.6f),
-                         new Vector2(-5.5f, 9f), new Vector2(5f, 9.4f), new Vector2(-14f, -6.5f), new Vector2(4.5f, -3.4f)
-                     })
-                Spawner.Tree(p, false, v++);
-
-            // 주민: 조건에 따라 서 있는 위치가 바뀐다(같은 id 의 NPC 를 조건별로 하나씩 둔다).
-            visuals.Register(Spawner.Npc("mira", new Vector2(-9f, 3.4f), Art.Mira).gameObject, "!reply_softened");
-            // 답장의 마지막 줄을 부드럽게 전하면, 미라는 숲 쪽 문 앞에 나와 서 있다.
-            visuals.Register(Spawner.Npc("mira", new Vector2(14.5f, 0.6f), Art.Mira).gameObject, "reply_softened");
-            visuals.Register(Spawner.Npc("noah", new Vector2(4.5f, -7.2f), Art.Noah, 0.82f).gameObject, "!lamp_lit");
-            visuals.Register(Spawner.Npc("noah", new Vector2(1.8f, 4.3f), Art.Noah, 0.82f).gameObject, "lamp_lit");
-        }
-
-        /// <summary>build 안에서 만든 오브젝트를 하나의 부모로 묶는다(조건부 표시용).</summary>
-        GameObject Group(string name, System.Action build)
-        {
-            var group = new GameObject(name);
-            group.transform.SetParent(worldRoot.transform, false);
-            var previous = Spawner.Root;
-            Spawner.Root = group.transform;
-            build();
-            Spawner.Root = previous;
-            return group;
         }
 
         // ------------------------------------------------------------------ 숲
@@ -264,8 +302,10 @@ namespace MoonlightPost
         void BuildForest()
         {
             // 쓰러진 나무(밤마다 한쪽만 켜짐). 땅에 누워 있으므로 캐릭터보다 항상 아래에 그린다.
-            var northLog = Spawner.Prop("FallenLog_North", new Vector2(30f, 7f), Art.Log, new Vector2(1.2f, 8f), Vector2.zero, -300);
-            var southLog = Spawner.Prop("FallenLog_South", new Vector2(30f, -7f), Art.Log, new Vector2(1.2f, 8f), Vector2.zero, -300);
+            var northLog = useAssets ? AssetLog("FallenLog_North", new Vector2(30f, 7f))
+                : Spawner.Prop("FallenLog_North", new Vector2(30f, 7f), Art.Log, new Vector2(1.2f, 8f), Vector2.zero, -300);
+            var southLog = useAssets ? AssetLog("FallenLog_South", new Vector2(30f, -7f))
+                : Spawner.Prop("FallenLog_South", new Vector2(30f, -7f), Art.Log, new Vector2(1.2f, 8f), Vector2.zero, -300);
 
             int v = 0;
             foreach (var p in new[]
@@ -274,16 +314,23 @@ namespace MoonlightPost
                          new Vector2(23.5f, -9.9f), new Vector2(27f, -4.9f), new Vector2(36f, -10f), new Vector2(40f, -4.9f),
                          new Vector2(51f, -9.8f), new Vector2(45.5f, 9.6f), new Vector2(50.5f, 4.5f), new Vector2(45f, -1.8f)
                      })
-                Spawner.Tree(p, v % 3 != 0, v++);
+            {
+                if (useAssets) Spawner.Tree(p, ForestTreeSprite(v), 0.4f);
+                else Spawner.Tree(p, v % 3 != 0, v);
+                v++;
+            }
 
             // 오웬의 오두막
-            Spawner.Building("Hut", new Vector2(47.5f, -4.5f), new Vector2(4f, 3f), Art.Building("hut", new Art.BuildingLook
-            {
-                widthTiles = 4, heightTiles = 4, wallPx = 30, wall = "#6a5038", roof = "#6e6644", thatch = true,
-                windows = 1, windowsLit = true, door = true
-            }));
+            if (useAssets)
+                Spawner.Building("Hut", new Vector2(47.5f, -4.75f), new Vector2(3.6f, 2.5f), GameAssets.Tile("TilesetHouse", 25, 14, 4, 5));
+            else
+                Spawner.Building("Hut", new Vector2(47.5f, -4.5f), new Vector2(4f, 3f), Art.Building("hut", new Art.BuildingLook
+                {
+                    widthTiles = 4, heightTiles = 4, wallPx = 30, wall = "#6a5038", roof = "#6e6644", thatch = true,
+                    windows = 1, windowsLit = true, door = true
+                }));
             Spawner.Glow(new Vector2(47.5f, -5f), 4f, new Color(1f, 0.78f, 0.45f, 0.3f));
-            Spawner.Npc("owen", new Vector2(47.5f, -6.9f), Art.Owen);
+            Spawner.Npc("owen", new Vector2(47.5f, -6.9f), Art.Owen, 1f, "Hunter");
 
             // 낡은 우체통 (편지 3의 받는 곳)
             var mailbox = Spawner.Prop("NPC_old_mailbox", new Vector2(49f, 7.6f), Art.Mailbox, new Vector2(0.8f, 0.5f), new Vector2(0f, 0.25f));
@@ -292,7 +339,7 @@ namespace MoonlightPost
 
             // 단서
             var sack = Clue("flour_sack", new Vector2(34f, 7f), Art.FlourSack);
-            Clue("old_sign", new Vector2(44.6f, 4.4f), Art.Signpost);
+            Clue("old_sign", new Vector2(44.6f, 4.4f), useAssets ? GameAssets.Tile("TilesetNature", 5, 8) : Art.Signpost);
 
             var director = new GameObject("NightDirector").AddComponent<NightDirector>();
             director.transform.SetParent(worldRoot.transform, false);
@@ -362,7 +409,8 @@ namespace MoonlightPost
             go.AddComponent<CircleCollider2D>().radius = 0.35f;
 
             go.AddComponent<Health>();
-            var body = Spawner.Character(go, Art.Player);
+            var playerSheet = useAssets ? GameAssets.Sheet("Inspector") : null;
+            var body = playerSheet != null ? Spawner.Character(go, playerSheet) : Spawner.Character(go, Art.Player);
             // 배달부 주변을 은은하게 밝히는 손등불
             Spawner.Glow(PlayerSpawn, 4.5f, new Color(1f, 0.9f, 0.7f, 0.12f), go.transform);
 

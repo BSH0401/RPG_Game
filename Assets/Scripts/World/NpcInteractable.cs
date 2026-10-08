@@ -25,6 +25,8 @@ namespace MoonlightPost
 
         public override void Interact(PlayerController player)
         {
+            var anim = GetComponent<SpriteAnimator>();
+            if (anim != null) anim.FaceToward(player.transform.position);
             if (LetterManager.TryDeliver(npcId)) return;
 
             var def = Def;

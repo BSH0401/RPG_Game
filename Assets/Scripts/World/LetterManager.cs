@@ -60,6 +60,7 @@ namespace MoonlightPost
             lines.Add(new DialogueLine("", "「" + next.title + "」을(를) 받았다. (체력 회복)"));
             DialogueSystem.I.Show(lines);
             HUD.Toast(GameState.Night + "번째 밤 — 동쪽 숲의 길이 바뀌었다.");
+            Sound.Play("LetterGet");
         }
 
         /// <summary>recipientId 가 들고 있는 편지의 받는 사람이면 배달 흐름을 시작하고 true.</summary>
@@ -109,6 +110,7 @@ namespace MoonlightPost
             if (!string.IsNullOrEmpty(letter.rewardText)) lines.Add(new DialogueLine("", letter.rewardText));
             DialogueSystem.I.Show(lines);
             HUD.Toast("배달 완료 — 마을로 돌아가 달라진 점을 확인해보자.");
+            Sound.Play("Delivered");
         }
     }
 }

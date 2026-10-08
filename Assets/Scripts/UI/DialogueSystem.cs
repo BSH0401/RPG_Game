@@ -70,6 +70,7 @@ namespace MoonlightPost
 
             if (GameInput.AdvancePressed)
             {
+                Sound.Play("Talk", 0.35f);
                 index++;
                 if (index >= lines.Count) Close();
             }
@@ -117,7 +118,18 @@ namespace MoonlightPost
                     Ui.Panel(tag);
                     GUI.Label(new Rect(tag.x + 14f * s, tag.y + 6f * s, tag.width - 20f * s, 30f * s), line.speaker, Ui.Title);
                 }
-                GUI.Label(new Rect(box.x + pad, box.y + 32f * s, box.width - pad * 2, box.height - 44f * s), line.text, Ui.Text);
+                float textX = box.x + pad;
+                var portrait = GameAssets.PortraitFor(line.speaker);
+                if (portrait != null)
+                {
+                    // 말하는 사람 얼굴 (38x38 픽셀 그림을 3배로)
+                    float size = 114f * s;
+                    var frame = new Rect(box.x + pad, box.y + (box.height - size) * 0.5f + 6f * s, size, size);
+                    Ui.Fill(new Rect(frame.x - 3f * s, frame.y - 3f * s, frame.width + 6f * s, frame.height + 6f * s), new Color(0.78f, 0.66f, 0.42f, 0.9f));
+                    GUI.DrawTexture(frame, portrait);
+                    textX = frame.xMax + 20f * s;
+                }
+                GUI.Label(new Rect(textX, box.y + 32f * s, box.xMax - pad - textX, box.height - 44f * s), line.text, Ui.Text);
             }
 
             if (AtChoices)

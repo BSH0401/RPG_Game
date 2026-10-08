@@ -42,6 +42,10 @@ namespace MoonlightPost
         Rigidbody2D rb;
         SpriteRenderer body;
         SpriteRenderer slash;
+        SpriteAnimator animator;
+        Sprite[] slashFrames;
+        float slashAngleOffset = -90f;
+        const float SlashDuration = 0.15f;
         Color bodyColor;
         Vector2 moveInput;
         Vector2 dodgeDir;
@@ -55,6 +59,14 @@ namespace MoonlightPost
             bodyColor = body.color;
             slash = slashRenderer;
             slash.enabled = false;
+            animator = GetComponent<SpriteAnimator>();
+            slashFrames = GameAssets.Available ? GameAssets.SlashFrames : null;
+            if (slashFrames != null)
+            {
+                // 에셋의 베기 그림은 아래쪽으로 휜 반달이라 회전 기준이 반대다.
+                slash.sprite = slashFrames[0];
+                slashAngleOffset = 90f;
+            }
         }
 
         void Awake()
@@ -93,6 +105,7 @@ namespace MoonlightPost
 
             moveInput = GameInput.Move;
             if (moveInput.sqrMagnitude > 0.01f) Facing = moveInput.normalized;
+            if (animator != null) animator.SetFacing(Facing);
 
             if (GameInput.DodgePressed && Time.time >= nextDodge) StartDodge();
             if (GameInput.AttackPressed && Time.time >= nextAttack && !IsDodging) Attack();
@@ -152,10 +165,12 @@ namespace MoonlightPost
             }
 
             // 바라보는 방향으로 반달 모양 베기 효과
-            slash.transform.position = (Vector2)transform.position + Facing * 0.15f;
-            slash.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(Facing.y, Facing.x) * Mathf.Rad2Deg - 90f);
+            slash.transform.position = (Vector2)transform.position + Facing * (slashFrames != null ? 0.6f : 0.15f);
+            slash.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(Facing.y, Facing.x) * Mathf.Rad2Deg + slashAngleOffset);
             slash.enabled = true;
-            slashUntil = Time.time + 0.12f;
+            slashUntil = Time.time + SlashDuration;
+            if (animator != null && animator.sheet != null && animator.sheet.HasAttackRow) animator.PlayAction(4, 0.2f);
+            Sound.Play("Attack", 0.7f);
         }
 
         void UseTool()
@@ -172,6 +187,7 @@ namespace MoonlightPost
                 }
             }
             RingFx.Spawn(pos, toolRadius, new Color(0.55f, 0.9f, 1f, 0.9f), 0.4f);
+            Sound.Play("Tool");
             if (count > 0) HUD.Toast("봉인끈이 " + count + "마리를 묶었다!");
         }
 
@@ -181,6 +197,7 @@ namespace MoonlightPost
             knockback = ((Vector2)transform.position - from).normalized * 8f;
             knockUntil = Time.time + 0.12f;
             CameraFollow.Shake(0.15f);
+            Sound.Play("PlayerHurt");
         }
 
         void OnDied()
@@ -204,8 +221,14 @@ namespace MoonlightPost
         {
             if (slash != null && slash.enabled)
             {
-                if (Time.time >= slashUntil) slash.enabled = false;
-                else slash.color = new Color(1f, 1f, 1f, Mathf.Clamp01((slashUntil - Time.time) / 0.12f));
+                float remaining = slashUntil - Time.time;
+                if (remaining <= 0f) slash.enabled = false;
+                else if (slashFrames != null)
+                {
+                    int i = (int)((1f - remaining / SlashDuration) * slashFrames.Length);
+                    slash.sprite = slashFrames[Mathf.Clamp(i, 0, slashFrames.Length - 1)];
+                }
+                else slash.color = new Color(1f, 1f, 1f, Mathf.Clamp01(remaining / SlashDuration));
             }
             if (body == null) return;
             if (Health.IsDead) body.color = new Color(bodyColor.r, bodyColor.g, bodyColor.b, 0.3f);

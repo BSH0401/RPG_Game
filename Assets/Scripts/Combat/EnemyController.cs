@@ -197,6 +197,7 @@ namespace MoonlightPost
                 if (dist <= slamRadius) player.Health.TakeDamage(slamDamage, transform.position);
                 RingFx.Spawn(transform.position, slamRadius, new Color(1f, 0.4f, 0.4f, 0.9f));
                 CameraFollow.Shake(0.2f);
+                Sound.Play("BossSlam");
                 EnterState(State.Recover, recoverTime);
             }
         }
@@ -214,6 +215,7 @@ namespace MoonlightPost
         void OnDamaged(Vector2 from)
         {
             flashUntil = Time.time + 0.1f;
+            Sound.Play("EnemyHit", 0.8f);
             // 보스는 공격 중에 맞아도 멈추지 않는다(슈퍼아머).
             if (isBoss && (state == State.Windup || state == State.Lunge)) return;
             if (state == State.Stunned) return;
@@ -230,6 +232,8 @@ namespace MoonlightPost
             }
             if (isBoss) HUD.Toast(displayName + "을(를) 물리쳤다!");
             RingFx.Spawn(transform.position, isBoss ? 2.5f : 1f, new Color(0.8f, 0.7f, 1f, 0.9f), 0.5f);
+            if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, transform.position, 16f, Color.white, 600, isBoss ? 3f : 1.5f);
+            Sound.Play("EnemyDie");
             Destroy(gameObject);
         }
 

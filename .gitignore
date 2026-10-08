@@ -32,3 +32,6 @@ sysinfo.txt
 .idea/
 .DS_Store
 Thumbs.db
+
+# 에셋 원본 압축 파일은 저장소에 넣지 않는다(필요한 파일만 풀어서 넣기)
+Assets/**/*.zip

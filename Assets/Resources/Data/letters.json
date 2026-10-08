@@ -59,8 +59,10 @@
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "숲 입구 우편함에 답장이 꽂혀 있었다. 밀가루 자루와 함께 도착한 편지다." },
         { "speaker": "우체국 창구", "text": "보낸 사람은 오웬. 받는 사람은 빵집 주인 미라." },
-        { "speaker": "", "text": "봉투가 얇아서 마지막 줄이 비쳐 보인다. '...그래도 나는 돌아가지 않을 거다.'" }
+        { "speaker": "", "text": "봉투가 얇아서 마지막 줄이 비쳐 보인다. '...그래도 나는 돌아가지 않을 거다.'" },
+        { "speaker": "우체국 창구", "text": "창구 서랍 깊은 곳에서 오래된 '속달 봉투' 묶음이 나왔다. 옛 우체부가 쓰던 편지 도구다." }
       ],
+      "receiveItem": "express_letter",
       "deliverPrompt": [
         { "speaker": "미라", "text": "오빠한테서? ...정말 답장이 왔네." },
         { "speaker": "", "text": "미라는 편지를 직접 읽기 무섭다며, 내용을 대신 들려달라고 한다." }
@@ -85,7 +87,8 @@
       ],
       "deliveredFlag": "reply_delivered",
       "rewardMaxHp": 0,
-      "rewardText": "미라가 갓 구운 빵을 쥐여주었다."
+      "rewardItem": "paper_letter",
+      "rewardText": "미라가 편지지로 단단히 접은 '날아가는 편지'를 쥐여주었다. [C] 키로 편지 도구를 바꿀 수 있다."
     },
     {
       "id": "noah_letter",

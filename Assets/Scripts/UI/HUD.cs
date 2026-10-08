@@ -21,6 +21,17 @@ namespace MoonlightPost
             public float until;
         }
 
+        struct PopupMsg
+        {
+            public Vector2 world;
+            public string text;
+            public Color color;
+            public float start;
+        }
+
+        readonly List<PopupMsg> popups = new List<PopupMsg>();
+        GUIStyle popupStyle;
+
         public static HUD I { get; private set; }
         public static bool MapOpen { get; private set; }
         public static bool BagOpen { get; private set; }
@@ -47,6 +58,14 @@ namespace MoonlightPost
                 SetMap(false);
                 SetBag(false);
             }
+        }
+
+        /// <summary>월드 위에 잠깐 떠올랐다 사라지는 글자(피해 숫자, 막기, 받아치기).</summary>
+        public static void Popup(Vector2 world, string text, Color color)
+        {
+            if (I == null) return;
+            I.popups.Add(new PopupMsg { world = world, text = text, color = color, start = Time.unscaledTime });
+            if (I.popups.Count > 20) I.popups.RemoveAt(0);
         }
 
         public static void Toast(string text)
@@ -97,6 +116,7 @@ namespace MoonlightPost
             DrawNameLabels(player);
             DrawBossBar(player);
             if (!DialogueSystem.IsOpen && !MapOpen && !BagOpen) DrawPrompt(player);
+            DrawPopups();
             DrawToasts();
             if (showHelp && Time.unscaledTime < helpUntil && !MapOpen && !BagOpen) DrawHelp();
             if (MapOpen) DrawMap(player);
@@ -113,17 +133,30 @@ namespace MoonlightPost
                 Ui.Icon(r, i < hp.Current ? Art.HeartFull : Art.HeartEmpty);
             }
 
+            // 지금 끼운 편지 도구 (아이콘 + 이름 + 재사용 대기)
+            var part = Inventory.CurrentToolPart;
+            string partName = part != null ? part.name : "봉인끈";
             float cd = player.ToolCooldownRemaining;
-            string tool = cd > 0f ? "[Q] 봉인끈  " + cd.ToString("0.0") + "초" : "[Q] 봉인끈  준비됨";
-            Ui.Shadow(Ui.R(16, 46, 300, 26), tool, Ui.Small);
-            Ui.Shadow(Ui.R(16, 70, 300, 26), GameState.Night > 0 ? GameState.Night + "번째 밤" : "첫 밤 전", Ui.Small);
+            var iconRect = Ui.R(16, 46, 22, 22);
+            Ui.Fill(iconRect, new Color(0f, 0f, 0f, 0.45f));
+            if (part != null) DrawIconFit(new Rect(iconRect.x + 2, iconRect.y + 2, iconRect.width - 4, iconRect.height - 4), GameAssets.ItemIcon(part.icon));
+            if (cd > 0f)
+            {
+                float maxCd = part != null && part.value > 0f ? part.value : 6f;
+                float k = Mathf.Clamp01(cd / maxCd);
+                Ui.Fill(new Rect(iconRect.x, iconRect.y, iconRect.width, iconRect.height * k), new Color(0f, 0f, 0.1f, 0.6f));
+            }
+            string tool = "[Q] " + partName + (cd > 0f ? "  " + cd.ToString("0.0") + "초" : "  준비됨");
+            if (Inventory.OwnedPartCount() > 1) tool += "   <color=#9fb3ff>[C] 바꾸기</color>";
+            Ui.Shadow(Ui.R(44, 46, 400, 26), tool, Ui.Small);
+            Ui.Shadow(Ui.R(16, 74, 300, 26), GameState.Night > 0 ? GameState.Night + "번째 밤" : "첫 밤 전", Ui.Small);
 
             // 먹을 것 개수
             int food = Inventory.ConsumableCount();
             if (food > 0)
             {
-                Ui.Icon(Ui.R(16, 96, 22, 22), GameAssets.ItemIcon("Croissant"));
-                Ui.Shadow(Ui.R(44, 94, 260, 26), "x" + food + "  [R] 먹기", Ui.Small);
+                Ui.Icon(Ui.R(16, 102, 22, 22), GameAssets.ItemIcon("Croissant"));
+                Ui.Shadow(Ui.R(44, 100, 260, 26), "x" + food + "  [R] 먹기", Ui.Small);
             }
         }
 
@@ -162,7 +195,10 @@ namespace MoonlightPost
                     float iw = icon.width * k, ih = icon.height * k;
                     GUI.DrawTexture(new Rect(iconBox.center.x - iw * 0.5f, iconBox.center.y - ih * 0.5f, iw, ih), icon);
                 }
-                string tag = def.IsEquipment ? "<color=#9fe0a0>장비</color>" : def.IsConsumable ? "<color=#ffd98a>소모품</color>" : "<color=#b8c4ff>열쇠</color>";
+                string tag = def.IsEquipment ? "<color=#9fe0a0>장비</color>"
+                    : def.IsConsumable ? "<color=#ffd98a>소모품</color>"
+                    : def.IsPart ? (Inventory.CurrentToolPart == def ? "<color=#ffb070>편지 도구 · 사용 중</color>" : "<color=#ffb070>편지 도구</color>")
+                    : "<color=#b8c4ff>열쇠</color>";
                 string count = items[i].count > 1 ? "  x" + items[i].count : "";
                 GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 4 * s, row.width - 90 * s, 28 * s), "<b>" + def.name + "</b>" + count + "   " + tag, Ui.Text);
                 GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 32 * s, row.width - 90 * s, 34 * s), def.description, Ui.Small);
@@ -250,18 +286,54 @@ namespace MoonlightPost
             }
         }
 
+        void DrawPopups()
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+            if (popupStyle == null || popupStyle.fontSize != Ui.Px(20))
+            {
+                popupStyle = new GUIStyle(Ui.Center) { fontSize = Ui.Px(20), fontStyle = FontStyle.Bold };
+            }
+            const float life = 0.8f;
+            popups.RemoveAll(p => Time.unscaledTime - p.start > life);
+            foreach (var p in popups)
+            {
+                float t = (Time.unscaledTime - p.start) / life;
+                Vector3 sp = cam.WorldToScreenPoint(p.world + Vector2.up * (t * 0.8f));
+                var r = new Rect(sp.x - 80 * Ui.S, Screen.height - sp.y - 16 * Ui.S, 160 * Ui.S, 32 * Ui.S);
+                var c = p.color;
+                c.a = 1f - t * t;
+                var old = popupStyle.normal.textColor;
+                popupStyle.normal.textColor = new Color(0f, 0f, 0f, c.a * 0.8f);
+                GUI.Label(new Rect(r.x + 2, r.y + 2, r.width, r.height), p.text, popupStyle);
+                popupStyle.normal.textColor = c;
+                GUI.Label(r, p.text, popupStyle);
+                popupStyle.normal.textColor = old;
+            }
+        }
+
+        static void DrawIconFit(Rect box, Texture2D icon)
+        {
+            if (icon == null) return;
+            float k = Mathf.Min(box.width / icon.width, box.height / icon.height);
+            float w = icon.width * k, h = icon.height * k;
+            GUI.DrawTexture(new Rect(box.center.x - w * 0.5f, box.center.y - h * 0.5f, w, h), icon);
+        }
+
         void DrawHelp()
         {
             float s = Ui.S;
-            var r = new Rect(16 * s, Screen.height - 270 * s, 330 * s, 254 * s);
+            var r = new Rect(16 * s, Screen.height - 316 * s, 360 * s, 300 * s);
             Ui.Panel(r);
             GUI.Label(new Rect(r.x + 12 * s, r.y + 8 * s, r.width - 24 * s, r.height - 16 * s),
                 "<b>조작법</b>  (F1로 숨기기)\n" +
                 "WASD / 방향키  이동\n" +
                 "마우스 왼쪽 / J  공격\n" +
                 "Space / Shift  회피 (무적)\n" +
+                "우클릭 / K (누르기)  우편가방 막기\n" +
+                "  └ 맞기 직전에 누르면 받아치기!\n" +
                 "E  조사 · 대화 · 배달\n" +
-                "Q  봉인끈 (주변 적 묶기)\n" +
+                "Q  편지 도구   C  도구 바꾸기\n" +
                 "R  먹기 (체력 회복)\n" +
                 "I  가방   Tab / M  지도\n" +
                 "F12  저장 삭제 후 새 게임", Ui.Small);

@@ -128,7 +128,7 @@ namespace MoonlightPost
                     if (!lungeHit && dist < hitRadius)
                     {
                         lungeHit = true;
-                        player.Health.TakeDamage(lungeDamage, pos);
+                        player.ReceiveAttack(this, lungeDamage, pos, false);
                     }
                     if (Time.time >= stateEnd) EnterState(State.Recover, recoverTime);
                     break;
@@ -167,6 +167,8 @@ namespace MoonlightPost
             // 공격 예고: 돌진은 진행 방향의 띠, 내려찍기는 피해 범위 원.
             var t = telegraph.transform;
             Vector2 pos = transform.position;
+            // 빨간색 = 막을 수 있음, 주황색 = 막을 수 없음(피하거나 받아치기)
+            telegraph.color = currentAttack == EnemyAttack.Lunge ? new Color(1f, 0.2f, 0.25f, 0.35f) : new Color(1f, 0.55f, 0.05f, 0.42f);
             if (currentAttack == EnemyAttack.Lunge)
             {
                 float length = lungeSpeed * lungeTime + hitRadius;
@@ -194,7 +196,8 @@ namespace MoonlightPost
             }
             else
             {
-                if (dist <= slamRadius) player.Health.TakeDamage(slamDamage, transform.position);
+                // 내려찍기는 막을 수 없다(받아치기나 회피만 통한다).
+                if (dist <= slamRadius) player.ReceiveAttack(this, slamDamage, transform.position, true);
                 RingFx.Spawn(transform.position, slamRadius, new Color(1f, 0.4f, 0.4f, 0.9f));
                 CameraFollow.Shake(0.2f);
                 Sound.Play("BossSlam");
@@ -202,7 +205,23 @@ namespace MoonlightPost
             }
         }
 
-        public void TakeHit(int damage, Vector2 from) => Health.TakeDamage(damage, from);
+        float pendingKnock = 6f;
+
+        /// <summary>플레이어의 공격에 맞음. knock = 밀려나는 세기.</summary>
+        public void TakeHit(int damage, Vector2 from, float knock = 6f)
+        {
+            pendingKnock = knock;
+            if (Health.TakeDamage(damage, from))
+                HUD.Popup((Vector2)transform.position + Vector2.up * (isBoss ? 2.2f : 1f), "-" + damage, damage >= 2 ? new Color(1f, 0.85f, 0.3f) : Color.white);
+        }
+
+        /// <summary>공격이 막혔을 때 튕겨 나간다.</summary>
+        public void Recoil(Vector2 awayFrom)
+        {
+            if (Health.IsDead || state == State.Stunned) return;
+            EnterState(State.Hurt, isBoss ? 0.3f : 0.5f); // Hurt 상태는 밀려난 속도가 서서히 줄어든다
+            velocity = ((Vector2)transform.position - awayFrom).normalized * (isBoss ? 2f : 5f);
+        }
 
         public void Stun(float duration)
         {
@@ -220,7 +239,7 @@ namespace MoonlightPost
             if (isBoss && (state == State.Windup || state == State.Lunge)) return;
             if (state == State.Stunned) return;
             EnterState(State.Hurt, 0.2f);
-            velocity = ((Vector2)transform.position - from).normalized * (isBoss ? 2f : 6f);
+            velocity = ((Vector2)transform.position - from).normalized * (isBoss ? pendingKnock * 0.33f : pendingKnock);
         }
 
         void OnDied()

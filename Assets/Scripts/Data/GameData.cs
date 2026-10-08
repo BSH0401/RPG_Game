@@ -47,6 +47,8 @@ namespace MoonlightPost
         public string deliverCondition;
         public DialogueLine[] blockedLines;
         public DialogueLine[] receiveLines;
+        /// <summary>창구에서 이 편지를 받을 때 함께 얻는 아이템 id.</summary>
+        public string receiveItem;
         public DialogueLine[] deliverPrompt;
         public DeliveryChoice[] choices;
         public string deliveredFlag;
@@ -62,7 +64,8 @@ namespace MoonlightPost
         public string id;
         public string name;
         public string description;
-        /// <summary>equipment(가지고 있으면 항상 효과), consumable(R 키로 사용), key(열쇠·이야기 물건)</summary>
+        /// <summary>equipment(가지고 있으면 항상 효과), consumable(R 키로 사용), key(열쇠·이야기 물건),
+        /// part(편지 도구 부품: Q 의 효과를 바꾼다. C 키로 교체. value = 재사용 대기 초)</summary>
         public string kind;
         /// <summary>maxHp, dodge(회피 %), tool(봉인끈 %), light(시야), heal(회복)</summary>
         public string effect;
@@ -73,6 +76,7 @@ namespace MoonlightPost
 
         public bool IsEquipment => kind == "equipment";
         public bool IsConsumable => kind == "consumable";
+        public bool IsPart => kind == "part";
     }
 
     [Serializable]

@@ -51,6 +51,44 @@ namespace MoonlightPost
             return false;
         }
 
+        /// <summary>지금 끼운 편지 도구 부품. 없으면 null(기본 봉인끈으로 동작).</summary>
+        public static ItemDef CurrentToolPart
+        {
+            get
+            {
+                var def = GameData.GetItem(GameState.ToolPart);
+                return def != null && def.IsPart && GameState.ItemCount(def.id) > 0 ? def : GameData.GetItem("seal_string");
+            }
+        }
+
+        /// <summary>가진 부품 중 다음 것으로 바꾼다(C 키).</summary>
+        public static void CycleToolPart()
+        {
+            var owned = new System.Collections.Generic.List<ItemDef>();
+            foreach (var def in GameData.Items)
+                if (def.IsPart && GameState.ItemCount(def.id) > 0) owned.Add(def);
+            if (owned.Count <= 1)
+            {
+                HUD.Toast("바꿔 끼울 편지 도구가 아직 없다.");
+                return;
+            }
+            var current = CurrentToolPart;
+            int i = current != null ? owned.FindIndex(d => d.id == current.id) : -1;
+            var next = owned[(i + 1) % owned.Count];
+            GameState.SetToolPart(next.id);
+            GameState.Save();
+            HUD.Toast("편지 도구: " + next.name);
+            Sound.Play("Talk", 0.6f);
+        }
+
+        public static int OwnedPartCount()
+        {
+            int n = 0;
+            foreach (var def in GameData.Items)
+                if (def.IsPart && GameState.ItemCount(def.id) > 0) n++;
+            return n;
+        }
+
         public static int ConsumableCount()
         {
             int n = 0;

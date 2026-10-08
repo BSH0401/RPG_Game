@@ -53,6 +53,12 @@ namespace MoonlightPost
 
             GameState.AdvanceNight();
             GameState.SetCarrying(next.id);
+            if (!string.IsNullOrEmpty(next.receiveItem) && GameState.ItemCount(next.receiveItem) == 0)
+            {
+                GameState.AddItem(next.receiveItem);
+                var got = GameData.GetItem(next.receiveItem);
+                if (got != null) HUD.Toast("획득: " + got.name + "   [I] 가방");
+            }
             GameState.Save();
 
             var lines = new List<DialogueLine>();

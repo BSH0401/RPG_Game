@@ -16,6 +16,7 @@ namespace MoonlightPost
         static bool Held(Key key) => Kb != null && Kb[key].isPressed;
         static bool Down(Key key) => Kb != null && Kb[key].wasPressedThisFrame;
         static bool MouseLeftDown => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        static bool MouseRightHeld => Mouse.current != null && Mouse.current.rightButton.isPressed;
 
         public static Vector2 Move
         {
@@ -37,6 +38,9 @@ namespace MoonlightPost
         public static bool ResetPressed => Down(Key.F12);
         public static bool InventoryPressed => Down(Key.I);
         public static bool UseItemPressed => Down(Key.R);
+        /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
+        public static bool GuardHeld => MouseRightHeld || Held(Key.K);
+        public static bool SwitchToolPressed => Down(Key.C);
 
         public static bool ChoicePressed(int index)
         {
@@ -72,6 +76,9 @@ namespace MoonlightPost
         public static bool ResetPressed => Input.GetKeyDown(KeyCode.F12);
         public static bool InventoryPressed => Input.GetKeyDown(KeyCode.I);
         public static bool UseItemPressed => Input.GetKeyDown(KeyCode.R);
+        /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
+        public static bool GuardHeld => Input.GetMouseButton(1) || Input.GetKey(KeyCode.K);
+        public static bool SwitchToolPressed => Input.GetKeyDown(KeyCode.C);
 
         public static bool ChoicePressed(int index)
         {

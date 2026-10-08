@@ -16,6 +16,8 @@ namespace MoonlightPost
     public class SaveData
     {
         public List<ItemStack> items = new List<ItemStack>();
+        /// <summary>지금 끼운 편지 도구 부품(아이템 id).</summary>
+        public string toolPart = "seal_string";
         public List<string> flags = new List<string>();
         public string carryingLetterId = "";
         public int night;
@@ -46,6 +48,13 @@ namespace MoonlightPost
         /// <summary>기본 체력 + 장비(maxHp 효과) 보너스.</summary>
         public static int MaxHp => data.maxHp + Mathf.RoundToInt(Inventory.EffectSum("maxHp"));
         public static IReadOnlyList<ItemStack> Items => data.items;
+        public static string ToolPart => data.toolPart;
+
+        public static void SetToolPart(string id)
+        {
+            data.toolPart = id;
+            Changed?.Invoke();
+        }
         public static string CarryingLetterId => data.carryingLetterId;
 
         public static bool HasFlag(string flag)
@@ -178,6 +187,9 @@ namespace MoonlightPost
             if (data.flags == null) data.flags = new List<string>();
             if (data.carryingLetterId == null) data.carryingLetterId = "";
             if (data.items == null) data.items = new List<ItemStack>();
+            if (string.IsNullOrEmpty(data.toolPart)) data.toolPart = "seal_string";
+            // 기본 편지 도구는 처음부터 가지고 있다.
+            if (!data.items.Exists(s => s.id == "seal_string")) data.items.Insert(0, new ItemStack { id = "seal_string", count = 1 });
             if (data.maxHp <= 0) data.maxHp = BaseMaxHp;
             foreach (var f in data.flags) flags.Add(f);
 

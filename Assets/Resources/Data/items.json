@@ -1,6 +1,36 @@
 {
   "items": [
     {
+      "id": "seal_string",
+      "name": "봉인끈",
+      "description": "우체부의 기본 편지 도구. [Q] 주변의 적을 잠시 묶는다.",
+      "kind": "part",
+      "effect": "bind",
+      "value": 6,
+      "icon": "SealString",
+      "maxStack": 1
+    },
+    {
+      "id": "paper_letter",
+      "name": "날아가는 편지",
+      "description": "미라가 접어 준 단단한 편지지. [Q] 바라보는 방향으로 편지를 날려 멀리 있는 적을 맞힌다(피해 2).",
+      "kind": "part",
+      "effect": "throw",
+      "value": 1.6,
+      "icon": "PaperLetter",
+      "maxStack": 1
+    },
+    {
+      "id": "express_letter",
+      "name": "속달 봉투",
+      "description": "옛 우체부가 쓰던 속달 봉투. [Q] 바라보는 방향으로 순식간에 내달려, 지나간 적을 치고 비틀거리게 한다. 내달리는 동안 무적.",
+      "kind": "part",
+      "effect": "dash",
+      "value": 3.5,
+      "icon": "ExpressLetter",
+      "maxStack": 1
+    },
+    {
       "id": "mail_bag",
       "name": "오웬의 우편가방",
       "description": "오웬이 우체부 시절 메던 튼튼한 가방. 최대 체력 +2.",

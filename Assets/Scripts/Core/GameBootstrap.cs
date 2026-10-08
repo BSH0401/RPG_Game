@@ -75,6 +75,7 @@ namespace MoonlightPost
             hud.worldBounds = WorldBounds;
             hud.postOfficePos = PostOfficePos;
             systems.AddComponent<Sound>();
+            systems.AddComponent<Juice>();
 
             // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
             useAssets = GameAssets.Available;

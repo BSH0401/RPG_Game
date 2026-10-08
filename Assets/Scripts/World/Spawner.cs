@@ -151,12 +151,19 @@ namespace MoonlightPost
         /// <summary>에셋 캐릭터 시트로 몸을 만든다(4방향 걷기 애니메이션).</summary>
         public static SpriteRenderer Character(GameObject go, CharacterSheet sheet, float feetOffset = 0.4f)
         {
+            const float Px = 1f / 16f;
             var bodyGo = new GameObject("Body");
             bodyGo.transform.SetParent(go.transform, false);
-            bodyGo.transform.localPosition = new Vector3(0f, -feetOffset, 0f);
+            // 1픽셀 띄우고 바로 아래에 그림자를 깔아 발이 바닥에 묻혀 보이지 않게 한다.
+            bodyGo.transform.localPosition = new Vector3(0f, -feetOffset + Px, 0f);
             var body = bodyGo.AddComponent<SpriteRenderer>();
             body.color = CharacterTint;
-            Shadow(go.transform, 0.9f, -feetOffset + 0.04f);
+            var shadow = new GameObject("Shadow");
+            shadow.transform.SetParent(go.transform, false);
+            shadow.transform.localPosition = new Vector3(0f, -feetOffset - Px, 0f);
+            var shadowRenderer = shadow.AddComponent<SpriteRenderer>();
+            shadowRenderer.sprite = Art.FootShadow;
+            shadowRenderer.sortingOrder = ShadowOrder;
             go.AddComponent<SpriteAnimator>().Init(body, sheet);
             AddYSort(go, 0, false);
             return body;

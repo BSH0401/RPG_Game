@@ -523,6 +523,17 @@ namespace MoonlightPost
             return c.ToSprite(0.5f, 0.5f);
         });
 
+        /// <summary>
+        /// 에셋 캐릭터 발밑의 작은 그림자(12x4 픽셀). 에셋 캐릭터는 발 아래 외곽선이 없어서
+        /// 어두운 바닥에 묻혀 보이므로, 발 바로 아래에 진한 그림자를 깔아 "서 있는" 느낌을 낸다.
+        /// </summary>
+        public static Sprite FootShadow => Cached("footShadow", () =>
+        {
+            var c = new PixelCanvas(12, 4);
+            c.Ellipse(6, 2, 6, 2, new Color32(0, 0, 0, 140));
+            return c.ToSprite(0.5f, 0.5f);
+        });
+
         /// <summary>부드러운 원형 빛. 1 유닛 지름.</summary>
         public static Sprite Glow => Cached("glow", () =>
         {

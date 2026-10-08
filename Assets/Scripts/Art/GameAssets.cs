@@ -41,7 +41,7 @@ namespace MoonlightPost
 
         /// <summary>밤 분위기를 위해 낮 색감의 에셋에 곱하는 색.</summary>
         public static readonly Color NightTint = new Color(0.5f, 0.56f, 0.82f);
-        public static readonly Color CharacterTint = new Color(0.8f, 0.83f, 1f);
+        public static readonly Color CharacterTint = Color.white; // 캐릭터는 밤 색을 입히지 않아 배경에서 또렷하게 보이게 한다
         public static readonly Color SeaTint = new Color(0.32f, 0.42f, 0.78f);
 
         public static bool Available

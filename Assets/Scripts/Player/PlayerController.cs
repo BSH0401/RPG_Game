@@ -38,6 +38,7 @@ namespace MoonlightPost
         public float ToolCooldownRemaining => Mathf.Max(0f, toolReadyTime - Time.time);
         public Vector3 RespawnPoint { get; set; }
 
+        readonly List<Collider2D> hits = new List<Collider2D>();
         Rigidbody2D rb;
         SpriteRenderer body;
         SpriteRenderer slash;
@@ -141,8 +142,10 @@ namespace MoonlightPost
             nextAttack = Time.time + attackCooldown;
             Vector2 center = (Vector2)transform.position + Facing * attackReach;
 
+            hits.Clear();
+            Physics2D.OverlapCircle(center, attackRadius, new ContactFilter2D().NoFilter(), hits);
             var hitSet = new HashSet<EnemyController>();
-            foreach (var col in Physics2D.OverlapCircleAll(center, attackRadius))
+            foreach (var col in hits)
             {
                 var enemy = col.GetComponentInParent<EnemyController>();
                 if (enemy != null && hitSet.Add(enemy)) enemy.TakeHit(attackDamage, transform.position);

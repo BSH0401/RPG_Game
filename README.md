@@ -9,7 +9,7 @@
 ## 실행 방법
 
 1. **Unity Hub → Add → Add project from disk**에서 이 폴더(`RPG_Game`)를 선택한다.
-   - Unity 6 (6000.0 LTS) 기준이다. 다른 6000.x 버전으로 열어도 된다(버전 변경 안내가 나오면 진행).
+   - **Unity 6000.3.11f1** 기준이다. Unity Hub에서 이 버전을 설치해 두자.
    - 처음 열 때 *"새 Input System을 활성화할까요?"* 창이 뜨면 Yes/No 어느 쪽을 골라도 동작한다.
 2. 열린 빈 씬(Untitled)에서 그대로 **Play** 버튼을 누른다.
    - `GameBootstrap`이 자동으로 생성되어 마을·숲·주민·적을 만든다.

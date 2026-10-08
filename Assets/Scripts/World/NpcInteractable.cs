@@ -36,7 +36,9 @@ namespace MoonlightPost
                 {
                     if (GameState.Check(talk.condition))
                     {
-                        DialogueSystem.I.Show(talk.lines);
+                        var give = talk.giveItem;
+                        int count = talk.giveCount > 0 ? talk.giveCount : 1;
+                        DialogueSystem.I.Show(talk.lines, string.IsNullOrEmpty(give) ? (System.Action)null : () => Inventory.Give(give, count));
                         return;
                     }
                 }

@@ -103,6 +103,11 @@ namespace MoonlightPost
             GameState.SetFlag("delivered:" + letter.id);
             GameState.SetFlag(letter.deliveredFlag);
             if (letter.rewardMaxHp > 0) GameState.AddMaxHp(letter.rewardMaxHp);
+            if (!string.IsNullOrEmpty(letter.rewardItem))
+            {
+                var item = GameData.GetItem(letter.rewardItem);
+                GameState.AddItem(letter.rewardItem, 1, item != null && item.maxStack > 0 ? item.maxStack : 99);
+            }
             GameState.SetCarrying("");
             GameState.Save();
 

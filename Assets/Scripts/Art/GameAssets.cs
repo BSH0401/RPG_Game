@@ -142,6 +142,10 @@ namespace MoonlightPost
 
         // ---------------------------------------------------------------- 자주 쓰는 그림
 
+        public static Texture2D ItemIcon(string icon) => string.IsNullOrEmpty(icon) ? null : Texture("Items/" + icon);
+        public static Sprite ChestClosed => Region("Items/Chest", 0, 0, 16, 16);
+        public static Sprite ChestOpen => Region("Items/Chest", 16, 0, 16, 16);
+
         public static Sprite[] SlashFrames => Strip("FX/Slash", 26, 32, 5);
         public static Sprite[] SmokeFrames => Strip("FX/Smoke", 30, 14, 8);
         public static Sprite[] BossFrames => Strip("Actors/GiantSpiritIdle", 50, 50, 5, 0.5f, 0f);

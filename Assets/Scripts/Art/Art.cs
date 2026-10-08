@@ -514,6 +514,27 @@ namespace MoonlightPost
             return c.ToSprite();
         });
 
+        public static Sprite Chest(bool open) => Cached("chest" + open, () =>
+        {
+            var c = new PixelCanvas(16, 14);
+            c.Rect(1, 0, 14, 8, H("#8a5a32"));
+            c.HLine(1, 4, 14, H("#6a4224"));
+            if (open)
+            {
+                c.Rect(1, 8, 14, 5, H("#3a2418"));
+                c.Rect(1, 12, 14, 2, H("#a87040"));
+            }
+            else
+            {
+                c.Rect(1, 8, 14, 4, H("#a87040"));
+                c.Rect(7, 6, 2, 3, H("#e8c060"));
+            }
+            c.VLine(3, 0, 12, H("#e8c060"));
+            c.VLine(12, 0, 12, H("#e8c060"));
+            c.Outline(Ink);
+            return c.ToSprite();
+        });
+
         // ================================================================ 효과·조명
 
         public static Sprite Shadow => Cached("shadow", () =>

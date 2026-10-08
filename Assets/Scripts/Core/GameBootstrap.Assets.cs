@@ -227,6 +227,7 @@ namespace MoonlightPost
             {
                 Spawner.Prop("Bakery", bakeryBottom, shop);
                 var stall = Spawner.Prop("Stall", new Vector2(-5.4f, 3f), GameAssets.Tile(House, 19, 16, 3, 2), new Vector2(2.6f, 0.5f), new Vector2(0f, 0.25f));
+                MakeBreadStall(stall);
                 AddOnTop(stall, GameAssets.Tile(House, 20, 14), new Vector2(-0.6f, 0.75f));
                 AddOnTop(stall, GameAssets.Tile(House, 20, 14), new Vector2(0.6f, 0.75f));
                 Spawner.Glow(new Vector2(-5.4f, 4f), 5f, new Color(1f, 0.75f, 0.45f, 0.3f));

@@ -35,6 +35,8 @@ namespace MoonlightPost
         public static bool AdvancePressed => Down(Key.E) || Down(Key.Space) || Down(Key.Enter) || MouseLeftDown;
         public static bool HelpPressed => Down(Key.F1);
         public static bool ResetPressed => Down(Key.F12);
+        public static bool InventoryPressed => Down(Key.I);
+        public static bool UseItemPressed => Down(Key.R);
 
         public static bool ChoicePressed(int index)
         {
@@ -68,6 +70,8 @@ namespace MoonlightPost
                                           || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0);
         public static bool HelpPressed => Input.GetKeyDown(KeyCode.F1);
         public static bool ResetPressed => Input.GetKeyDown(KeyCode.F12);
+        public static bool InventoryPressed => Input.GetKeyDown(KeyCode.I);
+        public static bool UseItemPressed => Input.GetKeyDown(KeyCode.R);
 
         public static bool ChoicePressed(int index)
         {

@@ -273,7 +273,7 @@ namespace MoonlightPost
             visuals.Register(Spawner.Building("Bakery_Open", bakeryCenter, bakerySize, Art.Building("bakery_open", open), false), "bakery_open");
             visuals.Register(Group("Bakery_Stall", () =>
             {
-                Spawner.Prop("Stall", new Vector2(-5.4f, 3f), Art.BakeryStall, new Vector2(2.4f, 0.5f), new Vector2(0f, 0.25f));
+                MakeBreadStall(Spawner.Prop("Stall", new Vector2(-5.4f, 3f), Art.BakeryStall, new Vector2(2.4f, 0.5f), new Vector2(0f, 0.25f)));
                 Spawner.Glow(new Vector2(-5.4f, 4f), 5f, new Color(1f, 0.75f, 0.45f, 0.3f));
                 Spawner.Glow(new Vector2(-10.4f, 5.6f), 3f, new Color(1f, 0.8f, 0.45f, 0.35f));
                 Spawner.Glow(new Vector2(-7.6f, 5.6f), 3f, new Color(1f, 0.8f, 0.45f, 0.35f));
@@ -337,6 +337,10 @@ namespace MoonlightPost
             mailbox.AddComponent<NpcInteractable>().npcId = "old_mailbox";
             WorldVisuals.I.Register(Spawner.Glow(new Vector2(49f, 8.4f), 3.5f, new Color(0.65f, 0.8f, 1f, 0.35f)).gameObject, "!lamp_lit");
 
+            // 상자: 숲 끝 오두막 뒤(반딧불이 병), 북서쪽 숲의 잠긴 상자(은빛 봉인 인장 — 오웬의 열쇠 필요)
+            Chest("chest_east", new Vector2(50.8f, -8.6f), "firefly_jar", null);
+            Chest("chest_locked", new Vector2(21f, 9.3f), "seal_stamp", "hut_key");
+
             // 단서
             var sack = Clue("flour_sack", new Vector2(34f, 7f), Art.FlourSack);
             Clue("old_sign", new Vector2(44.6f, 4.4f), useAssets ? GameAssets.Tile("TilesetNature", 5, 8) : Art.Signpost);
@@ -352,6 +356,43 @@ namespace MoonlightPost
             director.southSpawns = new[] { new Vector2(25f, -7f), new Vector2(33f, -8.5f), new Vector2(38f, -6.5f) };
             director.eastSpawns = new[] { new Vector2(45f, 0.5f), new Vector2(49.5f, 2f), new Vector2(44f, -8.5f) };
             director.bossSpawn = new Vector2(46f, 6f);
+        }
+
+        void Chest(string id, Vector2 pos, string itemId, string requireItem)
+        {
+            Sprite closed = useAssets ? GameAssets.ChestClosed : null, open = useAssets ? GameAssets.ChestOpen : null;
+            if (closed == null || open == null)
+            {
+                closed = Art.Chest(false);
+                open = Art.Chest(true);
+            }
+            var go = Spawner.Prop("Chest_" + id, pos, closed, new Vector2(0.8f, 0.4f), new Vector2(0f, 0.2f));
+            Spawner.Glow(pos + new Vector2(0f, 0.4f), 1.6f, new Color(1f, 0.9f, 0.5f, 0.3f), go.transform);
+            var pickup = go.AddComponent<ItemPickup>();
+            pickup.pickupId = id;
+            pickup.displayName = requireItem != null ? "잠긴 상자" : "낡은 상자";
+            pickup.itemId = itemId;
+            pickup.requireItem = requireItem;
+            pickup.openLine = requireItem != null ? "오웬의 열쇠가 딸깍 돌아간다. 상자를 열었다." : "이끼 낀 상자를 열었다.";
+            pickup.lockedLine = "단단히 잠긴 상자다. 자물쇠에 오두막 문양이 새겨져 있다.";
+            pickup.emptyLine = "빈 상자다.";
+            pickup.visual = go.GetComponent<SpriteRenderer>();
+            pickup.closedSprite = closed;
+            pickup.openSprite = open;
+        }
+
+        /// <summary>빵집 진열대: 밤마다 크루아상 2개를 가져갈 수 있다.</summary>
+        static void MakeBreadStall(GameObject stall)
+        {
+            var pickup = stall.AddComponent<ItemPickup>();
+            pickup.pickupId = "bread_stall";
+            pickup.displayName = "빵 진열대";
+            pickup.itemId = "croissant";
+            pickup.count = 2;
+            pickup.perNight = true;
+            pickup.verb = "확인하기";
+            pickup.openLine = "미라: \"오늘 구운 거야. 배달 가는 길에 먹어!\"";
+            pickup.emptyLine = "오늘 몫은 이미 받았다. 다음 밤에 또 구워 둔다고 한다.";
         }
 
         ClueInteractable Clue(string id, Vector2 pos, Sprite sprite)
@@ -412,7 +453,7 @@ namespace MoonlightPost
             var playerSheet = useAssets ? GameAssets.Sheet("Inspector") : null;
             var body = playerSheet != null ? Spawner.Character(go, playerSheet) : Spawner.Character(go, Art.Player);
             // 배달부 주변을 은은하게 밝히는 손등불
-            Spawner.Glow(PlayerSpawn, 4.5f, new Color(1f, 0.9f, 0.7f, 0.12f), go.transform);
+            var playerLight = Spawner.Glow(PlayerSpawn, 4.5f, new Color(1f, 0.9f, 0.7f, 0.12f), go.transform);
 
             var slashGo = new GameObject("Slash");
             slashGo.transform.SetParent(worldRoot.transform, false);
@@ -422,6 +463,7 @@ namespace MoonlightPost
 
             var player = go.AddComponent<PlayerController>();
             player.Init(body, slash);
+            player.lightGlow = playerLight;
             player.RespawnPoint = PlayerSpawn;
             return player;
         }
@@ -456,6 +498,7 @@ namespace MoonlightPost
             var sr = overlay.AddComponent<SpriteRenderer>();
             sr.sprite = Art.Darkness;
             sr.sortingOrder = 1000;
+            overlay.AddComponent<NightOverlay>();
         }
     }
 }

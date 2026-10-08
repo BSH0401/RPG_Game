@@ -41,8 +41,9 @@
         }
       ],
       "deliveredFlag": "bakery_open",
-      "rewardMaxHp": 2,
-      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +2)"
+      "rewardMaxHp": 0,
+      "rewardItem": "mail_bag",
+      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +2)  [I] 키로 가방을 열어 보자."
     },
     {
       "id": "owen_reply",

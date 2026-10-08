@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "id": "mail_bag",
+      "name": "오웬의 우편가방",
+      "description": "오웬이 우체부 시절 메던 튼튼한 가방. 최대 체력 +2.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 2,
+      "icon": "Bag",
+      "maxStack": 1
+    },
+    {
+      "id": "feather_insole",
+      "name": "깃털 깔창",
+      "description": "노아가 바닷가에서 주운 깃털로 만든 깔창. 회피가 더 멀리, 더 오래 이어진다.",
+      "kind": "equipment",
+      "effect": "dodge",
+      "value": 40,
+      "icon": "Feather",
+      "maxStack": 1
+    },
+    {
+      "id": "seal_stamp",
+      "name": "은빛 봉인 인장",
+      "description": "옛 우체국장이 쓰던 인장. 봉인끈이 적을 더 오래 묶고, 더 빨리 다시 쓸 수 있다.",
+      "kind": "equipment",
+      "effect": "tool",
+      "value": 50,
+      "icon": "Stamp",
+      "maxStack": 1
+    },
+    {
+      "id": "firefly_jar",
+      "name": "반딧불이 병",
+      "description": "숲의 반딧불이를 담은 병. 밤길이 더 넓게 보인다.",
+      "kind": "equipment",
+      "effect": "light",
+      "value": 1,
+      "icon": "FireflyJar",
+      "maxStack": 1
+    },
+    {
+      "id": "hut_key",
+      "name": "오두막 상자 열쇠",
+      "description": "오웬이 맡긴 열쇠. 숲 북서쪽의 잠긴 상자를 연다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Key",
+      "maxStack": 1
+    },
+    {
+      "id": "croissant",
+      "name": "미라의 크루아상",
+      "description": "갓 구운 빵. [R] 키로 먹으면 체력이 3 회복된다. 빵집 진열대에서 밤마다 받을 수 있다.",
+      "kind": "consumable",
+      "effect": "heal",
+      "value": 3,
+      "icon": "Croissant",
+      "maxStack": 5
+    }
+  ]
+}

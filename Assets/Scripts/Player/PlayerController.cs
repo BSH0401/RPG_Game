@@ -36,6 +36,12 @@ namespace MoonlightPost
         public Vector2 Facing { get; private set; } = Vector2.down;
         public Interactable CurrentTarget { get; private set; }
         public float ToolCooldownRemaining => Mathf.Max(0f, toolReadyTime - Time.time);
+        /// <summary>배달부 주변을 밝히는 손등불(반딧불이 병이 있으면 커진다).</summary>
+        public SpriteRenderer lightGlow;
+
+        // 장비 효과 (items.json 의 effect 값, 퍼센트)
+        static float DodgeBonus => Inventory.EffectSum("dodge") / 100f;
+        static float ToolBonus => Inventory.EffectSum("tool") / 100f;
         public Vector3 RespawnPoint { get; set; }
 
         readonly List<Collider2D> hits = new List<Collider2D>();
@@ -110,6 +116,7 @@ namespace MoonlightPost
             if (GameInput.DodgePressed && Time.time >= nextDodge) StartDodge();
             if (GameInput.AttackPressed && Time.time >= nextAttack && !IsDodging) Attack();
             if (GameInput.ToolPressed && Time.time >= toolReadyTime) UseTool();
+            if (GameInput.UseItemPressed) Inventory.UseConsumable(this);
 
             CurrentTarget = FindTarget();
             if (GameInput.InteractPressed && CurrentTarget != null) CurrentTarget.Interact(this);
@@ -146,7 +153,7 @@ namespace MoonlightPost
         void StartDodge()
         {
             dodgeDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : Facing;
-            dodgeEnd = Time.time + dodgeTime;
+            dodgeEnd = Time.time + dodgeTime * (1f + DodgeBonus);
             nextDodge = dodgeEnd + dodgeCooldown;
         }
 
@@ -175,14 +182,14 @@ namespace MoonlightPost
 
         void UseTool()
         {
-            toolReadyTime = Time.time + toolCooldown;
+            toolReadyTime = Time.time + toolCooldown * Mathf.Max(0.4f, 1f - ToolBonus * 0.5f);
             Vector2 pos = transform.position;
             int count = 0;
             foreach (var enemy in EnemyController.Active.ToArray())
             {
                 if (Vector2.Distance(pos, enemy.transform.position) <= toolRadius)
                 {
-                    enemy.Stun(toolStunTime);
+                    enemy.Stun(toolStunTime * (1f + ToolBonus));
                     count++;
                 }
             }
@@ -219,6 +226,12 @@ namespace MoonlightPost
 
         void UpdateVisual()
         {
+            if (lightGlow != null)
+            {
+                float light = Inventory.EffectSum("light");
+                lightGlow.transform.localScale = Vector3.one * (4.5f + 3.5f * light);
+                lightGlow.color = new Color(1f, 0.92f, 0.7f, 0.12f + 0.08f * light);
+            }
             if (slash != null && slash.enabled)
             {
                 float remaining = slashUntil - Time.time;

@@ -30,5 +30,10 @@ namespace MoonlightPost
         }
 
         public void HealFull() => Current = Max;
+
+        public void Heal(int amount)
+        {
+            if (!IsDead && amount > 0) Current = Mathf.Min(Max, Current + amount);
+        }
     }
 }

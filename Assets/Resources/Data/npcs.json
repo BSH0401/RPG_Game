@@ -25,6 +25,7 @@
         ] },
         { "condition": "bakery_open", "lines": [
           { "speaker": "미라", "text": "밀가루가 왔어! 오븐에 불을 다시 넣었어. 가게 앞에 노점도 열었지." },
+          { "speaker": "미라", "text": "진열대에 크루아상 올려 둘게. 밤마다 두 개씩 가져가. 배달하다 배고프면 먹어." },
           { "speaker": "미라", "text": "편지에 대해선 아무 말도 없었어. 오빠답네." }
         ] },
         { "condition": "carrying:flour_letter", "lines": [
@@ -41,6 +42,10 @@
       "id": "noah",
       "displayName": "노아",
       "talks": [
+        { "condition": "delivered:flour_letter,!got:feather_insole", "giveItem": "feather_insole", "lines": [
+          { "speaker": "노아", "text": "우체부님, 숲에 다녀왔다며? 거기 그림자들 엄청 빠르댔는데!" },
+          { "speaker": "노아", "text": "이거 줄게. 바닷가에서 주운 깃털로 만든 깔창이야. 이거 깔면 휙휙 피할 수 있어!" }
+        ] },
         { "condition": "lamp_lit", "lines": [
           { "speaker": "노아", "text": "우체국에 불이 켜졌어! 엄마도 분명 봤을 거야." },
           { "speaker": "노아", "text": "다음엔 등대까지 직접 가는 길을 찾아줘. 약속이야!" }
@@ -66,6 +71,10 @@
       "id": "owen",
       "displayName": "오웬",
       "talks": [
+        { "condition": "delivered:flour_letter,!got:hut_key", "giveItem": "hut_key", "lines": [
+          { "speaker": "오웬", "text": "아, 그리고 이걸 가져가게. 숲 북서쪽 덤불 옆에 내가 묻어 둔 상자 열쇠야." },
+          { "speaker": "오웬", "text": "옛날 우체국장님 인장이 들어 있지. 이제는 자네가 쓰는 게 맞겠지." }
+        ] },
         { "condition": "reply_delivered", "lines": [
           { "speaker": "오웬", "text": "미라는... 아니, 대답하지 말게. 밀가루가 줄어드는 걸 보면 알 수 있으니." }
         ] },

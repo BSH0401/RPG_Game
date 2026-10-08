@@ -23,6 +23,7 @@ namespace MoonlightPost
 
         public static HUD I { get; private set; }
         public static bool MapOpen { get; private set; }
+        public static bool BagOpen { get; private set; }
 
         public Rect worldBounds;
         public readonly List<MapRegion> regions = new List<MapRegion>();
@@ -44,6 +45,7 @@ namespace MoonlightPost
             {
                 I = null;
                 SetMap(false);
+                SetBag(false);
             }
         }
 
@@ -56,7 +58,8 @@ namespace MoonlightPost
 
         void Update()
         {
-            if (GameInput.MapTogglePressed && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
+            if (GameInput.MapTogglePressed && !BagOpen && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
+            if (GameInput.InventoryPressed && !MapOpen && (BagOpen || !DialogueSystem.IsOpen)) SetBag(!BagOpen);
             if (GameInput.HelpPressed)
             {
                 showHelp = !showHelp;
@@ -66,6 +69,7 @@ namespace MoonlightPost
             {
                 // 개발용: 저장을 지우고 처음부터.
                 SetMap(false);
+                SetBag(false);
                 GameBootstrap.RestartNewGame();
             }
         }
@@ -73,7 +77,13 @@ namespace MoonlightPost
         static void SetMap(bool openMap)
         {
             MapOpen = openMap;
-            Time.timeScale = openMap ? 0f : 1f;
+            Time.timeScale = MapOpen || BagOpen ? 0f : 1f;
+        }
+
+        static void SetBag(bool openBag)
+        {
+            BagOpen = openBag;
+            Time.timeScale = MapOpen || BagOpen ? 0f : 1f;
         }
 
         void OnGUI()
@@ -86,10 +96,11 @@ namespace MoonlightPost
             DrawLetterPanel();
             DrawNameLabels(player);
             DrawBossBar(player);
-            if (!DialogueSystem.IsOpen && !MapOpen) DrawPrompt(player);
+            if (!DialogueSystem.IsOpen && !MapOpen && !BagOpen) DrawPrompt(player);
             DrawToasts();
-            if (showHelp && Time.unscaledTime < helpUntil && !MapOpen) DrawHelp();
+            if (showHelp && Time.unscaledTime < helpUntil && !MapOpen && !BagOpen) DrawHelp();
             if (MapOpen) DrawMap(player);
+            if (BagOpen) DrawBag();
         }
 
         void DrawStatus(PlayerController player)
@@ -106,6 +117,56 @@ namespace MoonlightPost
             string tool = cd > 0f ? "[Q] 봉인끈  " + cd.ToString("0.0") + "초" : "[Q] 봉인끈  준비됨";
             Ui.Shadow(Ui.R(16, 46, 300, 26), tool, Ui.Small);
             Ui.Shadow(Ui.R(16, 70, 300, 26), GameState.Night > 0 ? GameState.Night + "번째 밤" : "첫 밤 전", Ui.Small);
+
+            // 먹을 것 개수
+            int food = Inventory.ConsumableCount();
+            if (food > 0)
+            {
+                Ui.Icon(Ui.R(16, 96, 22, 22), GameAssets.ItemIcon("Croissant"));
+                Ui.Shadow(Ui.R(44, 94, 260, 26), "x" + food + "  [R] 먹기", Ui.Small);
+            }
+        }
+
+        /// <summary>가방(I): 가진 아이템의 그림·이름·설명.</summary>
+        void DrawBag()
+        {
+            float s = Ui.S;
+            Ui.Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0.02f, 0.03f, 0.08f, 0.75f));
+            float w = Mathf.Min(Screen.width - 60 * s, 720 * s);
+            var items = GameState.Items;
+            float rowH = 74 * s;
+            float h = 90 * s + Mathf.Max(1, items.Count) * rowH;
+            var box = new Rect((Screen.width - w) * 0.5f, Mathf.Max(20 * s, (Screen.height - h) * 0.5f), w, h);
+            Ui.Panel(box);
+            GUI.Label(new Rect(box.x + 20 * s, box.y + 14 * s, w - 40 * s, 32 * s), "가방   <size=" + Ui.Px(15) + "><color=#9fb3ff>(I 닫기 · R 먹기)</color></size>", Ui.Title);
+
+            if (items.Count == 0)
+            {
+                GUI.Label(new Rect(box.x + 20 * s, box.y + 60 * s, w - 40 * s, 40 * s), "아직 가진 것이 없다. 편지를 배달하고 숲을 둘러보자.", Ui.Text);
+                return;
+            }
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                var def = GameData.GetItem(items[i].id);
+                if (def == null) continue;
+                var row = new Rect(box.x + 16 * s, box.y + 58 * s + i * rowH, w - 32 * s, rowH - 8 * s);
+                Ui.Fill(row, new Color(1f, 1f, 1f, 0.04f));
+                var iconBox = new Rect(row.x + 8 * s, row.y + 7 * s, 52 * s, 52 * s);
+                Ui.Fill(iconBox, new Color(0f, 0f, 0f, 0.35f));
+                var icon = GameAssets.ItemIcon(def.icon);
+                if (icon != null)
+                {
+                    // 아이콘 비율을 지키며 가운데에 그린다
+                    float k = Mathf.Min(iconBox.width / icon.width, iconBox.height / icon.height) * 0.85f;
+                    float iw = icon.width * k, ih = icon.height * k;
+                    GUI.DrawTexture(new Rect(iconBox.center.x - iw * 0.5f, iconBox.center.y - ih * 0.5f, iw, ih), icon);
+                }
+                string tag = def.IsEquipment ? "<color=#9fe0a0>장비</color>" : def.IsConsumable ? "<color=#ffd98a>소모품</color>" : "<color=#b8c4ff>열쇠</color>";
+                string count = items[i].count > 1 ? "  x" + items[i].count : "";
+                GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 4 * s, row.width - 90 * s, 28 * s), "<b>" + def.name + "</b>" + count + "   " + tag, Ui.Text);
+                GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 32 * s, row.width - 90 * s, 34 * s), def.description, Ui.Small);
+            }
         }
 
         void DrawLetterPanel()
@@ -192,7 +253,7 @@ namespace MoonlightPost
         void DrawHelp()
         {
             float s = Ui.S;
-            var r = new Rect(16 * s, Screen.height - 250 * s, 330 * s, 234 * s);
+            var r = new Rect(16 * s, Screen.height - 270 * s, 330 * s, 254 * s);
             Ui.Panel(r);
             GUI.Label(new Rect(r.x + 12 * s, r.y + 8 * s, r.width - 24 * s, r.height - 16 * s),
                 "<b>조작법</b>  (F1로 숨기기)\n" +
@@ -201,7 +262,8 @@ namespace MoonlightPost
                 "Space / Shift  회피 (무적)\n" +
                 "E  조사 · 대화 · 배달\n" +
                 "Q  봉인끈 (주변 적 묶기)\n" +
-                "Tab / M  지도와 의뢰\n" +
+                "R  먹기 (체력 회복)\n" +
+                "I  가방   Tab / M  지도\n" +
                 "F12  저장 삭제 후 새 게임", Ui.Small);
         }
 

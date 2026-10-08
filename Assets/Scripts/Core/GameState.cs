@@ -6,8 +6,16 @@ using UnityEngine;
 namespace MoonlightPost
 {
     [Serializable]
+    public class ItemStack
+    {
+        public string id;
+        public int count;
+    }
+
+    [Serializable]
     public class SaveData
     {
+        public List<ItemStack> items = new List<ItemStack>();
         public List<string> flags = new List<string>();
         public string carryingLetterId = "";
         public int night;
@@ -22,6 +30,7 @@ namespace MoonlightPost
     {
         public const int BaseMaxHp = 6;
         const string CarryingPrefix = "carrying:";
+        const string HasPrefix = "has:";
 
         static SaveData data = new SaveData();
         static readonly HashSet<string> flags = new HashSet<string>();
@@ -34,7 +43,9 @@ namespace MoonlightPost
         static string SavePath => Path.Combine(Application.persistentDataPath, "moonlight_post_save.json");
 
         public static int Night => data.night;
-        public static int MaxHp => data.maxHp;
+        /// <summary>기본 체력 + 장비(maxHp 효과) 보너스.</summary>
+        public static int MaxHp => data.maxHp + Mathf.RoundToInt(Inventory.EffectSum("maxHp"));
+        public static IReadOnlyList<ItemStack> Items => data.items;
         public static string CarryingLetterId => data.carryingLetterId;
 
         public static bool HasFlag(string flag)
@@ -42,7 +53,49 @@ namespace MoonlightPost
             if (string.IsNullOrEmpty(flag)) return true;
             if (flag.StartsWith(CarryingPrefix, StringComparison.Ordinal))
                 return data.carryingLetterId == flag.Substring(CarryingPrefix.Length);
+            if (flag.StartsWith(HasPrefix, StringComparison.Ordinal))
+                return ItemCount(flag.Substring(HasPrefix.Length)) > 0;
             return flags.Contains(flag);
+        }
+
+        // ---------------------------------------------------------------- 소지품
+
+        public static int ItemCount(string id)
+        {
+            foreach (var s in data.items)
+                if (s.id == id) return s.count;
+            return 0;
+        }
+
+        /// <summary>아이템을 더한다. 처음 얻으면 "got:아이템id" 플래그가 선다(대사 조건용).</summary>
+        public static void AddItem(string id, int count = 1, int maxStack = 99)
+        {
+            if (string.IsNullOrEmpty(id) || count <= 0) return;
+            ItemStack stack = null;
+            foreach (var s in data.items)
+                if (s.id == id) stack = s;
+            if (stack == null)
+            {
+                stack = new ItemStack { id = id, count = 0 };
+                data.items.Add(stack);
+            }
+            stack.count = Mathf.Min(maxStack, stack.count + count);
+            flags.Add("got:" + id);
+            Changed?.Invoke();
+        }
+
+        public static bool RemoveItem(string id, int count = 1)
+        {
+            for (int i = 0; i < data.items.Count; i++)
+            {
+                var s = data.items[i];
+                if (s.id != id || s.count < count) continue;
+                s.count -= count;
+                if (s.count <= 0) data.items.RemoveAt(i);
+                Changed?.Invoke();
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -124,8 +177,17 @@ namespace MoonlightPost
             }
             if (data.flags == null) data.flags = new List<string>();
             if (data.carryingLetterId == null) data.carryingLetterId = "";
+            if (data.items == null) data.items = new List<ItemStack>();
             if (data.maxHp <= 0) data.maxHp = BaseMaxHp;
             foreach (var f in data.flags) flags.Add(f);
+
+            // 예전 저장 파일: 우편가방 보상이 최대 체력 숫자로만 저장돼 있으면 아이템으로 바꾼다.
+            if (data.maxHp > BaseMaxHp && ItemCount("mail_bag") == 0 && flags.Contains("delivered:flour_letter"))
+            {
+                data.maxHp = BaseMaxHp;
+                data.items.Add(new ItemStack { id = "mail_bag", count = 1 });
+                flags.Add("got:mail_bag");
+            }
         }
 
         public static void DeleteSave()

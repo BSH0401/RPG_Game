@@ -51,7 +51,28 @@ namespace MoonlightPost
         public DeliveryChoice[] choices;
         public string deliveredFlag;
         public int rewardMaxHp;
+        /// <summary>배달 보상 아이템 id (items.json).</summary>
+        public string rewardItem;
         public string rewardText;
+    }
+
+    [Serializable]
+    public class ItemDef
+    {
+        public string id;
+        public string name;
+        public string description;
+        /// <summary>equipment(가지고 있으면 항상 효과), consumable(R 키로 사용), key(열쇠·이야기 물건)</summary>
+        public string kind;
+        /// <summary>maxHp, dodge(회피 %), tool(봉인끈 %), light(시야), heal(회복)</summary>
+        public string effect;
+        public float value;
+        /// <summary>Resources/Art/NinjaAdventure/Items 안의 그림 이름.</summary>
+        public string icon;
+        public int maxStack;
+
+        public bool IsEquipment => kind == "equipment";
+        public bool IsConsumable => kind == "consumable";
     }
 
     [Serializable]
@@ -59,6 +80,9 @@ namespace MoonlightPost
     {
         public string condition;
         public DialogueLine[] lines;
+        /// <summary>이 대사가 끝나면 주는 아이템. 한 번만 주려면 condition 에 "!got:아이템id" 를 넣는다.</summary>
+        public string giveItem;
+        public int giveCount;
     }
 
     [Serializable]
@@ -99,6 +123,12 @@ namespace MoonlightPost
     {
         public ClueDef[] clues;
     }
+
+    [Serializable]
+    class ItemDatabase
+    {
+        public ItemDef[] items;
+    }
 #pragma warning restore 0649
 
     /// <summary>JSON 데이터를 읽어 보관한다. 스토리 문장은 코드가 아니라 JSON 에서 고친다.</summary>
@@ -109,6 +139,8 @@ namespace MoonlightPost
 
         static readonly Dictionary<string, NpcDef> npcs = new Dictionary<string, NpcDef>();
         static readonly Dictionary<string, ClueDef> clues = new Dictionary<string, ClueDef>();
+        static readonly Dictionary<string, ItemDef> items = new Dictionary<string, ItemDef>();
+        public static ItemDef[] Items { get; private set; } = new ItemDef[0];
 
         public static void Load()
         {
@@ -125,6 +157,11 @@ namespace MoonlightPost
             var clueDb = Read<ClueDatabase>("Data/clues");
             if (clueDb?.clues != null)
                 foreach (var c in clueDb.clues) clues[c.id] = c;
+
+            items.Clear();
+            var itemDb = Read<ItemDatabase>("Data/items");
+            Items = itemDb?.items ?? new ItemDef[0];
+            foreach (var it in Items) items[it.id] = it;
         }
 
         public static LetterDef GetLetter(string id)
@@ -138,6 +175,8 @@ namespace MoonlightPost
         public static NpcDef GetNpc(string id) => id != null && npcs.TryGetValue(id, out var n) ? n : null;
 
         public static ClueDef GetClue(string id) => id != null && clues.TryGetValue(id, out var c) ? c : null;
+
+        public static ItemDef GetItem(string id) => id != null && items.TryGetValue(id, out var it) ? it : null;
 
         static T Read<T>(string resourcePath) where T : class
         {

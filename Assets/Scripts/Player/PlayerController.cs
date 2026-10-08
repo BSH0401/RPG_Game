@@ -151,10 +151,11 @@ namespace MoonlightPost
                 if (enemy != null && hitSet.Add(enemy)) enemy.TakeHit(attackDamage, transform.position);
             }
 
-            slash.transform.position = center;
-            slash.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(Facing.y, Facing.x) * Mathf.Rad2Deg + 90f);
+            // 바라보는 방향으로 반달 모양 베기 효과
+            slash.transform.position = (Vector2)transform.position + Facing * 0.15f;
+            slash.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(Facing.y, Facing.x) * Mathf.Rad2Deg - 90f);
             slash.enabled = true;
-            slashUntil = Time.time + 0.1f;
+            slashUntil = Time.time + 0.12f;
         }
 
         void UseTool()
@@ -201,7 +202,11 @@ namespace MoonlightPost
 
         void UpdateVisual()
         {
-            if (slash != null && slash.enabled && Time.time >= slashUntil) slash.enabled = false;
+            if (slash != null && slash.enabled)
+            {
+                if (Time.time >= slashUntil) slash.enabled = false;
+                else slash.color = new Color(1f, 1f, 1f, Mathf.Clamp01((slashUntil - Time.time) / 0.12f));
+            }
             if (body == null) return;
             if (Health.IsDead) body.color = new Color(bodyColor.r, bodyColor.g, bodyColor.b, 0.3f);
             else if (IsDodging) body.color = new Color(bodyColor.r, bodyColor.g, bodyColor.b, 0.5f);

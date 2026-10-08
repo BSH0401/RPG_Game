@@ -25,7 +25,11 @@ namespace MoonlightPost
         {
             int order = offset - Mathf.RoundToInt(transform.position.y * 10f);
             for (int i = 0; i < renderers.Length; i++)
-                if (renderers[i] != null) renderers[i].sortingOrder = order + baseOrders[i];
+            {
+                // 그림자(-450)나 빛(1000 이상)처럼 고정 순서를 쓰는 자식은 건드리지 않는다.
+                if (renderers[i] == null || baseOrders[i] <= -400 || baseOrders[i] >= 400) continue;
+                renderers[i].sortingOrder = order + baseOrders[i];
+            }
         }
     }
 }

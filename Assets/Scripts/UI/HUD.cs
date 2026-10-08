@@ -98,10 +98,8 @@ namespace MoonlightPost
             var hp = player.Health;
             for (int i = 0; i < hp.Max; i++)
             {
-                var r = new Rect((16 + i * 30) * s, 16 * s, 24 * s, 24 * s);
-                Ui.Fill(r, new Color(0f, 0f, 0f, 0.6f));
-                var inner = new Rect(r.x + 3 * s, r.y + 3 * s, r.width - 6 * s, r.height - 6 * s);
-                Ui.Fill(inner, i < hp.Current ? new Color(0.95f, 0.3f, 0.35f) : new Color(0.25f, 0.2f, 0.25f));
+                var r = new Rect((16 + i * 32) * s, 16 * s, 27 * s, 24 * s);
+                Ui.Icon(r, i < hp.Current ? Art.HeartFull : Art.HeartEmpty);
             }
 
             float cd = player.ToolCooldownRemaining;
@@ -126,7 +124,8 @@ namespace MoonlightPost
                     LetterManager.NextAvailable() != null ? "우체국 창구에서 새 편지를 받자." : "오늘 밤의 편지는 모두 배달했다.", Ui.Small);
                 return;
             }
-            GUI.Label(new Rect(x, box.y + 10 * s, iw, 30 * s), "「" + letter.title + "」", Ui.Title);
+            Ui.Icon(new Rect(x, box.y + 14 * s, 30 * s, 20 * s), Art.Envelope);
+            GUI.Label(new Rect(x + 38 * s, box.y + 10 * s, iw - 38 * s, 30 * s), "「" + letter.title + "」", Ui.Title);
             GUI.Label(new Rect(x, box.y + 42 * s, iw, 24 * s), "보낸 이: " + letter.senderName, Ui.Small);
             string to = LetterManager.IsRecipientRevealed(letter) ? "받는 이: " + letter.recipientName : "받는 이: ???  (단서를 찾자)";
             GUI.Label(new Rect(x, box.y + 66 * s, iw, 48 * s), to, Ui.Small);
@@ -138,8 +137,8 @@ namespace MoonlightPost
             if (target == null) return;
             float s = Ui.S;
             var r = new Rect(Screen.width * 0.5f - 260 * s, Screen.height - 90 * s, 520 * s, 40 * s);
-            Ui.Fill(r, new Color(0f, 0f, 0f, 0.55f));
-            GUI.Label(r, "[E] " + target.Prompt, Ui.Center);
+            Ui.Panel(r);
+            GUI.Label(r, "<color=#ffd98a>[E]</color> " + target.Prompt, Ui.Center);
         }
 
         void DrawNameLabels(PlayerController player)
@@ -185,7 +184,7 @@ namespace MoonlightPost
             for (int i = 0; i < toasts.Count; i++)
             {
                 var r = new Rect(Screen.width * 0.5f - 300 * s, (80 + i * 36) * s, 600 * s, 32 * s);
-                Ui.Fill(r, new Color(0f, 0f, 0f, 0.5f));
+                Ui.Panel(r);
                 GUI.Label(r, toasts[i].text, Ui.Center);
             }
         }

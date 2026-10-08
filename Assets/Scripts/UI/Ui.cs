@@ -62,7 +62,22 @@ namespace MoonlightPost
             GUI.color = old;
         }
 
-        public static void Panel(Rect r) => Fill(r, new Color(0.04f, 0.05f, 0.12f, 0.85f));
+        static readonly Color PanelBorder = new Color(0.78f, 0.66f, 0.42f, 0.9f);
+
+        /// <summary>테두리가 있는 어두운 패널(편지지 느낌의 금색 테두리).</summary>
+        public static void Panel(Rect r)
+        {
+            float b = Mathf.Max(2f, 2f * S);
+            Fill(new Rect(r.x - b, r.y - b, r.width + b * 2, r.height + b * 2), new Color(0.01f, 0.01f, 0.04f, 0.9f));
+            Fill(r, PanelBorder);
+            Fill(new Rect(r.x + b, r.y + b, r.width - b * 2, r.height - b * 2), new Color(0.06f, 0.07f, 0.15f, 0.94f));
+            Fill(new Rect(r.x + b, r.y + b, r.width - b * 2, b), new Color(1f, 1f, 1f, 0.06f));
+        }
+
+        public static void Icon(Rect r, Texture2D tex)
+        {
+            if (tex != null) GUI.DrawTexture(r, tex);
+        }
 
         public static void Shadow(Rect r, string text, GUIStyle style)
         {

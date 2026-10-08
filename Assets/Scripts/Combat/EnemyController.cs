@@ -237,7 +237,7 @@ namespace MoonlightPost
         {
             if (body == null) return;
             Color c = baseColor;
-            if (Time.time < flashUntil) c = Color.white;
+            if (Time.time < flashUntil) c = new Color(1f, 1f, 1f, 0.35f);
             else if (state == State.Stunned) c = Color.Lerp(baseColor, new Color(0.5f, 0.9f, 1f), 0.6f);
             else if (state == State.Windup && Mathf.Repeat(Time.time * 10f, 1f) < 0.5f) c = new Color(1f, 0.35f, 0.35f);
             body.color = c;

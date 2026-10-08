@@ -2,85 +2,135 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
-    /// <summary>임시 도형으로 월드 오브젝트를 만드는 도우미. 아트 교체 시 이곳의 스프라이트만 바꾸면 된다.</summary>
+    /// <summary>월드 오브젝트를 만드는 도우미. 그림은 Art 에서, 배치는 GameBootstrap 에서 정한다.</summary>
     public static class Spawner
     {
         public static Transform Root;
 
-        /// <summary>사각형 블록. solid 이면 충돌한다. 바닥처럼 정렬이 고정되면 sortingOrder 를 직접 준다.</summary>
-        public static GameObject Block(string name, Vector2 center, Vector2 size, Color color, bool solid, int? fixedOrder = null)
+        public const int GlowOrder = 1001;
+        const int ShadowOrder = -450;
+
+        /// <summary>보이지 않는 충돌 벽.</summary>
+        public static GameObject Collider(string name, Vector2 center, Vector2 size)
         {
             var go = new GameObject(name);
             go.transform.SetParent(Root, false);
             go.transform.position = center;
-            go.transform.localScale = new Vector3(size.x, size.y, 1f);
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = SpriteFactory.Square;
-            sr.color = color;
-            if (solid) go.AddComponent<BoxCollider2D>();
-            if (fixedOrder.HasValue) sr.sortingOrder = fixedOrder.Value;
-            else AddYSort(go, Mathf.RoundToInt(size.y * 5f), true);
+            go.AddComponent<BoxCollider2D>().size = size;
             return go;
         }
 
-        public static GameObject Circle(string name, Vector2 center, float diameter, Color color, bool solid, int? fixedOrder = null)
+        /// <summary>
+        /// 스프라이트 소품. 스프라이트 기준점이 발밑이므로 pos 는 바닥에 닿는 지점이다.
+        /// colliderSize 를 주면 발밑 기준으로 colliderOffset 만큼 위에 충돌 상자를 둔다.
+        /// </summary>
+        public static GameObject Prop(string name, Vector2 pos, Sprite sprite, Vector2? colliderSize = null,
+                                      Vector2 colliderOffset = default, int? fixedOrder = null)
         {
             var go = new GameObject(name);
             go.transform.SetParent(Root, false);
-            go.transform.position = center;
-            go.transform.localScale = Vector3.one * diameter;
+            go.transform.position = pos;
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = SpriteFactory.Circle;
-            sr.color = color;
-            if (solid) go.AddComponent<CircleCollider2D>().radius = 0.5f;
+            sr.sprite = sprite;
+            if (colliderSize.HasValue)
+            {
+                var box = go.AddComponent<BoxCollider2D>();
+                box.size = colliderSize.Value;
+                box.offset = colliderOffset;
+            }
             if (fixedOrder.HasValue) sr.sortingOrder = fixedOrder.Value;
             else AddYSort(go, 0, true);
             return go;
         }
 
-        /// <summary>나무: 줄기(충돌) + 잎(장식).</summary>
-        public static void Tree(Vector2 pos)
+        /// <summary>
+        /// 건물: footprint(충돌 영역, 월드 좌표 중심·크기)의 아랫변에 그림을 세운다.
+        /// 지붕은 그림에서 위쪽으로 튀어나와 보인다.
+        /// </summary>
+        public static GameObject Building(string name, Vector2 footprintCenter, Vector2 footprintSize, Sprite sprite, bool solid = true)
         {
-            var trunk = Circle("Tree", pos, 0.7f, new Color(0.22f, 0.16f, 0.12f), true);
-            var leaves = new GameObject("Leaves");
-            leaves.transform.SetParent(trunk.transform, false);
-            leaves.transform.localPosition = new Vector3(0f, 1.1f, 0f);
-            leaves.transform.localScale = Vector3.one * 2.6f;
-            var sr = leaves.AddComponent<SpriteRenderer>();
-            sr.sprite = SpriteFactory.Circle;
-            sr.color = new Color(0.1f, 0.24f, 0.22f);
-            sr.sortingOrder = 2;
+            var bottom = new Vector2(footprintCenter.x, footprintCenter.y - footprintSize.y * 0.5f);
+            return Prop(name, bottom, sprite, solid ? footprintSize : (Vector2?)null, new Vector2(0f, footprintSize.y * 0.5f));
         }
 
-        /// <summary>캐릭터 모양: 몸(원) + 모자(사각형). 몸 렌더러를 돌려준다.</summary>
-        public static SpriteRenderer Character(GameObject go, Color bodyColor, Color hatColor, float size = 0.9f)
+        public static void Tree(Vector2 pos, bool pine, int variant)
+        {
+            var go = Prop(pine ? "Pine" : "Tree", pos, pine ? Art.PineTree(variant % 3) : Art.RoundTree(variant % 4));
+            var col = go.AddComponent<CircleCollider2D>();
+            col.radius = 0.35f;
+            col.offset = new Vector2(0f, 0.3f);
+            Shadow(go.transform, 2.4f, 0f);
+        }
+
+        public static SpriteRenderer Glow(Vector2 pos, float diameter, Color color, Transform parent = null)
+        {
+            var go = new GameObject("Glow");
+            go.transform.SetParent(parent != null ? parent : Root, false);
+            go.transform.position = pos;
+            go.transform.localScale = Vector3.one * diameter;
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = Art.Glow;
+            sr.color = color;
+            sr.sortingOrder = GlowOrder;
+            return sr;
+        }
+
+        public static void Lamp(Vector2 pos, bool lit)
+        {
+            var go = Prop("LampPost", pos, Art.LampPost(lit), new Vector2(0.3f, 0.25f), new Vector2(0f, 0.12f));
+            Shadow(go.transform, 0.8f, 0f);
+            if (lit)
+            {
+                Glow(pos + new Vector2(0f, 1.6f), 1.4f, new Color(1f, 0.92f, 0.65f, 0.9f));
+                Glow(pos + new Vector2(0f, 0.8f), 6f, new Color(1f, 0.82f, 0.5f, 0.28f));
+            }
+        }
+
+        static void Shadow(Transform parent, float width, float y)
+        {
+            var go = new GameObject("Shadow");
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(0f, y, 0f);
+            go.transform.localScale = new Vector3(width, width, 1f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = Art.Shadow;
+            sr.sortingOrder = ShadowOrder;
+        }
+
+        /// <summary>
+        /// 캐릭터 그림을 붙인다. 오브젝트 위치(=충돌체 중심)보다 feetOffset 만큼 아래가 발밑.
+        /// 몸 렌더러를 돌려준다(색으로 피격·기절 표현).
+        /// </summary>
+        public static SpriteRenderer Character(GameObject go, Sprite sprite, float scale = 1f, float feetOffset = 0.35f)
         {
             var bodyGo = new GameObject("Body");
             bodyGo.transform.SetParent(go.transform, false);
-            bodyGo.transform.localScale = Vector3.one * size;
+            bodyGo.transform.localPosition = new Vector3(0f, -feetOffset, 0f);
             var body = bodyGo.AddComponent<SpriteRenderer>();
-            body.sprite = SpriteFactory.Circle;
-            body.color = bodyColor;
+            body.sprite = sprite;
 
-            var hatGo = new GameObject("Hat");
-            hatGo.transform.SetParent(go.transform, false);
-            hatGo.transform.localPosition = new Vector3(0f, size * 0.45f, 0f);
-            hatGo.transform.localScale = new Vector3(size * 0.75f, size * 0.25f, 1f);
-            var hat = hatGo.AddComponent<SpriteRenderer>();
-            hat.sprite = SpriteFactory.Square;
-            hat.color = hatColor;
-            hat.sortingOrder = 1;
+            if (!Mathf.Approximately(scale, 1f))
+            {
+                // 크기는 부모에 적용해 몸 애니메이션의 스케일과 겹치지 않게 한다.
+                var holder = new GameObject("Scale");
+                holder.transform.SetParent(go.transform, false);
+                holder.transform.localScale = Vector3.one * scale;
+                bodyGo.transform.SetParent(holder.transform, false);
+                bodyGo.transform.localPosition = new Vector3(0f, -feetOffset / scale, 0f);
+            }
 
+            Shadow(go.transform, sprite.bounds.size.x * scale * 0.9f, -feetOffset + 0.02f);
+            go.AddComponent<CharacterAnimator>().body = body;
             AddYSort(go, 0, false);
             return body;
         }
 
-        public static NpcInteractable Npc(string id, Vector2 pos, Color bodyColor, Color hatColor)
+        public static NpcInteractable Npc(string id, Vector2 pos, Sprite sprite, float scale = 1f)
         {
             var go = new GameObject("NPC_" + id);
             go.transform.SetParent(Root, false);
             go.transform.position = pos;
-            Character(go, bodyColor, hatColor);
+            Character(go, sprite, scale);
             go.AddComponent<CircleCollider2D>().radius = 0.35f;
             var npc = go.AddComponent<NpcInteractable>();
             npc.npcId = id;
@@ -118,12 +168,14 @@ namespace MoonlightPost
                 enemy.slamRadius = 2.8f;
                 enemy.hitRadius = 1.2f;
                 enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Lunge, EnemyAttack.Lunge };
-                body = Character(go, new Color(0.18f, 0.12f, 0.3f), new Color(0.6f, 0.2f, 0.4f), 1.9f);
+                body = Character(go, Art.InkBoss, 1f, 0.7f);
+                Glow(pos, 5f, new Color(0.6f, 0.4f, 1f, 0.25f), go.transform);
             }
             else
             {
                 health.SetMax(3, true);
-                body = Character(go, new Color(0.38f, 0.28f, 0.55f), new Color(0.2f, 0.15f, 0.3f), 0.8f);
+                body = Character(go, Art.ShadowRat, 1f, 0.35f);
+                Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
             }
             enemy.Init(body);
             return go;

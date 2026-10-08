@@ -105,22 +105,26 @@ namespace MoonlightPost
             float h = 170f * s;
             var box = new Rect((Screen.width - w) * 0.5f, Screen.height - h - 20f * s, w, h);
             Ui.Panel(box);
-            Ui.Fill(new Rect(box.x, box.y, box.width, 3f * s), new Color(1f, 0.86f, 0.5f, 0.8f));
 
             if (lines.Count > 0)
             {
                 var line = lines[Mathf.Clamp(index, 0, lines.Count - 1)];
-                float pad = 20f * s;
+                float pad = 24f * s;
                 if (!string.IsNullOrEmpty(line.speaker))
-                    GUI.Label(new Rect(box.x + pad, box.y + 12f * s, box.width - pad * 2, 30f * s), line.speaker, Ui.Title);
-                GUI.Label(new Rect(box.x + pad, box.y + 48f * s, box.width - pad * 2, box.height - 60f * s), line.text, Ui.Text);
+                {
+                    // 말하는 사람 이름표
+                    var tag = new Rect(box.x + pad, box.y - 22f * s, Mathf.Max(120f * s, line.speaker.Length * 22f * s + 30f * s), 40f * s);
+                    Ui.Panel(tag);
+                    GUI.Label(new Rect(tag.x + 14f * s, tag.y + 6f * s, tag.width - 20f * s, 30f * s), line.speaker, Ui.Title);
+                }
+                GUI.Label(new Rect(box.x + pad, box.y + 32f * s, box.width - pad * 2, box.height - 44f * s), line.text, Ui.Text);
             }
 
             if (AtChoices)
             {
                 float bh = 44f * s;
                 float gap = 8f * s;
-                float top = box.y - (bh + gap) * choices.Length - 6f * s;
+                float top = box.y - (bh + gap) * choices.Length - 30f * s;
                 for (int i = 0; i < choices.Length; i++)
                 {
                     var r = new Rect(box.x + w * 0.15f, top + i * (bh + gap), w * 0.7f, bh);

@@ -17,6 +17,8 @@ namespace MoonlightPost
                 case NightMood.Fireflies: target += 10f; break;  // 반딧불이: 더 넓게
                 case NightMood.FullMoon: target += 6f; break;
             }
+            // 등대에 불이 켜지면 섬 전체가 밝아진다.
+            if (GameState.HasFlag("lighthouse_lit")) target += 10f;
             float s = Mathf.Lerp(transform.localScale.x, target, 1f - Mathf.Exp(-3f * Time.unscaledDeltaTime));
             transform.localScale = new Vector3(s, s, 1f);
         }

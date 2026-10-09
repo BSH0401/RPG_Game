@@ -133,6 +133,7 @@ namespace MoonlightPost
                 case "미라": return Faceset("Woman");
                 case "오웬": return Faceset("Hunter");
                 case "노아": return Faceset("Child");
+                case "세린": return Faceset("Princess");
                 default: return null;
             }
         }
@@ -156,5 +157,7 @@ namespace MoonlightPost
         public static Sprite[] SlashFrames => Strip("FX/Slash", 26, 32, 5);
         public static Sprite[] SmokeFrames => Strip("FX/Smoke", 30, 14, 8);
         public static Sprite[] BossFrames => Strip("Actors/GiantSpiritIdle", 50, 50, 5, 0.5f, 0f);
+        public static Sprite[] SquidIdleFrames => Strip("Actors/SquidIdle", 76, 79, 4, 0.5f, 0f);
+        public static Sprite[] SquidShootFrames => Strip("Actors/SquidShoot", 76, 79, 5, 0.5f, 0f);
     }
 }

@@ -3,6 +3,16 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
+    /// <summary>편지를 들고 있으면 나타나는 보스.</summary>
+    public class BossSpec
+    {
+        public string letterId;
+        public string defeatFlag;
+        public Vector2 spawn;
+        public EnemyKind kind;
+        public GameObject instance;
+    }
+
     /// <summary>밤의 분위기. 밤마다 하나가 정해져 시야·적 수·숨은 우표 표시가 달라진다.</summary>
     public enum NightMood { Clear, Fog, Fireflies, FullMoon }
 
@@ -47,15 +57,14 @@ namespace MoonlightPost
         public Vector2[] northSpawns;
         public Vector2[] southSpawns;
         public Vector2[] eastSpawns;
-        public Vector2 bossSpawn;
-        public string bossLetterId = "noah_letter";
-        public string bossDefeatFlag = "boss_forest_defeated";
+        /// <summary>서쪽 해안(우체국 등불을 켠 뒤 열림)의 적 위치.</summary>
+        public Vector2[] coastSpawns = new Vector2[0];
+        public BossSpec[] bosses = new BossSpec[0];
 
         public bool NorthBlocked { get; private set; }
 
         readonly List<GameObject> enemies = new List<GameObject>();
         readonly List<GameObject> moodObjects = new List<GameObject>();
-        GameObject boss;
         int respawnCount;
 
         void Awake() => I = this;
@@ -106,8 +115,11 @@ namespace MoonlightPost
             foreach (var e in enemies)
                 if (e != null) Destroy(e);
             enemies.Clear();
-            if (boss != null) Destroy(boss);
-            boss = null;
+            foreach (var b in bosses)
+            {
+                if (b.instance != null) Destroy(b.instance);
+                b.instance = null;
+            }
 
             // 밤이 깊어질수록 열린 길의 적이 조금 늘고 종류도 다양해진다.
             int night = GameState.Night;
@@ -125,20 +137,32 @@ namespace MoonlightPost
             foreach (var p in Pick(eastSpawns, night >= 2 ? 2 : 1, rng))
                 enemies.Add(Spawner.Enemy(p, night >= 2 ? EnemyKind.Mole : EnemyKind.Rat));
 
+            // 서쪽 해안: 박쥐와 두더지가 섞여 나온다.
+            if (GameState.HasFlag("lamp_lit"))
+            {
+                int i = 0;
+                foreach (var p in Pick(coastSpawns, Mood == NightMood.Fog ? 4 : 3, rng))
+                    enemies.Add(Spawner.Enemy(p, i++ % 2 == 0 ? EnemyKind.Bat : EnemyKind.Mole));
+            }
+
             RefreshBoss();
         }
 
         void RefreshBoss()
         {
-            bool needBoss = GameState.HasFlag("carrying:" + bossLetterId) && !GameState.HasFlag(bossDefeatFlag);
-            if (needBoss && boss == null)
+            foreach (var b in bosses)
             {
-                boss = Spawner.Enemy(bossSpawn, EnemyKind.Boss);
-            }
-            else if (!needBoss && boss != null && !GameState.HasFlag(bossDefeatFlag))
-            {
-                Destroy(boss);
-                boss = null;
+                bool defeated = GameState.HasFlag(b.defeatFlag);
+                bool need = GameState.HasFlag("carrying:" + b.letterId) && !defeated;
+                if (need && b.instance == null)
+                {
+                    b.instance = Spawner.Enemy(b.spawn, b.kind);
+                }
+                else if (!need && b.instance != null && !defeated)
+                {
+                    Destroy(b.instance);
+                    b.instance = null;
+                }
             }
         }
 

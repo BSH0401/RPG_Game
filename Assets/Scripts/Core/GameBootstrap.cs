@@ -7,6 +7,7 @@ namespace MoonlightPost
     /// 프로토타입 월드를 코드로 만든다. 빈 씬에서 Play 를 누르면 자동으로 생성된다.
     ///
     /// 지도 (1 유닛 = 1 타일 = 16 픽셀)
+    ///   x -50 ~ -17 : 서쪽 해안. 모래사장과 바위, 서쪽 곶의 등대 (우체국 등불을 켜면 길이 열린다)
     ///   x -16 ~ 17 : 마을 (우체국, 빵집, 바다)
     ///   x  17      : 산울타리, 가운데(y -2~2)에 숲으로 가는 문
     ///   x  17 ~ 42 : 숲길. 가운데 덤불이 막고 있어 북쪽 길 / 남쪽 길로 나뉜다. 밤마다 한쪽 길이 쓰러진 나무로 막힌다.
@@ -24,7 +25,7 @@ namespace MoonlightPost
         GameObject worldRoot;
         bool useAssets;
 
-        static readonly Rect WorldBounds = new Rect(-16f, -11f, 68f, 22f);
+        static readonly Rect WorldBounds = new Rect(-50f, -11f, 102f, 22f);
         static readonly Vector2 PlayerSpawn = new Vector2(0f, 2.8f);
         static readonly Vector2 PostOfficePos = new Vector2(0f, 7.5f);
 
@@ -83,6 +84,7 @@ namespace MoonlightPost
             Spawner.CharacterTint = useAssets ? GameAssets.CharacterTint : Color.white;
 
             BuildMapAndColliders(hud);
+            BuildCoast();
             if (useAssets)
             {
                 BuildTileGround();
@@ -110,6 +112,7 @@ namespace MoonlightPost
         static readonly Rect ForestArea = new Rect(17f, -11f, 35f, 22f);
         static readonly Rect ThicketArea = new Rect(20f, -3f, 22f, 6f);
         static readonly Rect SeaArea = new Rect(-16f, -11f, 24f, 3f);
+        static readonly Rect CoastArea = new Rect(-46f, -6f, 30f, 17f);
 
         void BuildMapAndColliders(HUD hud)
         {
@@ -117,11 +120,20 @@ namespace MoonlightPost
             hud.regions.Add(new HUD.MapRegion { area = ForestArea, color = new Color(0.1f, 0.22f, 0.2f), label = "동쪽 숲" });
             hud.regions.Add(new HUD.MapRegion { area = ThicketArea, color = new Color(0.04f, 0.1f, 0.08f), label = "덤불" });
             hud.regions.Add(new HUD.MapRegion { area = SeaArea, color = new Color(0.1f, 0.18f, 0.38f), label = "밤바다" });
+            hud.regions.Add(new HUD.MapRegion { area = CoastArea, color = new Color(0.36f, 0.32f, 0.3f), label = "서쪽 해안" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(-50f, -11f, 34f, 5f), color = new Color(0.1f, 0.18f, 0.38f), label = "" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(-50f, -6f, 4f, 17f), color = new Color(0.1f, 0.18f, 0.38f), label = "" });
 
             // 충돌: 바깥 경계, 바다, 울타리, 덤불
-            Spawner.Collider("Wall_N", new Vector2(18f, 11.5f), new Vector2(70f, 1f));
-            Spawner.Collider("Wall_S", new Vector2(18f, -11.5f), new Vector2(70f, 1f));
-            Spawner.Collider("Wall_W", new Vector2(-16.5f, 0f), new Vector2(1f, 24f));
+            Spawner.Collider("Wall_N", new Vector2(1f, 11.5f), new Vector2(104f, 1f));
+            Spawner.Collider("Wall_S", new Vector2(1f, -11.5f), new Vector2(104f, 1f));
+            Spawner.Collider("Wall_W", new Vector2(-50.5f, 0f), new Vector2(1f, 24f));
+            // 마을과 해안 사이: 가운데(y -2~2)만 길이 나 있다
+            Spawner.Collider("CoastFence_N", new Vector2(-16.5f, 6.5f), new Vector2(1f, 9f));
+            Spawner.Collider("CoastFence_S", new Vector2(-16.5f, -6.5f), new Vector2(1f, 9f));
+            // 해안의 바다(남쪽과 서쪽)
+            Spawner.Collider("CoastSea_S", new Vector2(-33.5f, -8.6f), new Vector2(33f, 4.8f));
+            Spawner.Collider("CoastSea_W", new Vector2(-48.1f, 0f), new Vector2(3.8f, 22f));
             Spawner.Collider("Wall_E", new Vector2(52.5f, 0f), new Vector2(1f, 24f));
             Spawner.Collider("Sea", new Vector2(-4f, -9.6f), new Vector2(24f, 2.8f));
             Spawner.Collider("Fence_N", new Vector2(17f, 6.5f), new Vector2(1f, 9f));
@@ -137,6 +149,10 @@ namespace MoonlightPost
 
             var g = new GroundPainter(WorldBounds);
             g.Fill(village, GroundPainter.Grass);
+            g.Fill(new Rect(-50f, -11f, 34f, 22f), GroundPainter.Sand);
+            g.Fill(new Rect(-50f, -11f, 34f, 4.8f), GroundPainter.Water);
+            g.Fill(new Rect(-50f, -11f, 3.8f, 22f), GroundPainter.Water);
+            g.Fill(new Rect(-17f, -1.2f, 3.2f, 2.4f), GroundPainter.Cobble, true, 15);
             g.Fill(forest, GroundPainter.ForestFloor);
 
             // 바닷가: 모래 → 물거품 → 바다
@@ -181,14 +197,14 @@ namespace MoonlightPost
         void BuildBorders()
         {
             int i = 0;
-            for (float x = -15f; x <= 51.5f; x += 2.3f, i++)
+            for (float x = -45f; x <= 51.5f; x += 2.3f, i++)
                 Spawner.Tree(new Vector2(x + (i % 2) * 0.6f, 11.1f + (i % 3) * 0.25f), x > 17f || i % 3 == 0, i);
             for (float x = 17.5f; x < 52f; x += 1f)
                 Hedge("Border", new Vector2(x, -11.9f), 1, (int)x + 200);
             for (float y = -11f; y < 11f; y += 1f)
             {
                 Hedge("Border", new Vector2(52.6f, y), 1, (int)y + 300);
-                if (y > -8f) Hedge("Border", new Vector2(-16.6f, y), 1, (int)y + 400);
+                if (y > -8f && (y < -2.5f || y > 1.5f)) Hedge("Border", new Vector2(-16.6f, y), 1, (int)y + 400);
             }
         }
 
@@ -358,7 +374,15 @@ namespace MoonlightPost
             director.northSpawns = new[] { new Vector2(25f, 7f), new Vector2(33f, 8.5f), new Vector2(38f, 6.5f) };
             director.southSpawns = new[] { new Vector2(25f, -7f), new Vector2(33f, -8.5f), new Vector2(38f, -6.5f) };
             director.eastSpawns = new[] { new Vector2(45f, 0.5f), new Vector2(49.5f, 2f), new Vector2(44f, -8.5f) };
-            director.bossSpawn = new Vector2(46f, 6f);
+            director.coastSpawns = new[]
+            {
+                new Vector2(-25f, 2f), new Vector2(-33f, -3f), new Vector2(-38f, 5.5f), new Vector2(-28f, 6.5f), new Vector2(-21f, -4f)
+            };
+            director.bosses = new[]
+            {
+                new BossSpec { letterId = "noah_letter", defeatFlag = "boss_forest_defeated", spawn = new Vector2(46f, 6f), kind = EnemyKind.Boss },
+                new BossSpec { letterId = "lighthouse_letter", defeatFlag = "boss_coast_defeated", spawn = new Vector2(-39f, 1.5f), kind = EnemyKind.Squid },
+            };
         }
 
         void Chest(string id, Vector2 pos, string itemId, string requireItem)

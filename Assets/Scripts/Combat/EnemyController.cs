@@ -10,7 +10,13 @@ namespace MoonlightPost
         /// <summary>예고 원 안을 내려찍기. 막을 수 없음(회피·받아치기).</summary>
         Slam,
         /// <summary>먹물 구슬을 쏜다. 막을 수 있고, 받아치면 되돌아간다.</summary>
-        Shoot
+        Shoot,
+        /// <summary>부채꼴로 여러 발을 쏜다(보스).</summary>
+        Spread,
+        /// <summary>플레이어 발밑과 주변에 촉수가 차례로 내리꽂힌다. 주황 원, 막을 수 없음(보스).</summary>
+        Rain,
+        /// <summary>물속으로 잠겨 다가온 뒤 튀어나오며 내려찍는다(보스).</summary>
+        Dive
     }
 
     /// <summary>
@@ -47,6 +53,17 @@ namespace MoonlightPost
         public bool burrows;
         public float burrowSpeed = 3.2f;
 
+        [Header("보스 전용")]
+        public int spreadCount = 3;
+        public int rainCount = 3;
+        public float diveTime = 1.4f;
+        /// <summary>체력이 절반 아래로 떨어지면 빨라지고 공격이 늘어난다.</summary>
+        public bool enrages;
+        public Sprite[] idleFrames;
+        public Sprite[] shootFrames;
+        public FrameAnimator bodyAnim;
+        bool enraged;
+
         enum State { Idle, Chase, Windup, Lunge, Recover, Stunned, Hurt, Burrowed }
 
         public Health Health { get; private set; }
@@ -81,16 +98,19 @@ namespace MoonlightPost
             telegraph.sortingOrder = -500; // 바닥 위, 캐릭터 아래
             tg.SetActive(false);
 
-            if (burrows)
+            bool dives = System.Array.IndexOf(pattern, EnemyAttack.Dive) >= 0;
+            if (burrows || dives)
             {
-                // 땅속에 있을 때 보이는 흙더미
+                // 땅속(물속)에 있을 때 보이는 흙더미 / 먹물 웅덩이
                 var m = new GameObject("Mound");
                 m.transform.SetParent(transform, false);
                 m.transform.localPosition = new Vector3(0f, -0.3f, 0f);
+                if (dives) m.transform.localScale = Vector3.one * 2.5f;
                 mound = m.AddComponent<SpriteRenderer>();
-                mound.sprite = Art.Mound;
+                mound.sprite = dives ? Art.InkPuddle : Art.Mound;
                 mound.sortingOrder = -440;
-                EnterBurrow();
+                mound.enabled = false;
+                if (burrows) EnterBurrow();
             }
             strafeSign = Random.value < 0.5f ? -1f : 1f;
         }
@@ -218,9 +238,9 @@ namespace MoonlightPost
             if (telegraph != null) telegraph.gameObject.SetActive(false);
         }
 
-        void EnterBurrow()
+        void EnterBurrow(float duration = 3.5f)
         {
-            EnterState(State.Burrowed, 3.5f);
+            EnterState(State.Burrowed, duration);
             Health.Invulnerable = true;
             if (col != null) col.enabled = false;
             if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, transform.position, 16f, new Color(0.7f, 0.6f, 0.5f), 600, 1f);
@@ -240,6 +260,13 @@ namespace MoonlightPost
             EnterState(State.Windup, windupTime);
             velocity = Vector2.zero;
 
+            // 촉수·잠수는 예고를 따로 그린다(촉수는 떨어질 자리마다 원, 잠수는 웅덩이).
+            if (currentAttack == EnemyAttack.Rain || currentAttack == EnemyAttack.Dive)
+            {
+                stateEnd = Time.time + windupTime * 0.6f;
+                return;
+            }
+
             // 공격 예고: 돌진·사격은 진행 방향의 띠, 내려찍기는 피해 범위 원.
             // 빨간색 = 막을 수 있음, 주황색 = 막을 수 없음(피하거나 받아치기)
             var t = telegraph.transform;
@@ -254,8 +281,9 @@ namespace MoonlightPost
             }
             else
             {
-                float length = currentAttack == EnemyAttack.Shoot ? 6f : lungeSpeed * lungeTime + hitRadius;
-                float width = currentAttack == EnemyAttack.Shoot ? 0.3f : hitRadius * 1.2f;
+                bool shot = currentAttack == EnemyAttack.Shoot || currentAttack == EnemyAttack.Spread;
+                float length = shot ? 6f : lungeSpeed * lungeTime + hitRadius;
+                float width = currentAttack == EnemyAttack.Spread ? 1.4f : shot ? 0.3f : hitRadius * 1.2f;
                 telegraph.sprite = SpriteFactory.Square;
                 t.position = pos + attackDir * (length * 0.5f);
                 t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg);
@@ -278,6 +306,38 @@ namespace MoonlightPost
                     EnemyProjectile.Spawn(this, (Vector2)transform.position + attackDir * 0.5f, attackDir, shootDamage);
                     Sound.Play("Attack", 0.4f);
                     EnterState(State.Recover, recoverTime);
+                    break;
+
+                case EnemyAttack.Spread:
+                {
+                    float baseAngle = Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg;
+                    for (int i = 0; i < spreadCount; i++)
+                    {
+                        float a = (baseAngle + (i - (spreadCount - 1) * 0.5f) * 16f) * Mathf.Deg2Rad;
+                        var d = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+                        EnemyProjectile.Spawn(this, (Vector2)transform.position + d * 1f, d, shootDamage);
+                    }
+                    Sound.Play("Attack", 0.6f);
+                    EnterState(State.Recover, recoverTime);
+                    break;
+                }
+
+                case EnemyAttack.Rain:
+                {
+                    // 첫 촉수는 지금 플레이어가 있는 자리, 나머지는 주변. 차례로 떨어진다.
+                    Vector2 target = player.transform.position;
+                    for (int i = 0; i < rainCount; i++)
+                    {
+                        Vector2 p = i == 0 ? target : target + Random.insideUnitCircle.normalized * Random.Range(1.4f, 2.8f);
+                        GroundHazard.Spawn(p, 1.1f, 0.9f + i * 0.15f, 1);
+                    }
+                    EnterState(State.Recover, recoverTime * 0.6f);
+                    break;
+                }
+
+                case EnemyAttack.Dive:
+                    EnterBurrow(diveTime);
+                    Sound.Play("BossSlam", 0.5f);
                     break;
 
                 default:
@@ -321,11 +381,27 @@ namespace MoonlightPost
         {
             flashUntil = Time.time + 0.1f;
             Sound.Play("EnemyHit", 0.8f);
+            if (enrages && !enraged && Health.Current * 2 <= Health.Max) Enrage();
             // 보스는 공격 중에 맞아도 멈추지 않는다(슈퍼아머).
             if (isBoss && (state == State.Windup || state == State.Lunge)) return;
             if (state == State.Stunned || (burrows && state == State.Recover)) return;
             EnterState(State.Hurt, 0.2f);
             velocity = ((Vector2)transform.position - from).normalized * (isBoss ? pendingKnock * 0.33f : pendingKnock);
+        }
+
+        void Enrage()
+        {
+            enraged = true;
+            windupTime *= 0.7f;
+            recoverTime *= 0.7f;
+            moveSpeed *= 1.25f;
+            spreadCount += 2;
+            rainCount += 2;
+            baseColor = Color.Lerp(baseColor, new Color(1f, 0.3f, 0.4f), 0.4f);
+            HUD.Toast(displayName + "이(가) 분노했다! 공격이 빨라진다.");
+            RingFx.Spawn(transform.position, 3f, new Color(1f, 0.3f, 0.4f, 0.9f), 0.5f);
+            CameraFollow.Shake(0.3f, 0.2f);
+            Juice.HitStop(0.15f);
         }
 
         void OnDied()
@@ -346,6 +422,11 @@ namespace MoonlightPost
         void UpdateVisual()
         {
             if (body == null) return;
+            if (bodyAnim != null && idleFrames != null)
+            {
+                var wanted = state == State.Windup && currentAttack == EnemyAttack.Spread && shootFrames != null ? shootFrames : idleFrames;
+                if (bodyAnim.frames != wanted) bodyAnim.frames = wanted;
+            }
             bool hidden = IsBurrowed;
             body.enabled = !hidden;
             if (mound != null)

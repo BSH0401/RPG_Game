@@ -112,11 +112,20 @@ namespace MoonlightPost
     }
 
 #pragma warning disable 0649 // JsonUtility 가 채우는 필드
+    /// <summary>모든 편지를 배달한 뒤의 엔딩. 위에서부터 조건이 맞는 첫 엔딩을 보여준다.</summary>
+    [Serializable]
+    public class EndingDef
+    {
+        public string condition;
+        public DialogueLine[] lines;
+    }
+
     [Serializable]
     class LetterDatabase
     {
         public LetterDef[] letters;
         public DialogueLine[] endingLines;
+        public EndingDef[] endings;
     }
 
     [Serializable]
@@ -143,6 +152,7 @@ namespace MoonlightPost
     {
         public static LetterDef[] Letters { get; private set; } = new LetterDef[0];
         public static DialogueLine[] EndingLines { get; private set; } = new DialogueLine[0];
+        public static EndingDef[] Endings { get; private set; } = new EndingDef[0];
 
         static readonly Dictionary<string, NpcDef> npcs = new Dictionary<string, NpcDef>();
         static readonly Dictionary<string, ClueDef> clues = new Dictionary<string, ClueDef>();
@@ -154,6 +164,7 @@ namespace MoonlightPost
             var letterDb = Read<LetterDatabase>("Data/letters");
             Letters = letterDb?.letters ?? new LetterDef[0];
             EndingLines = letterDb?.endingLines ?? new DialogueLine[0];
+            Endings = letterDb?.endings ?? new EndingDef[0];
 
             npcs.Clear();
             var npcDb = Read<NpcDatabase>("Data/npcs");

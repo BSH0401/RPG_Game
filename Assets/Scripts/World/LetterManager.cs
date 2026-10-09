@@ -47,7 +47,14 @@ namespace MoonlightPost
             var next = NextAvailable();
             if (next == null)
             {
-                DialogueSystem.I.Show(GameData.EndingLines);
+                var ending = GameData.EndingLines;
+                foreach (var e in GameData.Endings)
+                    if (GameState.Check(e.condition))
+                    {
+                        ending = e.lines;
+                        break;
+                    }
+                DialogueSystem.I.Show(ending);
                 return;
             }
 

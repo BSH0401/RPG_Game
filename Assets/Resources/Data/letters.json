@@ -116,6 +116,75 @@
       "deliveredFlag": "lamp_lit",
       "rewardMaxHp": 0,
       "rewardText": "멀리 마을 쪽에서 불빛이 켜지는 것이 보인다. 우체국으로 돌아가 보자."
+    },
+    {
+      "id": "lighthouse_letter",
+      "title": "등대로 가는 편지",
+      "senderName": "어부의 아들 노아",
+      "recipientId": "keeper",
+      "recipientName": "서쪽 곶 등대의 등대지기 세린",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "delivered:noah_letter",
+      "deliverCondition": "boss_coast_defeated",
+      "blockedLines": [
+        { "speaker": "", "text": "등대 앞 바다가 시커멓게 끓어오른다. 거대한 먹물 문어가 등대로 가는 길을 막고 있다!" }
+      ],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "우체국 등불이 켜지자, 서쪽 해안 너머 꺼져 있던 등대의 윤곽이 희미하게 보이기 시작했다." },
+        { "speaker": "노아", "text": "우체부님! 우체통이 대답했어. 엄마는 정말 등대에 있대!" },
+        { "speaker": "노아", "text": "이번엔 진짜 엄마한테 직접 전해 줘. 마을 서쪽 길을 막던 바위도 치워졌어!" },
+        { "speaker": "", "text": "서쪽 해안길이 열렸다. 마을 서쪽 끝으로 나가 등대로 가자." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "세린", "text": "...이 삐뚤빼뚤한 글씨, 노아구나." },
+        { "speaker": "세린", "text": "등대 불이 꺼진 날부터 먹물이 나를 이곳에 묶어 두었어요. 바다로 나간 편지들도 전부 그 먹물 속에 가라앉았죠." },
+        { "speaker": "세린", "text": "당신이 그 문어를 물리쳐 줬군요. 이제... 이 편지를 받아도 될까요?" }
+      ],
+      "choices": [
+        {
+          "text": "노아의 편지를 소리 내어 읽어 드린다",
+          "setFlag": "serin_read",
+          "lines": [
+            { "speaker": "편지", "text": "\"엄마, 우체부님이 우체국 불을 켜 줬어. 이제 엄마 차례야. 등대 불 켜고 집에 와. 미라 누나 빵도 있어. — 노아\"" },
+            { "speaker": "세린", "text": "...그래. 이제 내 차례구나." },
+            { "speaker": "", "text": "세린이 등대 꼭대기로 올라가 램프에 불을 붙였다." }
+          ]
+        },
+        {
+          "text": "편지를 건네고, 등대에 불 켜는 것을 함께 돕는다",
+          "setFlag": "serin_helped",
+          "lines": [
+            { "speaker": "", "text": "둘이서 녹슨 계단을 올라 등대 꼭대기의 램프에 불을 붙였다." },
+            { "speaker": "세린", "text": "고마워요, 우체부님. 이 빛이면 바다에 가라앉은 편지들도 다시 길을 찾을 거예요." }
+          ]
+        }
+      ],
+      "deliveredFlag": "lighthouse_lit",
+      "rewardMaxHp": 0,
+      "rewardText": "등대에 불이 켜졌다! 섬 전체가 환해진다. 우체국으로 돌아가 보자."
+    }
+  ],
+  "endings": [
+    {
+      "condition": "lighthouse_lit,reply_softened",
+      "lines": [
+        { "speaker": "우체국 창구", "text": "오늘 밤 맡은 편지는 모두 배달했다." },
+        { "speaker": "", "text": "등대 불빛이 섬을 한 바퀴 돌 때마다, 숲 쪽 문 앞에 선 미라의 그림자가 길게 늘어난다." },
+        { "speaker": "", "text": "다음 날 새벽, 미라는 갓 구운 빵을 들고 숲으로 들어갔다. 오웬의 오두막 굴뚝에서 두 사람 몫의 연기가 피어올랐다." },
+        { "speaker": "", "text": "노아는 세린의 손을 잡고 우체국 등불 아래에서 잠들었다." },
+        { "speaker": "", "text": "— 엔딩 A: 다시 이어진 길. 플레이해 주셔서 고맙습니다. (F12: 처음부터 다시) —" }
+      ]
+    },
+    {
+      "condition": "lighthouse_lit",
+      "lines": [
+        { "speaker": "우체국 창구", "text": "오늘 밤 맡은 편지는 모두 배달했다." },
+        { "speaker": "", "text": "오웬은 돌아오지 않았다. 대신 매주 밀가루 자루와 함께 짧은 편지가 온다. 미라도 빠짐없이 답장을 쓴다." },
+        { "speaker": "", "text": "등대 불빛 아래, 우체국 창구에는 오늘도 배달할 편지가 쌓여 간다. 섬 사람들이 다시 편지를 쓰기 시작했다." },
+        { "speaker": "", "text": "노아와 세린이 우체국 앞에서 손을 흔든다. 내일 밤에도 이 섬의 길은 조금씩 달라질 것이다." },
+        { "speaker": "", "text": "— 엔딩 B: 매주 오는 편지. 플레이해 주셔서 고맙습니다. (F12: 처음부터 다시) —" }
+      ]
     }
   ],
   "endingLines": [

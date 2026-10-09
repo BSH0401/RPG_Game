@@ -367,6 +367,7 @@ namespace MoonlightPost
             }
 
             Marker(map, postOfficePos, new Color(1f, 0.85f, 0.4f), "우체국");
+            Marker(map, GameBootstrap.LighthousePos, GameState.HasFlag("lighthouse_lit") ? new Color(1f, 0.95f, 0.6f) : new Color(0.6f, 0.5f, 0.8f), "등대");
 
             var letter = LetterManager.Carrying;
             string info;

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
-    public enum EnemyKind { Rat, Bat, Mole, Boss }
+    public enum EnemyKind { Rat, Bat, Mole, Boss, Squid }
 
     /// <summary>월드 오브젝트를 만드는 도우미. 그림은 Art 에서, 배치는 GameBootstrap 에서 정한다.</summary>
     public static class Spawner
@@ -195,7 +195,7 @@ namespace MoonlightPost
         /// </summary>
         public static GameObject Enemy(Vector2 pos, EnemyKind kind)
         {
-            bool boss = kind == EnemyKind.Boss;
+            bool boss = kind == EnemyKind.Boss || kind == EnemyKind.Squid;
             var go = new GameObject("Enemy_" + kind);
             go.transform.SetParent(Root, false);
             go.transform.position = pos;
@@ -204,7 +204,7 @@ namespace MoonlightPost
             rb.gravityScale = 0f;
             rb.freezeRotation = true;
             rb.mass = boss ? 20f : 2f;
-            go.AddComponent<CircleCollider2D>().radius = boss ? 0.7f : 0.35f;
+            go.AddComponent<CircleCollider2D>().radius = kind == EnemyKind.Squid ? 1f : boss ? 0.7f : 0.35f;
 
             var health = go.AddComponent<Health>();
             var enemy = go.AddComponent<EnemyController>();
@@ -240,6 +240,45 @@ namespace MoonlightPost
                     }
                     else body = Character(go, Art.InkBoss, 1f, 0.7f);
                     Glow(pos, 5f, new Color(0.6f, 0.4f, 1f, 0.25f), go.transform);
+                    break;
+
+                case EnemyKind.Squid:
+                    // 두 번째 보스: 등대 앞 바다의 심해 먹물 문어
+                    health.SetMax(24, true);
+                    enemy.displayName = "심해 먹물 문어";
+                    enemy.isBoss = true;
+                    enemy.enrages = true;
+                    enemy.defeatFlag = "boss_coast_defeated";
+                    enemy.moveSpeed = 1.4f;
+                    enemy.detectRange = 10f;
+                    enemy.attackRange = 8f;
+                    enemy.keepDistance = 4f;
+                    enemy.windupTime = 0.85f;
+                    enemy.recoverTime = 1f;
+                    enemy.slamRadius = 2.4f;
+                    enemy.hitRadius = 1.4f;
+                    enemy.burrowSpeed = 6.5f;
+                    enemy.diveTime = 1.6f;
+                    enemy.pattern = new[] { EnemyAttack.Spread, EnemyAttack.Rain, EnemyAttack.Dive, EnemyAttack.Spread, EnemyAttack.Rain };
+                    var squidIdle = GameAssets.Available ? GameAssets.SquidIdleFrames : null;
+                    if (squidIdle != null)
+                    {
+                        body = Character(go, squidIdle[0], 0.8f, 0.9f);
+                        body.color = new Color(0.72f, 0.5f, 0.98f);
+                        Object.Destroy(go.GetComponent<CharacterAnimator>());
+                        var anim = body.gameObject.AddComponent<FrameAnimator>();
+                        anim.frames = squidIdle;
+                        anim.fps = 6f;
+                        enemy.bodyAnim = anim;
+                        enemy.idleFrames = squidIdle;
+                        enemy.shootFrames = GameAssets.SquidShootFrames;
+                    }
+                    else
+                    {
+                        body = Character(go, Art.InkBoss, 1.2f, 0.9f);
+                        body.color = new Color(0.9f, 0.5f, 0.7f);
+                    }
+                    Glow(pos, 6f, new Color(0.7f, 0.3f, 0.6f, 0.25f), go.transform);
                     break;
 
                 case EnemyKind.Bat:

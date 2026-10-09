@@ -13,13 +13,14 @@ namespace MoonlightPost
         const string House = "TilesetHouse";
         const string WaterSheet = "TilesetWater";
 
-        const int GroundX0 = -16, GroundX1 = 52, GroundY0 = -11, GroundY1 = 11;
+        const int GroundX0 = -50, GroundX1 = 52, GroundY0 = -11, GroundY1 = 11;
+        const int CoastMaxX = -17; // 이 x 이하는 해안(모래)
 
         /// <summary>길(흙길) 영역. 셀 단위(x, y, 너비, 높이). 모든 길은 가로·세로 2칸 이상이어야 모서리 타일이 맞는다.</summary>
         static readonly RectInt[] PathCells =
         {
             // 마을
-            new RectInt(-14, -1, 31, 2),   // 동서 큰길
+            new RectInt(-16, -1, 33, 2),   // 동서 큰길 (서쪽 끝은 해안 입구)
             new RectInt(-1, -6, 2, 12),    // 남북 길
             new RectInt(-2, 2, 4, 3),      // 우체국 앞 마당
             new RectInt(-10, 1, 2, 3),     // 빵집 앞
@@ -35,6 +36,8 @@ namespace MoonlightPost
         };
 
         static readonly RectInt SeaCells = new RectInt(-16, -11, 24, 3);
+        static readonly RectInt CoastSeaSouth = new RectInt(-50, -11, 33, 5);
+        static readonly RectInt CoastSeaWest = new RectInt(-50, -11, 4, 22);
 
         // ------------------------------------------------------------------ 바닥
 
@@ -48,6 +51,8 @@ namespace MoonlightPost
             var sea = new bool[w, h];
             foreach (var r in PathCells) Mark(path, r);
             Mark(sea, SeaCells);
+            Mark(sea, CoastSeaSouth);
+            Mark(sea, CoastSeaWest);
 
             System.Func<int, int, bool> Path = (x, y) =>
                 x >= GroundX0 && x < GroundX1 && y >= GroundY0 && y < GroundY1 && path[x - GroundX0, y - GroundY0];
@@ -59,17 +64,25 @@ namespace MoonlightPost
                 for (int x = GroundX0; x < GroundX1; x++)
                 {
                     bool forest = x >= 17;
+                    bool coast = x <= CoastMaxX;
                     if (Sea(x, y))
                     {
-                        Spawner.GroundTile(root, x, y, BlobTile(WaterSheet, 0, 6, Sea, x, y, false), -1000, GameAssets.SeaTint);
+                        // 해안 바다는 모래 테두리, 마을 바다는 풀 테두리
+                        Spawner.GroundTile(root, x, y, BlobTile(WaterSheet, 0, coast ? 0 : 6, Sea, x, y, false), -1000, GameAssets.SeaTint);
                         continue;
                     }
 
+                    if (coast)
+                    {
+                        Spawner.GroundTile(root, x, y, SandTile(x, y), -1000);
+                        if (PixelCanvas.Hash(x, y, 31) > 0.95f) Detail(root, x, y, 0);
+                        continue;
+                    }
                     Spawner.GroundTile(root, x, y, GrassTile(x, y, forest), -1000);
                     if (Path(x, y))
                         Spawner.GroundTile(root, x, y, BlobTile(Floor, forest ? 11 : 0, 7, Path, x, y, true), -990);
                     else if (PixelCanvas.Hash(x, y, 31) > 0.94f)
-                        Detail(root, x, y);
+                        Detail(root, x, y, 2);
                 }
         }
 
@@ -116,11 +129,19 @@ namespace MoonlightPost
             return GameAssets.GroundTile(sheet, tx, ty);
         }
 
-        void Detail(Transform root, int x, int y)
+        /// <summary>해안 바닥: 밝은 모래(물가 타일의 모래색과 같다).</summary>
+        static Sprite SandTile(int x, int y)
         {
-            // 풀포기·꽃 장식 (TilesetFloorDetail 3번째 줄)
-            int i = (int)(PixelCanvas.Hash(x, y, 33) * 7.99f);
-            var sprite = GameAssets.Region("Tilesets/TilesetFloorDetail", i * 16, 32, 16, 16, 0.5f, 0f);
+            float h = PixelCanvas.Hash(x, y, 34);
+            if (h < 0.8f) return GameAssets.GroundTile(Floor, 1, 1);
+            return GameAssets.GroundTile(Floor, h < 0.9f ? 8 : 5, 1);
+        }
+
+        void Detail(Transform root, int x, int y, int row)
+        {
+            // 장식: row 2 = 풀포기·꽃, row 0 = 불가사리·조개·자갈 (TilesetFloorDetail)
+            int i = (int)(PixelCanvas.Hash(x, y, 33) * (row == 0 ? 4.99f : 7.99f));
+            var sprite = GameAssets.Region("Tilesets/TilesetFloorDetail", i * 16, row * 16, 16, 16, 0.5f, 0f);
             if (sprite == null) return;
             var go = new GameObject("Detail");
             go.transform.SetParent(root, false);
@@ -150,7 +171,7 @@ namespace MoonlightPost
 
             // 위쪽 가장자리: 침엽수 줄
             i = 0;
-            for (float x = -15.5f; x <= 52f; x += 1.7f, i++)
+            for (float x = -45.5f; x <= 52f; x += 1.7f, i++)
                 Spawner.Prop("Border", new Vector2(x, 10.6f + (i % 3) * 0.3f), i % 2 == 0 ? conifer : hedge);
             // 숲 아래쪽, 양옆 가장자리
             var bush = GameAssets.Tile(Nature, 0, 10);
@@ -159,7 +180,8 @@ namespace MoonlightPost
             for (float y = -11f; y < 11f; y += 1.5f)
             {
                 Spawner.Prop("Border", new Vector2(53f, y), conifer);
-                if (y > -8f) Spawner.Prop("Border", new Vector2(-17f, y), conifer);
+                // 마을과 해안 사이 나무 울타리(가운데 길은 비운다)
+                if (y > -8f && (y < -2.6f || y > 1.6f)) Spawner.Prop("Border", new Vector2(-17f, y), conifer);
             }
         }
 

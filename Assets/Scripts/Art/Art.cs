@@ -514,6 +514,86 @@ namespace MoonlightPost
             return c.ToSprite();
         });
 
+        /// <summary>
+        /// 등대(가로 3칸, 세로 7칸). 돌 받침 + 빨강·흰 줄무늬 탑 + 난간 + 등불 방 + 지붕.
+        /// lit 이면 등불 방이 노랗게 빛난다.
+        /// </summary>
+        public static Sprite Lighthouse(bool lit) => Cached("lighthouse" + lit, () =>
+        {
+            var c = new PixelCanvas(48, 112);
+            Color32 stone = H("#8a8a98"), stoneDark = H("#6a6a7a"), red = H("#c0443a"), redDark = H("#962f2a"),
+                white = H("#efe8da"), whiteDark = H("#c9c0b0"), rail = H("#3a3448"), roof = H("#b03a32");
+
+            // 돌 받침
+            c.Rect(4, 0, 40, 16, stone);
+            for (int y = 0; y < 16; y++)
+                for (int x = 4; x < 44; x++)
+                    if (y % 5 == 0 || (x + (y / 5) * 4) % 8 == 0) c.Set(x, y, stoneDark);
+            c.Rect(20, 0, 8, 12, H("#2a2030"));
+            c.Rect(21, 11, 6, 2, H("#2a2030"));
+            c.Set(26, 6, H("#e8c060"));
+
+            // 탑: 위로 갈수록 좁아지는 줄무늬
+            for (int y = 16; y < 86; y++)
+            {
+                float t = (y - 16) / 70f;
+                int half = Mathf.RoundToInt(Mathf.Lerp(15f, 10f, t));
+                bool redBand = ((y - 16) / 12) % 2 == 0;
+                for (int x = 24 - half; x < 24 + half; x++)
+                {
+                    bool shade = x > 24 + half / 3;
+                    c.Set(x, y, redBand ? (shade ? redDark : red) : (shade ? whiteDark : white));
+                }
+            }
+            // 작은 창
+            c.Rect(22, 40, 4, 6, H("#2a2030"));
+            c.Rect(22, 64, 4, 6, lit ? H("#ffd37a") : H("#2a2030"));
+
+            // 난간
+            c.Rect(10, 86, 28, 3, rail);
+            for (int x = 11; x < 38; x += 3) c.VLine(x, 89, 3, rail);
+            c.HLine(10, 92, 28, rail);
+
+            // 등불 방
+            c.Rect(14, 92, 20, 12, rail);
+            c.Rect(16, 93, 16, 10, lit ? H("#ffe08a") : H("#2c3450"));
+            if (lit) c.Rect(18, 95, 5, 5, H("#fffbe0"));
+            c.VLine(21, 93, 10, rail);
+            c.VLine(27, 93, 10, rail);
+
+            // 지붕
+            for (int y = 104; y < 111; y++)
+            {
+                int half = Mathf.RoundToInt(Mathf.Lerp(12f, 2f, (y - 104) / 7f));
+                c.HLine(24 - half, y, half * 2, roof);
+            }
+            c.Set(24, 111, rail);
+            c.Outline(Ink);
+            return c.ToSprite();
+        });
+
+        public static Sprite Rock(bool large) => Cached("rock" + large, () =>
+        {
+            int w = large ? 32 : 18, h = large ? 26 : 14;
+            var c = new PixelCanvas(w, h);
+            c.Ellipse(w / 2f, h / 2f - 1, w / 2f - 1, h / 2f - 1, H("#6e6a74"));
+            c.EllipseOver(w / 2f - 2, h / 2f + 1, w / 3f, h / 3f, H("#8a8692"));
+            c.EllipseOver(w / 2f + 3, 3, w / 3f, 3, H("#55515c"));
+            c.Outline(Ink);
+            return c.ToSprite();
+        });
+
+        /// <summary>물속으로 잠긴 보스가 남기는 먹물 웅덩이.</summary>
+        public static Sprite InkPuddle => Cached("puddle", () =>
+        {
+            var c = new PixelCanvas(20, 10);
+            c.Ellipse(10, 5, 9.5f, 4.5f, H("#2a1a40"));
+            c.EllipseOver(9, 6, 6, 2.2f, H("#4a2f70"));
+            c.Set(6, 7, H("#9a7ad0"));
+            c.Set(13, 5, H("#9a7ad0"));
+            return c.ToSprite(0.5f, 0.3f);
+        });
+
         /// <summary>땅속을 파고드는 적의 흙더미.</summary>
         public static Sprite Mound => Cached("mound", () =>
         {

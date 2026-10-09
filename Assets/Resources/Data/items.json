@@ -57,7 +57,7 @@
       "kind": "equipment",
       "effect": "tool",
       "value": 50,
-      "icon": "Stamp",
+      "icon": "SilverSeal",
       "maxStack": 1
     },
     {
@@ -78,6 +78,38 @@
       "effect": "",
       "value": 0,
       "icon": "Key",
+      "maxStack": 1
+    },
+    {
+      "id": "lost_stamp",
+      "name": "잃어버린 우표",
+      "description": "옛 우체국이 잃어버린 우표. 섬 곳곳에 8장이 숨어 있다. 4장, 8장을 모으면 좋은 일이 생긴다. 보름달 밤에는 지도에 보인다.",
+      "kind": "collectible",
+      "effect": "",
+      "value": 0,
+      "icon": "Stamp",
+      "maxStack": 8,
+      "rewardAt": [4, 8],
+      "rewardItems": ["collector_badge", "golden_stamp"]
+    },
+    {
+      "id": "collector_badge",
+      "name": "우표 수집가 배지",
+      "description": "잃어버린 우표 4장을 찾아 낸 배달부에게 주는 배지. 최대 체력 +1.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 1,
+      "icon": "Badge",
+      "maxStack": 1
+    },
+    {
+      "id": "golden_stamp",
+      "name": "황금 우표",
+      "description": "8장을 모두 찾으면 나타나는 전설의 우표. 편지 도구가 훨씬 강해진다.",
+      "kind": "equipment",
+      "effect": "tool",
+      "value": 40,
+      "icon": "GoldenStamp",
       "maxStack": 1
     },
     {

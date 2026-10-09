@@ -514,6 +514,18 @@ namespace MoonlightPost
             return c.ToSprite();
         });
 
+        /// <summary>땅속을 파고드는 적의 흙더미.</summary>
+        public static Sprite Mound => Cached("mound", () =>
+        {
+            var c = new PixelCanvas(16, 8);
+            c.Ellipse(8, 3, 7.5f, 3.5f, H("#5a4030"));
+            c.EllipseOver(7, 4.5f, 5, 2, H("#7a5840"));
+            c.Set(4, 5, H("#9a7858"));
+            c.Set(11, 4, H("#9a7858"));
+            c.Outline(Ink);
+            return c.ToSprite(0.5f, 0.3f);
+        });
+
         public static Sprite Chest(bool open) => Cached("chest" + open, () =>
         {
             var c = new PixelCanvas(16, 14);

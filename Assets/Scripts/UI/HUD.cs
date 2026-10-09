@@ -149,7 +149,10 @@ namespace MoonlightPost
             string tool = "[Q] " + partName + (cd > 0f ? "  " + cd.ToString("0.0") + "초" : "  준비됨");
             if (Inventory.OwnedPartCount() > 1) tool += "   <color=#9fb3ff>[C] 바꾸기</color>";
             Ui.Shadow(Ui.R(44, 46, 400, 26), tool, Ui.Small);
-            Ui.Shadow(Ui.R(16, 74, 300, 26), GameState.Night > 0 ? GameState.Night + "번째 밤" : "첫 밤 전", Ui.Small);
+            string nightText = GameState.Night > 0 ? GameState.Night + "번째 밤 · " + NightDirector.MoodName(NightDirector.Mood) : "첫 밤 전";
+            int stamps = GameState.ItemCount("lost_stamp");
+            if (stamps > 0) nightText += "    잃어버린 우표 " + stamps + "/8";
+            Ui.Shadow(Ui.R(16, 74, 420, 26), nightText, Ui.Small);
 
             // 먹을 것 개수
             int food = Inventory.ConsumableCount();
@@ -197,6 +200,7 @@ namespace MoonlightPost
                 }
                 string tag = def.IsEquipment ? "<color=#9fe0a0>장비</color>"
                     : def.IsConsumable ? "<color=#ffd98a>소모품</color>"
+                    : def.kind == "collectible" ? "<color=#ffe08a>수집품</color>"
                     : def.IsPart ? (Inventory.CurrentToolPart == def ? "<color=#ffb070>편지 도구 · 사용 중</color>" : "<color=#ffb070>편지 도구</color>")
                     : "<color=#b8c4ff>열쇠</color>";
                 string count = items[i].count > 1 ? "  x" + items[i].count : "";
@@ -380,6 +384,11 @@ namespace MoonlightPost
             {
                 info = LetterManager.NextAvailable() != null ? "들고 있는 편지가 없다. 우체국 창구에서 편지를 받자." : "모든 편지를 배달했다.";
             }
+
+            // 보름달 밤에는 아직 줍지 않은 잃어버린 우표가 지도에 보인다.
+            if (NightDirector.Mood == NightMood.FullMoon)
+                foreach (var c in Collectible.All)
+                    if (!c.Taken) Marker(map, c.transform.position, new Color(1f, 0.85f, 0.4f), "우표");
 
             Marker(map, player.transform.position, new Color(0.5f, 0.9f, 1f), "나");
 

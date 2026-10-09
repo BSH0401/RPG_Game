@@ -73,6 +73,9 @@ namespace MoonlightPost
         /// <summary>Resources/Art/NinjaAdventure/Items 안의 그림 이름.</summary>
         public string icon;
         public int maxStack;
+        /// <summary>이 아이템을 rewardAt[i] 개 모으면 rewardItems[i] 를 준다(잃어버린 우표 등).</summary>
+        public int[] rewardAt;
+        public string[] rewardItems;
 
         public bool IsEquipment => kind == "equipment";
         public bool IsConsumable => kind == "consumable";

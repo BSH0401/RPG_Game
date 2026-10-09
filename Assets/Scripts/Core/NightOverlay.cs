@@ -11,6 +11,12 @@ namespace MoonlightPost
         void LateUpdate()
         {
             float target = baseScale + scalePerLight * Inventory.EffectSum("light");
+            switch (NightDirector.Mood)
+            {
+                case NightMood.Fog: target -= 12f; break;        // 안개: 더 좁게 보인다
+                case NightMood.Fireflies: target += 10f; break;  // 반딧불이: 더 넓게
+                case NightMood.FullMoon: target += 6f; break;
+            }
             float s = Mathf.Lerp(transform.localScale.x, target, 1f - Mathf.Exp(-3f * Time.unscaledDeltaTime));
             transform.localScale = new Vector3(s, s, 1f);
         }

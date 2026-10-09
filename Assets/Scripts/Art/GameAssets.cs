@@ -143,6 +143,13 @@ namespace MoonlightPost
         // ---------------------------------------------------------------- 자주 쓰는 그림
 
         public static Texture2D ItemIcon(string icon) => string.IsNullOrEmpty(icon) ? null : Texture("Items/" + icon);
+
+        /// <summary>아이템 그림을 월드에 놓을 스프라이트로(발밑 기준).</summary>
+        public static Sprite ItemSprite(string icon)
+        {
+            var tex = ItemIcon(icon);
+            return tex == null ? null : Region("Items/" + icon, 0, 0, tex.width, tex.height, 0.5f, 0f);
+        }
         public static Sprite ChestClosed => Region("Items/Chest", 0, 0, 16, 16);
         public static Sprite ChestOpen => Region("Items/Chest", 16, 0, 16, 16);
 

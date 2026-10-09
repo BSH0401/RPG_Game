@@ -2,6 +2,8 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
+    public enum EnemyKind { Rat, Bat, Mole, Boss }
+
     /// <summary>월드 오브젝트를 만드는 도우미. 그림은 Art 에서, 배치는 GameBootstrap 에서 정한다.</summary>
     public static class Spawner
     {
@@ -184,9 +186,17 @@ namespace MoonlightPost
             return npc;
         }
 
-        public static GameObject Enemy(Vector2 pos, bool boss)
+        /// <summary>
+        /// 적 만들기. 종류별 수치가 곧 적의 개성이다.
+        ///  - Rat(그림자 들쥐): 가까이 와서 돌진. 막을 수 있다.
+        ///  - Bat(먹물 박쥐): 거리를 두고 먹물 구슬을 쏜다. 막거나 받아쳐서 되돌려 보낸다.
+        ///  - Mole(그림자 두더지): 땅속으로 다가와 튀어나오며 내려찍는다(막을 수 없음). 튀어나온 뒤가 기회.
+        ///  - Boss(먹물 그림자): 내려찍기 + 돌진.
+        /// </summary>
+        public static GameObject Enemy(Vector2 pos, EnemyKind kind)
         {
-            var go = new GameObject(boss ? "Boss_InkShade" : "Enemy_ShadowRat");
+            bool boss = kind == EnemyKind.Boss;
+            var go = new GameObject("Enemy_" + kind);
             go.transform.SetParent(Root, false);
             go.transform.position = pos;
 
@@ -199,43 +209,80 @@ namespace MoonlightPost
             var health = go.AddComponent<Health>();
             var enemy = go.AddComponent<EnemyController>();
             SpriteRenderer body;
-            if (boss)
+            CharacterSheet sheet;
+            switch (kind)
             {
-                health.SetMax(14, true);
-                enemy.displayName = "먹물 그림자";
-                enemy.isBoss = true;
-                enemy.defeatFlag = "boss_forest_defeated";
-                enemy.moveSpeed = 1.8f;
-                enemy.detectRange = 7f;
-                enemy.attackRange = 3f;
-                enemy.windupTime = 0.8f;
-                enemy.lungeSpeed = 11f;
-                enemy.lungeTime = 0.3f;
-                enemy.recoverTime = 0.9f;
-                enemy.slamRadius = 2.8f;
-                enemy.hitRadius = 1.2f;
-                enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Lunge, EnemyAttack.Lunge };
-                var bossFrames = GameAssets.Available ? GameAssets.BossFrames : null;
-                if (bossFrames != null)
-                {
-                    body = Character(go, bossFrames[0], 1f, 0.7f);
-                    // 하얀 영혼 그림을 먹물색으로 물들인다.
-                    body.color = new Color(0.55f, 0.38f, 0.9f);
-                    Object.Destroy(go.GetComponent<CharacterAnimator>());
-                    var anim = body.gameObject.AddComponent<FrameAnimator>();
-                    anim.frames = bossFrames;
-                    anim.fps = 7f;
-                }
-                else body = Character(go, Art.InkBoss, 1f, 0.7f);
-                Glow(pos, 5f, new Color(0.6f, 0.4f, 1f, 0.25f), go.transform);
-            }
-            else
-            {
-                health.SetMax(3, true);
-                var ratSheet = GameAssets.Available ? GameAssets.Sheet("MouseBlack") : null;
-                body = ratSheet != null ? Character(go, ratSheet, 0.4f) : Character(go, Art.ShadowRat, 1f, 0.35f);
-                if (ratSheet != null) body.color = new Color(0.75f, 0.7f, 0.95f);
-                Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
+                case EnemyKind.Boss:
+                    health.SetMax(14, true);
+                    enemy.displayName = "먹물 그림자";
+                    enemy.isBoss = true;
+                    enemy.defeatFlag = "boss_forest_defeated";
+                    enemy.moveSpeed = 1.8f;
+                    enemy.detectRange = 7f;
+                    enemy.attackRange = 3f;
+                    enemy.windupTime = 0.8f;
+                    enemy.lungeSpeed = 11f;
+                    enemy.lungeTime = 0.3f;
+                    enemy.recoverTime = 0.9f;
+                    enemy.slamRadius = 2.8f;
+                    enemy.hitRadius = 1.2f;
+                    enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Lunge, EnemyAttack.Shoot, EnemyAttack.Lunge };
+                    var bossFrames = GameAssets.Available ? GameAssets.BossFrames : null;
+                    if (bossFrames != null)
+                    {
+                        body = Character(go, bossFrames[0], 1f, 0.7f);
+                        // 하얀 영혼 그림을 먹물색으로 물들인다.
+                        body.color = new Color(0.55f, 0.38f, 0.9f);
+                        Object.Destroy(go.GetComponent<CharacterAnimator>());
+                        var anim = body.gameObject.AddComponent<FrameAnimator>();
+                        anim.frames = bossFrames;
+                        anim.fps = 7f;
+                    }
+                    else body = Character(go, Art.InkBoss, 1f, 0.7f);
+                    Glow(pos, 5f, new Color(0.6f, 0.4f, 1f, 0.25f), go.transform);
+                    break;
+
+                case EnemyKind.Bat:
+                    health.SetMax(2, true);
+                    enemy.displayName = "먹물 박쥐";
+                    enemy.moveSpeed = 2.6f;
+                    enemy.detectRange = 7.5f;
+                    enemy.attackRange = 6.5f;
+                    enemy.keepDistance = 4.5f;
+                    enemy.windupTime = 0.7f;
+                    enemy.recoverTime = 1.1f;
+                    enemy.pattern = new[] { EnemyAttack.Shoot };
+                    sheet = GameAssets.Available ? GameAssets.Sheet("BlueBat") : null;
+                    body = sheet != null ? Character(go, sheet, 0.6f) : Character(go, Art.ShadowRat, 0.8f, 0.5f);
+                    body.color = sheet != null ? new Color(0.7f, 0.55f, 1f) : new Color(0.6f, 0.5f, 1f);
+                    // 날아다니므로 조금 떠 있다
+                    body.transform.localPosition += new Vector3(0f, 0.25f, 0f);
+                    Glow(pos, 1.6f, new Color(0.6f, 0.4f, 1f, 0.2f), go.transform);
+                    break;
+
+                case EnemyKind.Mole:
+                    health.SetMax(4, true);
+                    enemy.displayName = "그림자 두더지";
+                    enemy.moveSpeed = 0f;
+                    enemy.detectRange = 7f;
+                    enemy.burrows = true;
+                    enemy.burrowSpeed = 3.4f;
+                    enemy.windupTime = 0.65f;
+                    enemy.slamRadius = 1.6f;
+                    enemy.slamDamage = 1;
+                    enemy.pattern = new[] { EnemyAttack.Slam };
+                    sheet = GameAssets.Available ? GameAssets.Sheet("Mole") : null;
+                    body = sheet != null ? Character(go, sheet, 0.4f) : Character(go, Art.ShadowRat, 1.1f, 0.35f);
+                    body.color = sheet != null ? new Color(0.85f, 0.7f, 0.8f) : new Color(0.8f, 0.5f, 0.4f);
+                    break;
+
+                default:
+                    health.SetMax(3, true);
+                    sheet = GameAssets.Available ? GameAssets.Sheet("MouseBlack") : null;
+                    body = sheet != null ? Character(go, sheet, 0.4f) : Character(go, Art.ShadowRat, 1f, 0.35f);
+                    if (sheet != null) body.color = new Color(0.75f, 0.7f, 0.95f);
+                    Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
+                    break;
             }
             enemy.Init(body);
             return go;

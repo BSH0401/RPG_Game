@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
+    public enum AttackResult { Hit, Blocked, Parried, Ignored }
+
     /// <summary>
     /// 배달부: 이동, 3연타 공격, 회피, 우편가방 막기·받아치기, 편지 도구(Q, 부품에 따라 효과가 바뀜), 조사·대화.
     /// </summary>
@@ -243,9 +245,9 @@ namespace MoonlightPost
         /// 적의 공격이 닿았을 때 부른다. 앞을 보고 막는 중이면 막고,
         /// 막기를 누른 직후(받아치기 시간)라면 적을 비틀거리게 한다. unblockable 공격은 받아치기로만 막힌다.
         /// </summary>
-        public void ReceiveAttack(EnemyController source, int damage, Vector2 from, bool unblockable)
+        public AttackResult ReceiveAttack(EnemyController source, int damage, Vector2 from, bool unblockable)
         {
-            if (Health.IsDead || Health.Invulnerable) return;
+            if (Health.IsDead || Health.Invulnerable) return AttackResult.Ignored;
             Vector2 pos = transform.position;
             Vector2 toAttacker = from - pos;
             bool facingIt = toAttacker.sqrMagnitude < 0.0001f || Vector2.Dot(Facing, toAttacker.normalized) > 0.2f;
@@ -266,7 +268,7 @@ namespace MoonlightPost
                     HUD.Popup(pos + Vector2.up * 1.1f, "받아치기!", new Color(1f, 0.9f, 0.4f));
                     Sound.Play("Tool", 0.9f);
                     safeUntil = Time.time + 0.3f;
-                    return;
+                    return AttackResult.Parried;
                 }
                 if (!unblockable)
                 {
@@ -277,10 +279,11 @@ namespace MoonlightPost
                     HUD.Popup(pos + Vector2.up * 1.1f, "막기", new Color(0.75f, 0.85f, 1f));
                     Sound.Play("EnemyHit", 0.5f);
                     safeUntil = Time.time + 0.25f;
-                    return;
+                    return AttackResult.Blocked;
                 }
             }
             Health.TakeDamage(damage, from);
+            return AttackResult.Hit;
         }
 
         // ------------------------------------------------------------------ 편지 도구 (Q)

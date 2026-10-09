@@ -342,6 +342,8 @@ namespace MoonlightPost
             Chest("chest_east", new Vector2(50.8f, -8.6f), "firefly_jar", null);
             Chest("chest_locked", new Vector2(21f, 9.3f), "seal_stamp", "hut_key");
 
+            BuildLostStamps();
+
             // 단서
             var sack = Clue("flour_sack", new Vector2(34f, 7f), Art.FlourSack);
             Clue("old_sign", new Vector2(44.6f, 4.4f), useAssets ? GameAssets.Tile("TilesetNature", 5, 8) : Art.Signpost);
@@ -380,6 +382,33 @@ namespace MoonlightPost
             pickup.visual = go.GetComponent<SpriteRenderer>();
             pickup.closedSprite = closed;
             pickup.openSprite = open;
+        }
+
+        /// <summary>섬 곳곳에 숨긴 잃어버린 우표 8장. 건물 뒤, 덤불 사이, 지도 구석에 있다.</summary>
+        void BuildLostStamps()
+        {
+            var spots = new[]
+            {
+                new Vector2(-12.2f, 8.9f),   // 빵집 뒤
+                new Vector2(-15.2f, -6.8f),  // 서쪽 바닷가
+                new Vector2(13f, -7.4f),     // 남쪽 집 뒤
+                new Vector2(15.6f, 9.4f),    // 마을 북동쪽 구석
+                new Vector2(31.5f, 10.1f),   // 북쪽 길, 통나무 너머
+                new Vector2(37.2f, -10.2f),  // 남쪽 길 나무 뒤
+                new Vector2(51.4f, 0.8f),    // 숲 동쪽 끝
+                new Vector2(41.6f, 3.6f),    // 덤불 사이(덤불에 가려져 있다)
+            };
+            Sprite sprite = useAssets ? GameAssets.ItemSprite("Stamp") : null;
+            if (sprite == null) sprite = Art.Chest(false);
+            for (int i = 0; i < spots.Length; i++)
+            {
+                var go = Spawner.Prop("LostStamp_" + i, spots[i], sprite);
+                go.GetComponent<YSort>().isStatic = false;
+                var sparkle = Spawner.Glow(spots[i] + new Vector2(0f, 0.3f), 1.4f, new Color(1f, 0.95f, 0.7f, 0.2f), go.transform);
+                var c = go.AddComponent<Collectible>();
+                c.collectId = "stamp" + i;
+                c.sparkle = sparkle;
+            }
         }
 
         /// <summary>빵집 진열대: 밤마다 크루아상 2개를 가져갈 수 있다.</summary>

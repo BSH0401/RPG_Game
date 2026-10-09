@@ -5,16 +5,18 @@ namespace MoonlightPost
 {
     public enum EnemyAttack
     {
-        /// <summary>예고선 방향으로 돌진.</summary>
+        /// <summary>예고선 방향으로 돌진. 막을 수 있음.</summary>
         Lunge,
-        /// <summary>예고 원 안을 내려찍기.</summary>
-        Slam
+        /// <summary>예고 원 안을 내려찍기. 막을 수 없음(회피·받아치기).</summary>
+        Slam,
+        /// <summary>먹물 구슬을 쏜다. 막을 수 있고, 받아치면 되돌아간다.</summary>
+        Shoot
     }
 
     /// <summary>
-    /// 밤의 숲에 나오는 적. 모든 공격은 예고(빨간 표시) 후에만 피해를 주므로
-    /// 플레이어는 예고를 보고 회피(Space)하거나 봉인끈(Q)으로 끊을 수 있다.
-    /// 적의 차이는 무기 수가 아니라 이 컴포넌트의 수치와 공격 패턴으로 만든다.
+    /// 밤의 숲에 나오는 적. 모든 공격은 예고 표시 뒤에만 피해를 준다.
+    ///  - 빨간 예고: 막을 수 있음 / 주황 예고: 막을 수 없음
+    /// 적의 차이는 수치와 행동 옵션(거리 유지, 땅속 숨기)과 공격 패턴으로 만든다. 종류별 수치는 Spawner.Enemy.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D), typeof(Health))]
     public class EnemyController : MonoBehaviour
@@ -35,15 +37,26 @@ namespace MoonlightPost
         public float hitRadius = 0.8f;
         public int lungeDamage = 1;
         public int slamDamage = 2;
+        public int shootDamage = 1;
         public EnemyAttack[] pattern = { EnemyAttack.Lunge };
 
-        enum State { Idle, Chase, Windup, Lunge, Recover, Stunned, Hurt }
+        [Header("원거리형: 플레이어와 이 거리를 유지하며 쏜다 (0 이면 사용 안 함)")]
+        public float keepDistance;
+
+        [Header("땅속형: 땅속으로 숨어 다가온 뒤 튀어나와 내려찍는다")]
+        public bool burrows;
+        public float burrowSpeed = 3.2f;
+
+        enum State { Idle, Chase, Windup, Lunge, Recover, Stunned, Hurt, Burrowed }
 
         public Health Health { get; private set; }
         public bool IsStunned => state == State.Stunned;
+        public bool IsBurrowed => state == State.Burrowed;
 
         Rigidbody2D rb;
+        Collider2D col;
         SpriteRenderer body;
+        SpriteRenderer mound;
         Color baseColor;
         SpriteRenderer telegraph;
         State state = State.Idle;
@@ -54,6 +67,8 @@ namespace MoonlightPost
         bool lungeHit;
         Vector2 velocity;
         float flashUntil;
+        float strafeSign = 1f;
+        float pendingKnock = 6f;
 
         public void Init(SpriteRenderer bodyRenderer)
         {
@@ -65,11 +80,25 @@ namespace MoonlightPost
             telegraph.color = new Color(1f, 0.2f, 0.25f, 0.35f);
             telegraph.sortingOrder = -500; // 바닥 위, 캐릭터 아래
             tg.SetActive(false);
+
+            if (burrows)
+            {
+                // 땅속에 있을 때 보이는 흙더미
+                var m = new GameObject("Mound");
+                m.transform.SetParent(transform, false);
+                m.transform.localPosition = new Vector3(0f, -0.3f, 0f);
+                mound = m.AddComponent<SpriteRenderer>();
+                mound.sprite = Art.Mound;
+                mound.sortingOrder = -440;
+                EnterBurrow();
+            }
+            strafeSign = Random.value < 0.5f ? -1f : 1f;
         }
 
         void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
+            col = GetComponent<Collider2D>();
             Health = GetComponent<Health>();
             Health.Damaged += OnDamaged;
             Health.Died += OnDied;
@@ -114,13 +143,25 @@ namespace MoonlightPost
                         state = State.Idle;
                         break;
                     }
-                    if (dist <= attackRange) BeginWindup(toPlayer);
+                    if (keepDistance > 0f) ChaseAtRange(toPlayer, dist);
+                    else if (dist <= attackRange) BeginWindup(toPlayer);
                     else velocity = toPlayer.normalized * moveSpeed;
+                    break;
+
+                case State.Burrowed:
+                    // 땅속: 맞지 않고, 흙더미만 보이며 플레이어 발밑으로 파고든다.
+                    if (!playerAlive || dist > detectRange * 1.6f)
+                    {
+                        velocity = Vector2.zero;
+                        break;
+                    }
+                    velocity = toPlayer.normalized * burrowSpeed;
+                    if (dist < 0.9f || Time.time >= stateEnd) Emerge(toPlayer);
                     break;
 
                 case State.Windup:
                     velocity = Vector2.zero;
-                    if (Time.time >= stateEnd) ExecuteAttack(dist, player);
+                    if (Time.time >= stateEnd) ExecuteAttack(dist, player, toPlayer);
                     break;
 
                 case State.Lunge:
@@ -136,7 +177,11 @@ namespace MoonlightPost
                 case State.Recover:
                 case State.Stunned:
                     velocity = Vector2.zero;
-                    if (Time.time >= stateEnd) state = State.Chase;
+                    if (Time.time >= stateEnd)
+                    {
+                        if (burrows) EnterBurrow();
+                        else state = State.Chase;
+                    }
                     break;
 
                 case State.Hurt:
@@ -148,6 +193,22 @@ namespace MoonlightPost
             UpdateVisual();
         }
 
+        /// <summary>원거리형: 적당한 거리를 두고 옆으로 돌며 쏜다.</summary>
+        void ChaseAtRange(Vector2 toPlayer, float dist)
+        {
+            Vector2 dir = toPlayer.normalized;
+            Vector2 side = new Vector2(-dir.y, dir.x) * strafeSign;
+            if (dist > keepDistance + 1.2f) velocity = dir * moveSpeed;
+            else if (dist < keepDistance - 1.2f) velocity = -dir * moveSpeed;
+            else velocity = side * moveSpeed * 0.6f;
+
+            if (dist <= attackRange && Random.value < Time.deltaTime * 1.2f)
+            {
+                strafeSign = -strafeSign;
+                BeginWindup(toPlayer);
+            }
+        }
+
         void FixedUpdate() => rb.SetVelocity(velocity);
 
         void EnterState(State next, float duration)
@@ -157,59 +218,84 @@ namespace MoonlightPost
             if (telegraph != null) telegraph.gameObject.SetActive(false);
         }
 
-        void BeginWindup(Vector2 toPlayer)
+        void EnterBurrow()
         {
-            currentAttack = pattern.Length > 0 ? pattern[patternIndex++ % pattern.Length] : EnemyAttack.Lunge;
+            EnterState(State.Burrowed, 3.5f);
+            Health.Invulnerable = true;
+            if (col != null) col.enabled = false;
+            if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, transform.position, 16f, new Color(0.7f, 0.6f, 0.5f), 600, 1f);
+        }
+
+        void Emerge(Vector2 toPlayer)
+        {
+            Health.Invulnerable = false;
+            if (col != null) col.enabled = true;
+            BeginWindup(toPlayer, EnemyAttack.Slam);
+        }
+
+        void BeginWindup(Vector2 toPlayer, EnemyAttack? forced = null)
+        {
+            currentAttack = forced ?? (pattern.Length > 0 ? pattern[patternIndex++ % pattern.Length] : EnemyAttack.Lunge);
             attackDir = toPlayer.sqrMagnitude > 0.0001f ? toPlayer.normalized : Vector2.down;
             EnterState(State.Windup, windupTime);
             velocity = Vector2.zero;
 
-            // 공격 예고: 돌진은 진행 방향의 띠, 내려찍기는 피해 범위 원.
+            // 공격 예고: 돌진·사격은 진행 방향의 띠, 내려찍기는 피해 범위 원.
+            // 빨간색 = 막을 수 있음, 주황색 = 막을 수 없음(피하거나 받아치기)
             var t = telegraph.transform;
             Vector2 pos = transform.position;
-            // 빨간색 = 막을 수 있음, 주황색 = 막을 수 없음(피하거나 받아치기)
-            telegraph.color = currentAttack == EnemyAttack.Lunge ? new Color(1f, 0.2f, 0.25f, 0.35f) : new Color(1f, 0.55f, 0.05f, 0.42f);
-            if (currentAttack == EnemyAttack.Lunge)
-            {
-                float length = lungeSpeed * lungeTime + hitRadius;
-                telegraph.sprite = SpriteFactory.Square;
-                t.position = pos + attackDir * (length * 0.5f);
-                t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg);
-                t.localScale = new Vector3(length, hitRadius * 1.2f, 1f);
-            }
-            else
+            telegraph.color = currentAttack == EnemyAttack.Slam ? new Color(1f, 0.55f, 0.05f, 0.42f) : new Color(1f, 0.2f, 0.25f, 0.35f);
+            if (currentAttack == EnemyAttack.Slam)
             {
                 telegraph.sprite = SpriteFactory.Circle;
                 t.position = pos;
                 t.rotation = Quaternion.identity;
                 t.localScale = Vector3.one * slamRadius * 2f;
             }
+            else
+            {
+                float length = currentAttack == EnemyAttack.Shoot ? 6f : lungeSpeed * lungeTime + hitRadius;
+                float width = currentAttack == EnemyAttack.Shoot ? 0.3f : hitRadius * 1.2f;
+                telegraph.sprite = SpriteFactory.Square;
+                t.position = pos + attackDir * (length * 0.5f);
+                t.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(attackDir.y, attackDir.x) * Mathf.Rad2Deg);
+                t.localScale = new Vector3(length, width, 1f);
+            }
             telegraph.gameObject.SetActive(true);
         }
 
-        void ExecuteAttack(float dist, PlayerController player)
+        void ExecuteAttack(float dist, PlayerController player, Vector2 toPlayer)
         {
-            if (currentAttack == EnemyAttack.Lunge)
+            switch (currentAttack)
             {
-                EnterState(State.Lunge, lungeTime);
-                lungeHit = false;
-            }
-            else
-            {
-                // 내려찍기는 막을 수 없다(받아치기나 회피만 통한다).
-                if (dist <= slamRadius) player.ReceiveAttack(this, slamDamage, transform.position, true);
-                RingFx.Spawn(transform.position, slamRadius, new Color(1f, 0.4f, 0.4f, 0.9f));
-                CameraFollow.Shake(0.2f);
-                Sound.Play("BossSlam");
-                EnterState(State.Recover, recoverTime);
+                case EnemyAttack.Lunge:
+                    EnterState(State.Lunge, lungeTime);
+                    lungeHit = false;
+                    break;
+
+                case EnemyAttack.Shoot:
+                    // 예고한 방향 그대로 쏜다(예고를 보고 피할 수 있게).
+                    EnemyProjectile.Spawn(this, (Vector2)transform.position + attackDir * 0.5f, attackDir, shootDamage);
+                    Sound.Play("Attack", 0.4f);
+                    EnterState(State.Recover, recoverTime);
+                    break;
+
+                default:
+                    // 내려찍기는 막을 수 없다(받아치기나 회피만 통한다).
+                    if (dist <= slamRadius) player.ReceiveAttack(this, slamDamage, transform.position, true);
+                    RingFx.Spawn(transform.position, slamRadius, new Color(1f, 0.4f, 0.4f, 0.9f));
+                    CameraFollow.Shake(isBoss ? 0.2f : 0.1f);
+                    Sound.Play("BossSlam", isBoss ? 1f : 0.6f);
+                    // 땅속형은 튀어나온 뒤 한동안 무방비 상태가 된다(때릴 기회).
+                    EnterState(State.Recover, burrows ? 1.5f : recoverTime);
+                    break;
             }
         }
-
-        float pendingKnock = 6f;
 
         /// <summary>플레이어의 공격에 맞음. knock = 밀려나는 세기.</summary>
         public void TakeHit(int damage, Vector2 from, float knock = 6f)
         {
+            if (IsBurrowed) return;
             pendingKnock = knock;
             if (Health.TakeDamage(damage, from))
                 HUD.Popup((Vector2)transform.position + Vector2.up * (isBoss ? 2.2f : 1f), "-" + damage, damage >= 2 ? new Color(1f, 0.85f, 0.3f) : Color.white);
@@ -218,14 +304,14 @@ namespace MoonlightPost
         /// <summary>공격이 막혔을 때 튕겨 나간다.</summary>
         public void Recoil(Vector2 awayFrom)
         {
-            if (Health.IsDead || state == State.Stunned) return;
+            if (Health.IsDead || state == State.Stunned || IsBurrowed) return;
             EnterState(State.Hurt, isBoss ? 0.3f : 0.5f); // Hurt 상태는 밀려난 속도가 서서히 줄어든다
             velocity = ((Vector2)transform.position - awayFrom).normalized * (isBoss ? 2f : 5f);
         }
 
         public void Stun(float duration)
         {
-            if (Health.IsDead) return;
+            if (Health.IsDead || IsBurrowed) return;
             // 보스는 봉인끈이 절반만 통한다.
             EnterState(State.Stunned, isBoss ? duration * 0.5f : duration);
             velocity = Vector2.zero;
@@ -237,7 +323,7 @@ namespace MoonlightPost
             Sound.Play("EnemyHit", 0.8f);
             // 보스는 공격 중에 맞아도 멈추지 않는다(슈퍼아머).
             if (isBoss && (state == State.Windup || state == State.Lunge)) return;
-            if (state == State.Stunned) return;
+            if (state == State.Stunned || (burrows && state == State.Recover)) return;
             EnterState(State.Hurt, 0.2f);
             velocity = ((Vector2)transform.position - from).normalized * (isBoss ? pendingKnock * 0.33f : pendingKnock);
         }
@@ -253,12 +339,21 @@ namespace MoonlightPost
             RingFx.Spawn(transform.position, isBoss ? 2.5f : 1f, new Color(0.8f, 0.7f, 1f, 0.9f), 0.5f);
             if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, transform.position, 16f, Color.white, 600, isBoss ? 3f : 1.5f);
             Sound.Play("EnemyDie");
+            Juice.HitStop(isBoss ? 0.25f : 0.05f);
             Destroy(gameObject);
         }
 
         void UpdateVisual()
         {
             if (body == null) return;
+            bool hidden = IsBurrowed;
+            body.enabled = !hidden;
+            if (mound != null)
+            {
+                mound.enabled = hidden;
+                if (hidden) mound.transform.localScale = new Vector3(1f + 0.1f * Mathf.Sin(Time.time * 18f), 1f, 1f);
+            }
+
             Color c = baseColor;
             if (Time.time < flashUntil) c = new Color(1f, 1f, 1f, 0.35f);
             else if (state == State.Stunned) c = Color.Lerp(baseColor, new Color(0.5f, 0.9f, 1f), 0.6f);

@@ -23,10 +23,28 @@ namespace MoonlightPost
         {
             var def = GameData.GetItem(id);
             if (def == null || count <= 0) return;
+            int before = GameState.ItemCount(id);
             GameState.AddItem(id, count, def.maxStack > 0 ? def.maxStack : 99);
-            GameState.Save();
-            HUD.Toast("획득: " + def.name + (count > 1 ? " x" + count : "") + "   [I] 가방");
+            int after = GameState.ItemCount(id);
+            HUD.Toast("획득: " + def.name + (def.maxStack > 1 && def.rewardAt != null ? " (" + after + "/" + def.maxStack + ")" : count > 1 ? " x" + count : "") + "   [I] 가방");
             Sound.Play("LetterGet", 0.8f);
+
+            // 모으면 주는 보상
+            if (def.rewardAt != null && def.rewardItems != null)
+                for (int i = 0; i < def.rewardAt.Length && i < def.rewardItems.Length; i++)
+                    if (before < def.rewardAt[i] && after >= def.rewardAt[i] && GameState.ItemCount(def.rewardItems[i]) == 0)
+                    {
+                        var reward = GameData.GetItem(def.rewardItems[i]);
+                        GameState.AddItem(def.rewardItems[i]);
+                        if (reward != null)
+                            DialogueSystem.I.Show(new[]
+                            {
+                                new DialogueLine("", def.name + "을(를) " + def.rewardAt[i] + "개 모았다!"),
+                                new DialogueLine("", "보상: " + reward.name + "\n" + reward.description)
+                            });
+                        Sound.Play("Delivered", 0.8f);
+                    }
+            GameState.Save();
         }
 
         /// <summary>회복 아이템을 하나 쓴다(R 키). 쓸 수 있는 게 없으면 false.</summary>

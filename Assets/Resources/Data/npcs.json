@@ -5,6 +5,24 @@
       "displayName": "미라",
       "talks": [
         {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "열차가 다니니까 고개 마을에서 빵 주문이 와! 내일부터 첫 열차에 빵 바구니를 실을 거야."
+            }
+          ]
+        },
+        {
+          "condition": "tunnel_open",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "터널 너머 고개 마을엔 빵집이 없대. 언젠가 배달 가 줄 거지?"
+            }
+          ]
+        },
+        {
           "condition": "festival,owen_comes",
           "lines": [
             {
@@ -222,6 +240,33 @@
           ]
         },
         {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "열차다! 진짜 열차가 다녀! 나 고개 역까지 타 볼 거야!"
+            }
+          ]
+        },
+        {
+          "condition": "noah_card",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "할아버지 카드는 베개 밑에 넣어 놨어. 봄에 하나 누나 배가 오면, 할아버지도 타고 올지 몰라!"
+            }
+          ]
+        },
+        {
+          "condition": "tunnel_open",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "터널이 뚫렸어? 그럼 그 기적 소리, 진짜 기차였던 거야?!"
+            }
+          ]
+        },
+        {
           "condition": "festival",
           "lines": [
             {
@@ -396,6 +441,47 @@
       "displayName": "오웬",
       "talks": [
         {
+          "condition": "carrying:tunnel_letter,!got:pickaxe",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "터널을 뚫겠다고? 하하, 국장님다운 부탁이군."
+            },
+            {
+              "speaker": "오웬",
+              "text": "이 곡괭이를 가져가게. 숲에서 삼 년 동안 장작을 팬 놈이야. 바위쯤은 문제없지."
+            }
+          ],
+          "giveItem": "pickaxe"
+        },
+        {
+          "condition": "carrying:tunnel_letter",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "터널은 북쪽 숲 철길 끝이야. 곡괭이 날이 무뎌지면 바위 결을 따라 치게."
+            }
+          ]
+        },
+        {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "기적 소리를 들었나? 우체부 시절엔 저 소리에 맞춰 일어났지. ...몸이 아직 기억하는군."
+            }
+          ]
+        },
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "숲의 그림자가 눈에 띄게 줄었어. 갱도 문을 열었다지? 국장님이 많이 우셨겠군."
+            }
+          ]
+        },
+        {
           "condition": "carrying:festival_letter,!sign:owen",
           "setFlag": "sign:owen",
           "toast": "봉투에 오웬의 이름이 더해졌다.",
@@ -552,6 +638,48 @@
       "displayName": "세린",
       "talks": [
         {
+          "condition": "carrying:noah_birthday,!asked:noah",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "노아요? 저녁 먹자마자 '유나 누나가 별똥별 보여 준대!' 하고 뛰어나갔어요."
+            },
+            {
+              "speaker": "세린",
+              "text": "별빛 고개 천문대일 거예요. ...그 카드, 우리 아버지 글씨네요. 노아한테 직접 전해 주세요."
+            }
+          ],
+          "setFlag": "asked:noah",
+          "toast": "노아는 별빛 고개의 천문대에 갔다."
+        },
+        {
+          "condition": "carrying:noah_birthday",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "천문대에 갔을 거예요. 계곡 다리를 건너야 하니 조심하세요."
+            }
+          ]
+        },
+        {
+          "condition": "noah_card",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "아버지 카드를 받고 노아가 밤새 바다 쪽만 봐요. ...사실 저도요."
+            }
+          ]
+        },
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "등대에서 보니 섬의 그림자가 많이 옅어졌어요. 바다도 조용하고요."
+            }
+          ]
+        },
+        {
           "condition": "carrying:festival_letter,!sign:serin",
           "setFlag": "sign:serin",
           "toast": "봉투에 세린의 이름이 더해졌다.",
@@ -653,6 +781,60 @@
       "id": "dora",
       "displayName": "도라",
       "talks": [
+        {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "첫 열차에서 내리던 바우 얼굴 봤나? 삼 년 치 잔소리를 준비했는데 한 마디도 못 했어."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:dora_last_letter",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "석탄은 채석장 오두막, 선로 전환기는 북쪽 숲 신호소. 바우는 핑계가 없으면 움직일 게다."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:unsent_letters",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "무리하지 말게. 편지는 기다려 줘. 삼 년도 기다렸으니."
+            }
+          ]
+        },
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "갱도 문을 열었다고... 고맙네. 삼 년 동안 내 마음에도 같은 문이 잠겨 있었지."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:tunnel_letter",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "바우는 무뚝뚝해도 편지는 끝까지 읽는 사람이야. 곡괭이는 오웬에게 빌리게."
+            }
+          ]
+        },
+        {
+          "condition": "bau_met",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "바우가 잘 지낸다니 다행이구먼. ...내 편지 읽고 무슨 표정이던가? 아니, 말하지 말게."
+            }
+          ]
+        },
         {
           "condition": "festival,dora_returns",
           "lines": [
@@ -757,6 +939,24 @@
       "displayName": "테오",
       "talks": [
         {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "열차가 다닌다니. 봄에 하나가 오면 고개 역까지 태워 줘야겠어."
+            }
+          ]
+        },
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "요즘은 병 속에 먹물이 안 묻어 있어. 바다도 숨을 고르는 모양이야."
+            }
+          ]
+        },
+        {
           "condition": "carrying:festival_letter,!sign:teo",
           "setFlag": "sign:teo",
           "toast": "봉투에 테오의 이름이 더해졌다.",
@@ -858,6 +1058,15 @@
       "displayName": "옛 우편 열차",
       "talks": [
         {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "우편차에 고개 역에서 실어 온 편지 자루가 가득하다. 오늘도 배달할 편지가 많다."
+            }
+          ]
+        },
+        {
           "condition": "hana_coming",
           "lines": [
             {
@@ -913,6 +1122,261 @@
             {
               "speaker": "",
               "text": "아래에 작은 글씨: '건널목이 밤마다 무너지니, 막혀 있으면 다른 건널목으로 돌아가시오.'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bau",
+      "displayName": "바우",
+      "talks": [
+        {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "바우",
+              "text": "기관차 운전은 삼 년 만인데 손이 기억하더군. 도라 국장이 승강장에서 손을 흔들었어. ...아니, 주먹이었나."
+            }
+          ]
+        },
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "바우",
+              "text": "갱도 편지들이 고개 역 창고에 쌓이고 있네. 열차만 움직이면 하루에 다 나를 텐데."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:pass_parcel",
+          "lines": [
+            {
+              "speaker": "바우",
+              "text": "유나에게 소포는 전했나? 다리는 밤마다 한쪽이 끊어지니 반대쪽으로 돌아가게."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:yuna_report",
+          "lines": [
+            {
+              "speaker": "바우",
+              "text": "채석장은 마을 남쪽 틈으로 내려가면 되네. 그림자가 짙으니 빵을 넉넉히 챙기게."
+            }
+          ]
+        },
+        {
+          "condition": "bau_met",
+          "lines": [
+            {
+              "speaker": "바우",
+              "text": "고개 역은 섬에서 별이 제일 잘 보이는 역이지. 천문대의 유나가 그러더군."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "바우",
+              "text": "...누구요? 터널이 무너진 뒤로 이쪽엔 아무도 오지 않았는데."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "yuna",
+      "displayName": "유나",
+      "talks": [
+        {
+          "condition": "train_runs",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "열차 소리가 천문대까지 들려요. 별을 세다가도 기적이 울리면 세던 걸 잊어버려요."
+            }
+          ]
+        },
+        {
+          "condition": "noah_card",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "노아가 별똥별 이름을 전부 '할아버지'로 지었어요. 하늘이 할아버지투성이예요."
+            }
+          ]
+        },
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "그림자가 줄어드니 별이 더 잘 보여요. 섬의 길도 이제 덜 바뀔 거예요. ...조금은 아쉽지만."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:unsent_letters",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "갱도 앞의 그림자는 지금까지와 달라요. 작은 그림자들을 불러내요."
+            },
+            {
+              "speaker": "유나",
+              "text": "보라색 원이 보이면 불러내는 중이에요. 그때가 때릴 틈이에요."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:yuna_report",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "채석장은 고개 마을 남쪽 틈으로 내려가면 돼요. 자루는 먹물 웅덩이 동쪽 바위 틈에 있었어요."
+            }
+          ]
+        },
+        {
+          "condition": "yuna_met",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "밤마다 길이 바뀌는 건 섬이 잠꼬대를 하는 거래요. 할머니가 그랬어요. 저는 별자리로 재 보는 중이고요."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "유나",
+              "text": "...누구세요? 문은 못 열어 드려요."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "telescope",
+      "displayName": "망원경",
+      "talks": [
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "망원경을 들여다보았다. 섬 전체가 보인다. 등대 불빛, 우체국 등불, 그리고 철길을 따라 이어진 작은 불빛들."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "망원경을 들여다보았다. 바다 건너, 아주 멀리 다른 섬의 불빛이 깜빡인다."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mine_gate",
+      "displayName": "갱도 우편 창고",
+      "talks": [
+        {
+          "condition": "shadows_calm",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "갱도 안의 편지 자루들이 차례를 기다리고 있다. 이제 먹물 냄새가 나지 않는다."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "굳게 잠긴 철문. 틈새로 먹물이 스며 나온다. 문에 '달빛 우체국 — 보관'이라고 적혀 있다."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tunnel_rubble",
+      "displayName": "무너진 터널",
+      "talks": [
+        {
+          "condition": "has:pickaxe",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "오웬의 곡괭이로 바위를 하나씩 깨뜨려 치웠다."
+            },
+            {
+              "speaker": "",
+              "text": "잔해 너머로 철길이 이어진다. 바람에 실려 먼 기적 소리 같은 것이 들려온다."
+            }
+          ],
+          "setFlag": "tunnel_open",
+          "toast": "터널이 뚫렸다! 동쪽 너머 별빛 고개로 갈 수 있다."
+        },
+        {
+          "condition": "carrying:tunnel_letter",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "무너진 바위가 철길을 막고 있다. 맨손으로는 어림없다. 곡괭이가 있으면..."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "무너진 바위가 철길을 막고 있다. 틈으로 동쪽에서 바람이 불어온다."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "signal_lever",
+      "displayName": "선로 전환기",
+      "talks": [
+        {
+          "condition": "switch_set",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "선로가 고개 역 쪽으로 이어져 있다."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:dora_last_letter",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "녹슨 레버를 온몸으로 당기자, 철컥! 북쪽 숲의 선로가 고개 쪽으로 꺾였다."
+            }
+          ],
+          "setFlag": "switch_set",
+          "toast": "선로 전환기를 당겼다. 이제 열차가 고개 역에서 폐역까지 달릴 수 있다."
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "녹슨 선로 전환기다. 지금은 당길 이유가 없다."
             }
           ]
         }

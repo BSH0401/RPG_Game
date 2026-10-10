@@ -169,6 +169,70 @@
       "rewardCount": 1,
       "rewardText": "",
       "setFlag": ""
+    },
+    {
+      "id": "bau_clock",
+      "title": "멈춘 역 시계",
+      "giver": "bau",
+      "turnIn": "",
+      "condition": "bau_met",
+      "objectives": [
+        {
+          "text": "옛 채석장 남동쪽 구석에서 태엽 열쇠 찾기",
+          "condition": "has:clock_key"
+        }
+      ],
+      "completeCondition": "has:clock_key",
+      "acceptLines": [
+        { "speaker": "바우", "text": "역 시계가 그 밤에 멈춘 뒤로 그대로라네. 태엽 열쇠를 채석장 어딘가에 떨어뜨렸지." },
+        { "speaker": "바우", "text": "갱도로 우편 자루를 나르다가 말이야. 채석장 남동쪽 구석이었던 것 같은데." }
+      ],
+      "completeLines": [
+        { "speaker": "바우", "text": "이거야! 태엽을 감으면... 들리나? 똑딱, 똑딱." },
+        { "speaker": "바우", "text": "삼 년 만에 시간이 다시 가는군. 이 회중시계를 가져가게. 역장이 차던 거라 정확하다네." }
+      ],
+      "giveItem": "",
+      "consumeItems": ["clock_key"],
+      "rewardItem": "pocket_watch",
+      "rewardCount": 1,
+      "rewardText": "",
+      "setFlag": ""
+    },
+    {
+      "id": "yuna_pages",
+      "title": "흩어진 별지도",
+      "giver": "yuna",
+      "turnIn": "",
+      "condition": "yuna_met",
+      "objectives": [
+        {
+          "text": "별지도 첫째 장 (북쪽 갯바위)",
+          "condition": "has:star_page_1"
+        },
+        {
+          "text": "별지도 둘째 장 (폐역 승강장 뒤)",
+          "condition": "has:star_page_2"
+        },
+        {
+          "text": "별지도 셋째 장 (북쪽 숲 터널 위)",
+          "condition": "has:star_page_3"
+        }
+      ],
+      "completeCondition": "has:star_page_1,has:star_page_2,has:star_page_3",
+      "acceptLines": [
+        { "speaker": "유나", "text": "그림자들이 몰려왔을 때 창문이 깨져서, 별지도 세 장이 바람에 날아갔어요." },
+        { "speaker": "유나", "text": "바람이 서쪽으로 불었으니... 북쪽 숲, 폐역, 그리고 북쪽 갯바위까지 갔을지도 몰라요. 멀지만 부탁해요." }
+      ],
+      "completeLines": [
+        { "speaker": "유나", "text": "세 장 다 찾았네요! 바닷바람에 젖은 것까지..." },
+        { "speaker": "유나", "text": "보답으로 이걸 드릴게요. 별지도를 베껴 그린 작은 지도예요. 밤길이 더 밝게 보일 거예요." }
+      ],
+      "giveItem": "",
+      "consumeItems": ["star_page_1", "star_page_2", "star_page_3"],
+      "rewardItem": "star_map",
+      "rewardCount": 1,
+      "rewardText": "",
+      "setFlag": ""
     }
   ]
 }

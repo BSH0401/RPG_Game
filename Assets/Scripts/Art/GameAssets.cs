@@ -136,6 +136,8 @@ namespace MoonlightPost
                 case "세린": return Faceset("Princess");
                 case "도라": return Faceset("Woman");
                 case "테오": return Faceset("Hunter");
+                case "바우": return Faceset("Hunter");
+                case "유나": return Faceset("Princess");
                 default: return null;
             }
         }
@@ -147,12 +149,16 @@ namespace MoonlightPost
             {
                 case "도라": return DoraTint;
                 case "테오": return TeoTint;
+                case "바우": return BauTint;
+                case "유나": return YunaTint;
                 default: return Color.white;
             }
         }
 
         public static readonly Color DoraTint = new Color(0.78f, 0.72f, 1f);
         public static readonly Color TeoTint = new Color(0.6f, 0.8f, 1f);
+        public static readonly Color BauTint = new Color(1f, 0.8f, 0.6f);
+        public static readonly Color YunaTint = new Color(0.7f, 1f, 0.82f);
 
         public static AudioClip Sfx(string name) => Resources.Load<AudioClip>(Root + "Audio/Sfx/" + name);
         public static AudioClip Music(string name) => Resources.Load<AudioClip>(Root + "Audio/Music/" + name);

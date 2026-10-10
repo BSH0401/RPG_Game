@@ -87,6 +87,12 @@ namespace MoonlightPost
         /// <summary>북쪽 갯바위(해안과 함께 우체국 등불을 켠 뒤 열림).</summary>
         public Vector2[] coastNorthSpawns = new Vector2[0];
 
+        // 동쪽(GameBootstrap.East, 터널이 뚫린 뒤): 별빛 고개의 흔들다리 두 개 중 하나가 끊어진다.
+        public GameObject passNorthBridge;
+        public GameObject passSouthBridge;
+        public Vector2[] passSpawns = new Vector2[0];
+        public Vector2[] quarrySpawns = new Vector2[0];
+
         public EncounterSpec[] encounters = new EncounterSpec[0];
 
         public bool NorthBlocked { get; private set; }
@@ -143,6 +149,10 @@ namespace MoonlightPost
             StationWestBlocked = rng.Next(2) == 0;
             if (stationWestBlock != null) stationWestBlock.SetActive(StationWestBlocked);
             if (stationEastBlock != null) stationEastBlock.SetActive(!StationWestBlocked);
+            // 별빛 고개: 흔들다리 하나가 끊어진다.
+            bool northBridgeBroken = rng.Next(2) == 0;
+            if (passNorthBridge != null) passNorthBridge.SetActive(northBridgeBroken);
+            if (passSouthBridge != null) passSouthBridge.SetActive(!northBridgeBroken);
             SpawnEnemies(rng);
         }
 
@@ -169,6 +179,9 @@ namespace MoonlightPost
             int night = GameState.Night;
             int pathCount = Mathf.Clamp(1 + night, 2, 3);
             if (Mood == NightMood.Fog) pathCount++;
+            // 갱도의 편지들이 다시 배달 중이 되면(shadows_calm) 섬 전체의 그림자가 줄어든다.
+            int calm = GameState.HasFlag("shadows_calm") ? 1 : 0;
+            pathCount -= calm;
             if (Mood == NightMood.Fireflies) pathCount--;
             var openPath = NorthBlocked ? southSpawns : northSpawns;
             foreach (var p in Pick(openPath, pathCount, rng))
@@ -197,6 +210,21 @@ namespace MoonlightPost
             if (GameState.HasFlag("lamp_lit"))
                 foreach (var p in Pick(coastNorthSpawns, 2, rng))
                     enemies.Add(Spawner.Enemy(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Mole));
+
+            // 별빛 고개와 옛 채석장: 셋이 섞여 나오고, 채석장은 그림자가 더 짙다.
+            if (GameState.HasFlag("tunnel_open"))
+            {
+                foreach (var p in Pick(passSpawns, 3 - calm + (Mood == NightMood.Fog ? 1 : 0), rng))
+                {
+                    double r = rng.NextDouble();
+                    enemies.Add(Spawner.Enemy(p, r < 0.4 ? EnemyKind.Bat : r < 0.7 ? EnemyKind.Mole : EnemyKind.Rat));
+                }
+                foreach (var p in Pick(quarrySpawns, 4 - calm * 2 + (Mood == NightMood.Fog ? 1 : 0), rng))
+                {
+                    double r = rng.NextDouble();
+                    enemies.Add(Spawner.Enemy(p, r < 0.45 ? EnemyKind.Mole : r < 0.75 ? EnemyKind.Bat : EnemyKind.Rat));
+                }
+            }
 
             RefreshBoss();
         }

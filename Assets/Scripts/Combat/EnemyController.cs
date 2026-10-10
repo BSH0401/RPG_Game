@@ -16,7 +16,9 @@ namespace MoonlightPost
         /// <summary>플레이어 발밑과 주변에 촉수가 차례로 내리꽂힌다. 주황 원, 막을 수 없음(보스).</summary>
         Rain,
         /// <summary>물속으로 잠겨 다가온 뒤 튀어나오며 내려찍는다(보스).</summary>
-        Dive
+        Dive,
+        /// <summary>주변에 작은 그림자를 불러낸다(보스). 예고는 보라색 원, 피해 없음.</summary>
+        Summon
     }
 
     /// <summary>
@@ -59,6 +61,11 @@ namespace MoonlightPost
         public float diveTime = 1.4f;
         /// <summary>체력이 절반 아래로 떨어지면 빨라지고 공격이 늘어난다.</summary>
         public bool enrages;
+        /// <summary>Summon 으로 불러낼 적 종류와 한 번에 부르는 수, 동시에 살아 있을 수 있는 최대 수.</summary>
+        public EnemyKind[] summonKinds = { EnemyKind.Rat };
+        public int summonCount = 2;
+        public int maxMinions = 3;
+        readonly List<GameObject> minions = new List<GameObject>();
         public Sprite[] idleFrames;
         public Sprite[] shootFrames;
         public FrameAnimator bodyAnim;
@@ -130,6 +137,9 @@ namespace MoonlightPost
         void OnDestroy()
         {
             if (telegraph != null) Destroy(telegraph.gameObject);
+            // 보스가 사라지면(쓰러지거나 밤이 바뀌면) 불러낸 그림자도 함께 흩어진다.
+            foreach (var m in minions)
+                if (m != null) Destroy(m);
         }
 
         void Update()
@@ -271,6 +281,18 @@ namespace MoonlightPost
             // 빨간색 = 막을 수 있음, 주황색 = 막을 수 없음(피하거나 받아치기)
             var t = telegraph.transform;
             Vector2 pos = transform.position;
+            if (currentAttack == EnemyAttack.Summon)
+            {
+                // 불러내기: 피해가 없는 보라색 원(지금이 때릴 기회라는 신호)
+                telegraph.color = new Color(0.6f, 0.35f, 1f, 0.3f);
+                telegraph.sprite = SpriteFactory.Circle;
+                t.position = pos;
+                t.rotation = Quaternion.identity;
+                t.localScale = Vector3.one * 3.2f;
+                telegraph.gameObject.SetActive(true);
+                stateEnd = Time.time + windupTime * 1.6f;
+                return;
+            }
             telegraph.color = currentAttack == EnemyAttack.Slam ? new Color(1f, 0.55f, 0.05f, 0.42f) : new Color(1f, 0.2f, 0.25f, 0.35f);
             if (currentAttack == EnemyAttack.Slam)
             {
@@ -339,6 +361,24 @@ namespace MoonlightPost
                     EnterBurrow(diveTime);
                     Sound.Play("BossSlam", 0.5f);
                     break;
+
+                case EnemyAttack.Summon:
+                {
+                    minions.RemoveAll(m => m == null);
+                    int n = Mathf.Min(summonCount, maxMinions - minions.Count);
+                    for (int i = 0; i < n; i++)
+                    {
+                        float a = (i / (float)Mathf.Max(1, n) + Random.value * 0.2f) * Mathf.PI * 2f;
+                        Vector2 p = (Vector2)transform.position + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 2.2f;
+                        var kind = summonKinds[Random.Range(0, summonKinds.Length)];
+                        minions.Add(Spawner.Enemy(p, kind));
+                        if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, p, 16f, new Color(0.6f, 0.4f, 1f), 600, 1.2f);
+                    }
+                    RingFx.Spawn(transform.position, 1.6f, new Color(0.6f, 0.4f, 1f, 0.9f));
+                    Sound.Play("BossSlam", 0.4f);
+                    EnterState(State.Recover, recoverTime * 1.4f);
+                    break;
+                }
 
                 default:
                     // 내려찍기는 막을 수 없다(받아치기나 회피만 통한다).

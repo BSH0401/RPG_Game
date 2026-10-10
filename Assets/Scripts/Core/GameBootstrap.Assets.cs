@@ -13,7 +13,8 @@ namespace MoonlightPost
         const string House = "TilesetHouse";
         const string WaterSheet = "TilesetWater";
 
-        const int GroundX0 = -50, GroundX1 = 52, GroundY0 = -11, GroundY1 = 33;
+        const int GroundX0 = -50, GroundX1 = 86, GroundY0 = -11, GroundY1 = 33;
+        const int EastMinX = 53; // 이 x 이상은 2부 지역(별빛 고개·옛 채석장)
         const int CoastMaxX = -17; // 이 x 이하는 해안(모래)
 
         /// <summary>길(흙길) 영역. 셀 단위(x, y, 너비, 높이). 모든 길은 가로·세로 2칸 이상이어야 모서리 타일이 맞는다.</summary>
@@ -39,10 +40,26 @@ namespace MoonlightPost
             new RectInt(38, 6, 2, 15),     // 숲 북쪽 길 ↔ 철길 샛길
             new RectInt(27, 23, 2, 4),     // 신호소 가는 길
             new RectInt(25, 26, 6, 3),     // 신호소 공터
+            // 2부: 터널 너머
+            new RectInt(47, 20, 20, 3),    // 터널 → 고개 역 철길
+            new RectInt(63, -2, 2, 22),    // 고개 마을 → 채석장
+            new RectInt(63, 23, 2, 6),     // 고개 마을 → 북쪽 다리
+            new RectInt(65, 15, 4, 2),     // 남쪽 다리 서쪽
+            new RectInt(65, 27, 4, 2),     // 북쪽 다리 서쪽
+            new RectInt(71, 15, 6, 2),     // 남쪽 다리 동쪽
+            new RectInt(71, 27, 8, 2),     // 북쪽 다리 동쪽 → 천문대
+            new RectInt(75, 15, 2, 14),    // 계곡 건너편 오르막
+            new RectInt(65, -2, 16, 2),    // 채석장 큰길
+            new RectInt(79, 0, 2, 5),      // 갱도 앞
+            new RectInt(56, -5, 7, 2),     // 채석장 오두막 앞
         };
 
         /// <summary>폐역 마당의 자갈 바닥(셀 단위).</summary>
         static readonly RectInt StationGravel = new RectInt(-15, 12, 31, 19);
+        /// <summary>옛 채석장 전체와 고개 역 앞마당의 자갈 바닥(셀 단위).</summary>
+        static readonly RectInt[] EastGravel = { new RectInt(53, -11, 33, 22), new RectInt(55, 22, 12, 4) };
+        /// <summary>별빛 고개의 계곡과 채석장의 먹물 웅덩이(셀 단위). 충돌은 GameBootstrap.East.</summary>
+        static readonly RectInt[] EastWaterCells = { new RectInt(69, 11, 2, 22), new RectInt(66, -5, 4, 3), new RectInt(57, 3, 3, 2) };
         /// <summary>북쪽 갯바위의 물웅덩이(셀 단위). 충돌은 GameBootstrap.North 의 TidePools.</summary>
         static readonly RectInt[] TidePoolCells = { new RectInt(-40, 17, 4, 3), new RectInt(-27, 26, 5, 3) };
 
@@ -63,6 +80,8 @@ namespace MoonlightPost
             var gravel = new bool[w, h];
             foreach (var r in PathCells) Mark(path, r);
             Mark(gravel, StationGravel);
+            foreach (var r in EastGravel) Mark(gravel, r);
+            foreach (var r in EastWaterCells) Mark(sea, r);
             foreach (var r in TidePoolCells) Mark(sea, r);
             Mark(sea, SeaCells);
             Mark(sea, CoastSeaSouth);
@@ -79,7 +98,7 @@ namespace MoonlightPost
             for (int y = GroundY0; y < GroundY1; y++)
                 for (int x = GroundX0; x < GroundX1; x++)
                 {
-                    bool forest = x >= 17;
+                    bool forest = x >= 17 && x < EastMinX;
                     bool coast = x <= CoastMaxX;
                     if (Sea(x, y))
                     {
@@ -189,7 +208,7 @@ namespace MoonlightPost
 
             // 옛 섬과 북쪽 띠 사이: 침엽수 줄(능선의 세 틈은 비운다). 맨 위 가장자리도 침엽수 줄.
             i = 0;
-            for (float x = -45.5f; x <= 52f; x += 1.7f, i++)
+            for (float x = -45.5f; x <= 86f; x += 1.7f, i++)
             {
                 if (!InRidgeGap(x)) Spawner.Prop("Border", new Vector2(x, 10.6f + (i % 3) * 0.3f), i % 2 == 0 ? conifer : hedge);
                 if (x > -17f) Spawner.Prop("Border", new Vector2(x, 32.6f + (i % 3) * 0.3f), i % 2 == 0 ? conifer : hedge);
@@ -201,17 +220,19 @@ namespace MoonlightPost
             // 숲 아래쪽, 양옆 가장자리
             var bush = GameAssets.Tile(Nature, 0, 10);
             var bush2 = GameAssets.Tile(Nature, 1, 10);
-            for (int x = 18; x < 52; x++) Spawner.Prop("Border", new Vector2(x + 0.5f, -11.4f), x % 2 == 0 ? bush : bush2);
+            for (int x = 18; x < 86; x++) Spawner.Prop("Border", new Vector2(x + 0.5f, -11.4f), x % 2 == 0 ? bush : bush2);
             for (float y = -11f; y < 33f; y += 1.5f)
             {
-                Spawner.Prop("Border", new Vector2(53f, y), conifer);
+                // 동쪽 터널 자리(y 19 ~ 23.5)는 비운다. 잔해가 막고 있다가 치우면 길이 된다.
+                if (y < 18.6f || y > 23.6f) Spawner.Prop("Border", new Vector2(53f, y), conifer);
+                Spawner.Prop("Border", new Vector2(87f, y), conifer);
                 // 마을과 해안 사이 나무 울타리(가운데 길은 비운다)
                 if (y > -8f && (y < -2.6f || y > 1.6f)) Spawner.Prop("Border", new Vector2(-17f, y), conifer);
             }
         }
 
         /// <summary>능선(y 11)에서 걸어 지나갈 수 있는 틈: 해안 절벽 틈, 마을 북동쪽, 숲 샛길.</summary>
-        static bool InRidgeGap(float x) => (x > -32f && x < -27.5f) || (x > 10f && x < 14f) || (x > 36.6f && x < 41.4f);
+        static bool InRidgeGap(float x) => (x > -32f && x < -27.5f) || (x > 10f && x < 14f) || (x > 36.6f && x < 41.4f) || (x > 62f && x < 66f);
 
         static Sprite VillageTreeSprite(int v)
         {

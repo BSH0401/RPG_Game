@@ -126,6 +126,7 @@ namespace MoonlightPost
                     yield return Solve(player, letter.id, letter.deliverCondition, n);
                     if (!GameState.Check(letter.deliverCondition)) Problem(letter.id + ": 배달 조건이 풀리지 않음 (" + letter.deliverCondition + ")");
                 }
+                if (!string.IsNullOrEmpty(letter.deliverCondition)) CheckReach(letter.id + " 배달 전");
                 if (letter.objectives != null)
                     foreach (var o in letter.objectives)
                         if (!GameState.Check(o.condition)) Problem(letter.id + ": 배달 직전인데 끝나지 않은 과제: " + o.text);
@@ -188,9 +189,12 @@ namespace MoonlightPost
                 if (term == null) yield break;
 
                 Interactable target = FindClue(term);
-                if (target == null && term.StartsWith("has:"))
+                if (target == null && (term.StartsWith("has:") || term.StartsWith("got:")))
+                {
+                    var item = term.Substring(4);
                     foreach (var it in Interactable.All)
-                        if (it is ItemPickup p && p.itemId == term.Substring(4)) { target = it; break; }
+                        if ((it is ItemPickup p && p.itemId == item) || (it is NpcInteractable giver && FirstTalk(giver)?.giveItem == item)) { target = it; break; }
+                }
                 if (target == null)
                     foreach (var it in Interactable.All)
                         if (it is NpcInteractable npc && FirstTalk(npc)?.setFlag == term) { target = it; break; }
@@ -384,8 +388,9 @@ namespace MoonlightPost
             {
                 count++;
                 if (Stand(it.transform.position, player.interactRange * it.rangeScale) != null) continue;
+                // 받는 사람은 배달 조건(터널 뚫기 등)을 풀어야 닿을 수 있는 경우가 있으므로, 그때는 배달 직전에 다시 검사한다.
                 bool needed = it is PostOfficeCounter
-                              || (letter != null && it is NpcInteractable npc && npc.npcId == letter.recipientId)
+                              || (letter != null && it is NpcInteractable npc && npc.npcId == letter.recipientId && GameState.Check(letter.deliverCondition))
                               || (letter != null && it is ClueInteractable clue && GameData.GetClue(clue.clueId)?.setFlag == letter.revealFlag);
                 if (needed) Problem("[" + label + "] 걸어서 닿을 수 없음: " + it.DisplayName + " @ " + (Vector2)it.transform.position);
                 else locked.Add(it.DisplayName);
@@ -435,7 +440,7 @@ namespace MoonlightPost
 
         IEnumerator Overviews(string tag)
         {
-            foreach (var (pos, label) in new[] { (new Vector2(-1f, 0.5f), "village"), (new Vector2(34f, 0f), "forest"), (new Vector2(-33f, 1f), "coast"), (new Vector2(0f, 22f), "station"), (new Vector2(34f, 22f), "northforest"), (new Vector2(-33f, 22f), "northshore") })
+            foreach (var (pos, label) in new[] { (new Vector2(-1f, 0.5f), "village"), (new Vector2(34f, 0f), "forest"), (new Vector2(-33f, 1f), "coast"), (new Vector2(0f, 22f), "station"), (new Vector2(34f, 22f), "northforest"), (new Vector2(-33f, 22f), "northshore"), (new Vector2(69f, 22f), "pass"), (new Vector2(69f, 0f), "quarry") })
             {
                 yield return MoveCamera(pos, 11.5f);
                 yield return Shot("overview_" + tag + "_" + label);

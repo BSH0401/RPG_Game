@@ -637,7 +637,7 @@
       ],
       "deliveredFlag": "festival",
       "rewardMaxHp": 0,
-      "rewardText": "광장에 축제 등불이 걸렸다! 맡은 편지를 모두 배달했다. 우체국 창구로 돌아가자.",
+      "rewardText": "광장에 축제 등불이 걸렸다! 축제의 밤이 깊어 간다. 우체국 창구에 새 편지가 와 있을지도 모른다.",
       "objectives": [
         {
           "text": "오웬의 서명 받기",
@@ -652,27 +652,365 @@
           "condition": "sign:serin"
         }
       ]
+    },
+    {
+      "id": "tunnel_letter",
+      "title": "터널 너머 고개 역으로",
+      "senderName": "옛 우체국장 도라",
+      "recipientId": "bau",
+      "recipientName": "별빛 고개 역의 역장 바우",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "festival",
+      "deliverCondition": "got:pickaxe,tunnel_open",
+      "blockedLines": [
+        { "speaker": "", "text": "터널이 막혀 있어 고개 역에 갈 수 없다." }
+      ],
+      "receiveLines": [
+        { "speaker": "", "text": "— 2부: 터널 너머 —" },
+        { "speaker": "우체국 창구", "text": "축제 다음 밤. 창구 위에 도라의 글씨로 쓴 편지가 놓여 있다." },
+        { "speaker": "도라", "text": "(쪽지) 새 우체부, 하나만 더 부탁하세. 북쪽 숲 끝 무너진 터널 너머에 '별빛 고개 역'이 있다." },
+        { "speaker": "도라", "text": "(쪽지) 거기 역장 바우는 삼 년 전 그 밤, 내 연락을 기다리다 터널이 무너지는 걸 본 사람이야. 나는 미안하다는 말도 못 했지." },
+        { "speaker": "", "text": "터널은 바위에 막혀 있다. 숲에서 장작을 패던 오웬이라면 곡괭이가 있을지도 모른다." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "바우", "text": "...이 길로 사람이 오다니. 터널이 무너진 뒤로 처음이구먼." },
+        { "speaker": "바우", "text": "도라 국장의 글씨? 삼 년 동안 기다렸는데, 막상 받으니 손이 떨리는군." }
+      ],
+      "choices": [
+        {
+          "text": "\"도라 국장님은 매일 밤 폐역 승강장에 나가 계셨어요.\"",
+          "setFlag": "bau_knows",
+          "lines": [
+            { "speaker": "바우", "text": "승강장에...? 그 사람, 터널이 다시 열리길 기다리고 있었던 게로군." },
+            { "speaker": "바우", "text": "나도 매일 밤 이쪽 승강장에 서 있었다네. 서로 반대쪽에서, 같은 철길을 보면서." }
+          ]
+        },
+        {
+          "text": "편지만 건네고 바우가 읽기를 기다린다",
+          "setFlag": "bau_reads",
+          "lines": [
+            { "speaker": "", "text": "바우는 편지를 끝까지 읽고, 안경을 벗어 한참 동안 닦았다." },
+            { "speaker": "바우", "text": "'미안하다'가 세 번이나 쓰여 있군. 한 번이면 충분했을 텐데." }
+          ]
+        }
+      ],
+      "deliveredFlag": "bau_met",
+      "rewardMaxHp": 0,
+      "rewardText": "고개 역에 불이 켜졌다. 터널 너머에도 편지를 기다리는 사람들이 있다. 우체국 창구로 돌아가자.",
+      "objectives": [
+        {
+          "text": "오웬에게 곡괭이 빌리기",
+          "condition": "got:pickaxe"
+        },
+        {
+          "text": "북쪽 숲 끝 무너진 터널 뚫기",
+          "condition": "tunnel_open"
+        }
+      ]
+    },
+    {
+      "id": "pass_parcel",
+      "title": "별지기에게 가는 소포",
+      "senderName": "고개 역장 바우",
+      "recipientId": "yuna",
+      "recipientName": "계곡 건너 천문대의 별지기 유나",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "delivered:tunnel_letter",
+      "deliverCondition": "cleared:observatory",
+      "blockedLines": [
+        { "speaker": "유나", "text": "(문 너머로) 우체부요? 지금 문 열면 안 돼요! 밖에 그림자들이 잔뜩 있어요!" },
+        { "speaker": "", "text": "천문대를 둘러싼 그림자들을 먼저 쫓아내자." }
+      ],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "고개 역에서 첫 우편이 왔다. 바우가 터널을 걸어 넘어와 맡기고 간 소포다." },
+        { "speaker": "바우", "text": "(쪽지) 계곡 건너 천문대에 별지기 유나가 산다네. 한 달째 내려오질 않아. 렌즈 닦는 약과 빵을 넣었으니 전해 주게." },
+        { "speaker": "바우", "text": "(쪽지) 계곡은 흔들다리로만 건널 수 있어. 밤마다 한쪽이 끊어지니 다른 쪽으로 돌아가게." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "유나", "text": "살았다... 고마워요. 그림자들이 천문대를 둘러싸서 꼼짝도 못 하고 있었어요." },
+        { "speaker": "유나", "text": "바우 할아버지 소포네요. 그리고... 당신이 그 새 우체부군요. 망원경으로 봤어요. 등대에 불이 켜지던 밤." },
+        { "speaker": "유나", "text": "하나 알려 드릴 게 있어요. 그림자들이 어디서 오는지, 별을 재다가 알아냈거든요." }
+      ],
+      "choices": [
+        {
+          "text": "\"알려 주세요. 편지를 나르려면 알아야 해요.\"",
+          "setFlag": "yuna_told",
+          "lines": [
+            { "speaker": "유나", "text": "그림자는 밤마다 남쪽 옛 채석장에서 올라와요. 정확히는 채석장 동쪽 끝, 옛 갱도에서요." },
+            { "speaker": "유나", "text": "길이 밤마다 바뀌는 것도 그 때문인 것 같아요. 갱도에서 무언가가... 닿지 못하고 맴돌고 있어요." }
+          ]
+        },
+        {
+          "text": "\"먼저 빵부터 드세요. 한 달 동안 못 내려오셨다면서요.\"",
+          "setFlag": "yuna_fed",
+          "lines": [
+            { "speaker": "유나", "text": "...하하. 바우 할아버지랑 똑같은 말을 하네요." },
+            { "speaker": "유나", "text": "먹으면서 말할게요. 그림자는 남쪽 옛 채석장, 동쪽 끝 갱도에서 올라와요. 밤마다 길이 바뀌는 것도 거기서 시작돼요." }
+          ]
+        }
+      ],
+      "deliveredFlag": "yuna_met",
+      "rewardMaxHp": 0,
+      "rewardItem": "star_sand",
+      "rewardText": "유나에게서 별모래 주머니를 받았다. (최대 체력 +1)",
+      "objectives": [
+        {
+          "text": "흔들다리를 건너 천문대의 유나 찾아가기",
+          "condition": "met:pass_parcel|cleared:observatory"
+        },
+        {
+          "text": "천문대를 둘러싼 그림자 떼 쫓기",
+          "condition": "cleared:observatory"
+        }
+      ]
+    },
+    {
+      "id": "yuna_report",
+      "title": "별지기의 관측 일지",
+      "senderName": "별지기 유나",
+      "recipientId": "dora",
+      "recipientName": "우체국 앞의 옛 우체국장 도라",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "delivered:pass_parcel",
+      "deliverCondition": "has:ink_mailbag,cleared:quarry_shadows",
+      "blockedLines": [
+        { "speaker": "도라", "text": "관측 일지라... 그런데 유나가 말한 그 자루는 어디 있나? 그걸 봐야 알겠구먼." },
+        { "speaker": "", "text": "옛 채석장에서 먹물이 스민 우편 자루를 찾아 오자." }
+      ],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "천문대에서 두툼한 공책이 왔다. 겉장에 '관측 일지 — 도라 국장님께'." },
+        { "speaker": "유나", "text": "(쪽지) 갱도 쪽을 망원경으로 보다가, 채석장 바위 틈에 우편 자루 하나가 끼어 있는 걸 봤어요. 우체국 자루 같아요." },
+        { "speaker": "유나", "text": "(쪽지) 그 자루를 일지와 함께 도라 할머니께 보여 드려 주세요. 할머니는 뭔가 알고 계실 거예요." },
+        { "speaker": "", "text": "고개 마을 남쪽 틈으로 내려가면 옛 채석장이다." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "도라", "text": "유나의 일지... 별 이야기 사이에 그림자 이야기가 빼곡하군." },
+        { "speaker": "", "text": "먹물에 젖은 우편 자루를 본 도라의 얼굴이 하얗게 질린다." },
+        { "speaker": "도라", "text": "...이건 그 밤의 자루다. 열차에 싣지 못한 마지막 우편." },
+        { "speaker": "도라", "text": "폭풍이 오던 밤, 나는 남은 편지를 전부 고개 너머 채석장 갱도에 넣고 문을 잠갔어. 배가 끊기고, 터널이 무너지고... 배달할 길이 없었으니까." },
+        { "speaker": "도라", "text": "그리고 우체국 문을 닫았지. 편지들을 어둠 속에 두고. 그림자가 나타난 건 그다음 밤부터였어." }
+      ],
+      "choices": [
+        {
+          "text": "\"같이 열어요. 이제 배달할 길이 있잖아요.\"",
+          "setFlag": "dora_together",
+          "lines": [
+            { "speaker": "도라", "text": "...배달할 길이라. 그래, 터널도 뚫렸고 열차도 있지." },
+            { "speaker": "도라", "text": "갱도 열쇠를 주마. 내 몫까지 부탁하네. 문을 열면, 그 안에 쌓인 것이 가만있지는 않을 게다." }
+          ]
+        },
+        {
+          "text": "\"국장님 잘못만은 아니에요.\"",
+          "setFlag": "dora_forgiven",
+          "lines": [
+            { "speaker": "도라", "text": "...삼 년 동안 아무도 그 말을 해 주지 않았지. 나 스스로도." },
+            { "speaker": "도라", "text": "갱도 열쇠를 주마. 문을 열면, 그 안에 쌓인 것이 가만있지는 않을 게다. 조심하게." }
+          ]
+        }
+      ],
+      "deliveredFlag": "dora_confessed",
+      "rewardMaxHp": 0,
+      "rewardItem": "mine_key",
+      "rewardText": "옛 갱도 우편 창고의 열쇠를 받았다. 우체국 창구로 돌아가자.",
+      "objectives": [
+        {
+          "text": "옛 채석장의 그림자 떼 쫓기",
+          "condition": "cleared:quarry_shadows"
+        },
+        {
+          "text": "먹물이 스민 우편 자루 찾기 (옛 채석장)",
+          "condition": "has:ink_mailbag"
+        }
+      ],
+      "consumeItems": ["ink_mailbag"]
+    },
+    {
+      "id": "unsent_letters",
+      "title": "다시, 배달 중",
+      "senderName": "옛 우체국장 도라",
+      "recipientId": "mine_gate",
+      "recipientName": "옛 채석장 갱도의 우편 창고",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "delivered:yuna_report",
+      "deliverCondition": "has:mine_key,boss_quarry_defeated",
+      "blockedLines": [
+        { "speaker": "", "text": "갱도 문 앞을 거대한 그림자가 막고 있다. 낡은 편지지처럼 누런 먹물이 일렁인다." }
+      ],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "도라가 직접 창구에 나와 있었다. 손에는 빨간 도장이 찍힌 종이 한 장." },
+        { "speaker": "도라", "text": "배달 재개 지시서다. 삼 년 전 날짜의 편지 전부를 다시 '배달 중'으로 돌린다는 뜻이지." },
+        { "speaker": "도라", "text": "갱도 문에 이걸 붙이고 열쇠로 열게. ...그 안의 것이 자네를 막아설 게다. 쓰러지면 바로 돌아오고." },
+        { "speaker": "", "text": "옛 채석장 동쪽 끝, 갱도로 가자." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "", "text": "그림자가 흩어진 자리에, 누렇게 바랜 편지 조각들이 눈처럼 내려앉는다." },
+        { "speaker": "", "text": "갱도 문에 지시서를 붙이고 열쇠를 돌리자, 안쪽에 쌓인 우편 자루들이 보인다. 수백 통의 편지다." }
+      ],
+      "choices": [
+        {
+          "text": "편지마다 오늘 날짜 소인을 찍는다",
+          "setFlag": "letters_stamped",
+          "lines": [
+            { "speaker": "", "text": "소인을 찍을 때마다 봉투의 먹물 얼룩이 조금씩 옅어진다. 마지막 자루를 끝냈을 때, 갱도 안이 달빛처럼 환해졌다." },
+            { "speaker": "", "text": "이 편지들은 이제 정식으로 '배달 중'이다. 하나씩 주인을 찾아갈 것이다." }
+          ]
+        },
+        {
+          "text": "자루를 하나씩 열어 달빛에 바람을 쐰다",
+          "setFlag": "letters_aired",
+          "lines": [
+            { "speaker": "", "text": "자루를 열자 눅눅한 먹물 냄새 대신 오래된 종이 냄새가 퍼진다. 갇혀 있던 편지들이 숨을 쉬는 것 같다." },
+            { "speaker": "", "text": "달빛을 받은 봉투들의 주소가 하나둘 또렷해진다. 이제 주인을 찾아갈 수 있다." }
+          ]
+        }
+      ],
+      "deliveredFlag": "shadows_calm",
+      "rewardMaxHp": 0,
+      "rewardItem": "night_badge",
+      "rewardText": "섬의 그림자들이 한결 잠잠해졌다. 야간 우체부 배지를 받았다. (최대 체력 +1)",
+      "objectives": [
+        {
+          "text": "갱도 앞의 거대한 그림자 물리치기 (옛 채석장 동쪽 끝)",
+          "condition": "boss_quarry_defeated"
+        }
+      ],
+      "consumeItems": ["mine_key"]
+    },
+    {
+      "id": "noah_birthday",
+      "title": "삼 년 늦은 생일 카드",
+      "senderName": "노아의 할아버지 (삼 년 전)",
+      "recipientId": "noah",
+      "recipientName": "천문대에 별 보러 간 노아",
+      "recipientHint": "받는 사람은 노아. 그런데 오늘 밤 마을 어디에도 노아가 보이지 않는다. 세린에게 물어보자.",
+      "revealFlag": "asked:noah",
+      "condition": "delivered:unsent_letters",
+      "deliverCondition": "",
+      "blockedLines": [],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "갱도에서 나온 편지들이 하나둘 우체국으로 들어오기 시작했다." },
+        { "speaker": "우체국 창구", "text": "그중 한 통은 이 섬의 아이 앞으로 온 것이다. 받는 사람: '노아에게'. 겉봉에 서툰 고래 그림." },
+        { "speaker": "우체국 창구", "text": "보낸 사람은 노아의 할아버지. 삼 년 전, 바다 건너 큰 섬으로 일하러 떠나며 부친 생일 카드다." },
+        { "speaker": "", "text": "그런데 오늘 밤 노아가 우체국 앞에 없다. 세린에게 물어보자." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "노아", "text": "우체부님! 여기까지 어떻게 알았어? 유나 누나가 별똥별 보여 준다고 해서 왔어!" },
+        { "speaker": "노아", "text": "...나한테 온 편지야? 이 고래 그림, 할아버지 거다!" }
+      ],
+      "choices": [
+        {
+          "text": "곁에 앉아 함께 읽는다",
+          "setFlag": "noah_read_together",
+          "lines": [
+            { "speaker": "편지", "text": "\"노아야, 생일 축하한다. 할아버지는 바다 건너 큰 섬에서 배를 고치게 됐단다. 등대 불이 보이는 밤이면 그쪽을 보고 있으마. — 할아버지\"" },
+            { "speaker": "노아", "text": "할아버지는 편지를 안 쓰는 줄 알았어. 삼 년 동안 한 번도 안 온 줄 알았는데... 갱도에 갇혀 있었구나." },
+            { "speaker": "노아", "text": "이거 줄게! 오늘 같이 주운 별똥별 돌이야. 유나 누나가 행운이 깃든대." }
+          ]
+        },
+        {
+          "text": "노아가 혼자 읽게 하고 유나와 별을 본다",
+          "setFlag": "noah_read_alone",
+          "lines": [
+            { "speaker": "", "text": "노아가 편지를 읽는 동안, 유나와 함께 하늘을 올려다보았다. 별똥별이 하나, 둘 떨어진다." },
+            { "speaker": "노아", "text": "(눈가를 비비며) 할아버지가 등대 불을 보고 있대. 바다 건너에서!" },
+            { "speaker": "노아", "text": "이거 줄게! 오늘 주운 별똥별 돌이야. 유나 누나가 행운이 깃든대." }
+          ]
+        }
+      ],
+      "deliveredFlag": "noah_card",
+      "rewardMaxHp": 0,
+      "rewardItem": "star_stone",
+      "rewardText": "노아의 별똥별 돌을 받았다. (회피 시간 +15%)",
+      "objectives": [
+        {
+          "text": "세린에게 노아가 간 곳 묻기",
+          "condition": "asked:noah"
+        }
+      ]
+    },
+    {
+      "id": "dora_last_letter",
+      "title": "첫 우편 열차를 부르는 편지",
+      "senderName": "옛 우체국장 도라",
+      "recipientId": "bau",
+      "recipientName": "별빛 고개 역의 역장 바우",
+      "recipientHint": "",
+      "revealFlag": "",
+      "condition": "delivered:noah_birthday",
+      "deliverCondition": "has:coal_sack,switch_set",
+      "blockedLines": [
+        { "speaker": "바우", "text": "열차를 움직이라고? 마음 같아선 당장이라도. 하지만 석탄이 없고, 선로도 이쪽으로 꺾여 있지 않아." },
+        { "speaker": "", "text": "채석장에서 석탄을 구하고, 북쪽 숲 신호소의 선로 전환기를 당기자." }
+      ],
+      "receiveLines": [
+        { "speaker": "우체국 창구", "text": "도라가 쓴 편지. 받는 사람: 별빛 고개 역장 바우." },
+        { "speaker": "도라", "text": "갱도의 편지들은 아직 수백 통 남았어. 걸어서 나르면 봄이 와도 다 못 해." },
+        { "speaker": "도라", "text": "바우에게 열차를 움직여 달라고 써 두었네. 그 친구는 석탄과 선로 타령을 할 게다. 채석장 오두막에 석탄이 있었고, 선로 전환기는 북쪽 숲 신호소에 있지." },
+        { "speaker": "도라", "text": "...그리고 편지 끝에 한 줄 더 썼어. 읽지는 말게." }
+      ],
+      "deliverPrompt": [
+        { "speaker": "바우", "text": "석탄에, 선로까지 돌려놓았다고? 허허, 핑계를 하나도 안 남겨 줬구먼." },
+        { "speaker": "", "text": "바우는 도라의 편지를 읽다가, 마지막 줄에서 멈춘다." },
+        { "speaker": "바우", "text": "'첫 열차는 자네가 몰고 오게. 승강장에서 기다리겠네.' ...이 사람, 끝까지 국장 말투로군." }
+      ],
+      "choices": [
+        {
+          "text": "\"국장님은 정말 승강장에서 기다리실 거예요.\"",
+          "setFlag": "bau_drives",
+          "lines": [
+            { "speaker": "바우", "text": "알고 있네. 그 사람은 기다리는 데는 선수니까. 삼 년이나 기다렸지." },
+            { "speaker": "바우", "text": "기관차에 불을 넣지. 오늘 밤, 첫 우편 열차가 터널을 지난다!" }
+          ]
+        },
+        {
+          "text": "\"답장은 직접 전하시는 게 좋겠어요.\"",
+          "setFlag": "bau_replies",
+          "lines": [
+            { "speaker": "바우", "text": "하하, 우체부가 배달을 사양하다니. ...그래, 이건 내가 직접 들고 가야겠군." },
+            { "speaker": "바우", "text": "기관차에 불을 넣지. 오늘 밤, 첫 우편 열차가 터널을 지난다!" }
+          ]
+        }
+      ],
+      "deliveredFlag": "train_runs",
+      "rewardMaxHp": 0,
+      "rewardText": "멀리서 기적 소리가 울린다. 첫 우편 열차가 달린다! 맡은 편지를 모두 배달했다. 우체국 창구로 돌아가자.",
+      "objectives": [
+        {
+          "text": "석탄 자루 구하기 (옛 채석장 오두막)",
+          "condition": "has:coal_sack"
+        },
+        {
+          "text": "선로 전환기 당기기 (북쪽 숲 신호소)",
+          "condition": "switch_set"
+        }
+      ],
+      "consumeItems": ["coal_sack"]
     }
   ],
   "endings": [
     {
-      "condition": "festival,owen_comes|festival,reply_softened",
+      "condition": "train_runs,owen_comes|train_runs,reply_softened",
       "lines": [
         { "speaker": "우체국 창구", "text": "이 섬에 맡겨진 편지는 모두 배달했다." },
-        { "speaker": "", "text": "축제의 밤. 광장에 등불이 걸리고, 등대 불빛이 섬을 한 바퀴 돌 때마다 사람들의 그림자가 길게 늘어난다." },
-        { "speaker": "", "text": "숲과 마을 사이의 문 앞에서 미라와 오웬이 마주 섰다. 누가 먼저 걸어 나왔는지는 둘 다 말하지 않는다." },
-        { "speaker": "", "text": "다음 날 새벽, 빵집 굴뚝에서 두 사람 몫의 연기가 피어올랐다. 새벽 반죽은 둘이서 쳤다." },
-        { "speaker": "", "text": "도라는 우체국 앞에서 옛 배달 이야기를 들려주고, 노아는 세린의 손을 잡고 졸고, 테오는 봄에 올 배를 기다리며 바다 유리를 닦는다." },
+        { "speaker": "", "text": "첫 우편 열차가 터널을 지나 폐역 승강장에 들어선다. 기관차에서 내린 바우와, 승강장에서 기다리던 도라가 마주 보고 웃는다." },
+        { "speaker": "", "text": "열차 칸마다 삼 년 늦은 편지가 가득하다. 그날 밤부터 섬의 그림자는 거의 나타나지 않았다." },
+        { "speaker": "", "text": "숲과 마을 사이의 문 앞에서 미라와 오웬이 마주 섰다. 다음 날 새벽, 빵집 굴뚝에서 두 사람 몫의 연기가 피어올랐다. 새벽 반죽은 둘이서 쳤다." },
+        { "speaker": "", "text": "노아는 유나와 함께 천문대에서 바다 건너를 보고, 세린은 등대 불을 두 배로 밝힌다. 테오는 봄에 올 배를 기다리며 바다 유리를 닦는다." },
         { "speaker": "", "text": "— 엔딩 A: 다시 이어진 길. 플레이해 주셔서 고맙습니다. (F12: 처음부터 다시) —" }
       ]
     },
     {
-      "condition": "festival",
+      "condition": "train_runs",
       "lines": [
         { "speaker": "우체국 창구", "text": "이 섬에 맡겨진 편지는 모두 배달했다." },
-        { "speaker": "", "text": "축제의 밤. 광장에 등불이 걸렸다. 오웬은 오지 않았다. 대신 축제 다음 날, 밀가루 자루와 함께 긴 편지가 왔다." },
-        { "speaker": "", "text": "미라는 빠짐없이 답장을 쓴다. 숲과 마을 사이를 오가는 편지는 이제 이 섬에서 가장 바쁜 길이 되었다." },
-        { "speaker": "", "text": "도라는 우체국 앞에서, 테오는 해변에서, 노아와 세린은 등대 아래에서 손을 흔든다. 내일 밤에도 이 섬의 길은 조금씩 달라질 것이다." },
+        { "speaker": "", "text": "첫 우편 열차가 터널을 지나 폐역 승강장에 들어선다. 기관차에서 내린 바우와, 승강장에서 기다리던 도라가 마주 보고 웃는다." },
+        { "speaker": "", "text": "열차 칸마다 삼 년 늦은 편지가 가득하다. 그 가운데 한 통은 숲 끝 오두막으로 가는 미라의 편지다. 오웬은 오지 않았지만, 매주 밀가루 자루와 함께 긴 답장이 온다." },
+        { "speaker": "", "text": "숲과 마을, 고개와 바다 건너를 오가는 편지는 이제 이 섬에서 가장 바쁜 길이 되었다." },
+        { "speaker": "", "text": "노아와 유나는 천문대에서, 세린은 등대에서, 테오는 해변에서 손을 흔든다. 내일 밤에도 이 섬의 길은 조금씩 달라질 것이다." },
         { "speaker": "", "text": "— 엔딩 B: 매주 오는 편지. 플레이해 주셔서 고맙습니다. (F12: 처음부터 다시) —" }
       ]
     }

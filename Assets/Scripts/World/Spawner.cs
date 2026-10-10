@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
-    public enum EnemyKind { Rat, Bat, Mole, Boss, Squid }
+    public enum EnemyKind { Rat, Bat, Mole, Boss, Squid, Wraith }
 
     /// <summary>월드 오브젝트를 만드는 도우미. 그림은 Art 에서, 배치는 GameBootstrap 에서 정한다.</summary>
     public static class Spawner
@@ -202,7 +202,7 @@ namespace MoonlightPost
         /// </summary>
         public static GameObject Enemy(Vector2 pos, EnemyKind kind)
         {
-            bool boss = kind == EnemyKind.Boss || kind == EnemyKind.Squid;
+            bool boss = kind == EnemyKind.Boss || kind == EnemyKind.Squid || kind == EnemyKind.Wraith;
             var go = new GameObject("Enemy_" + kind);
             go.transform.SetParent(Root, false);
             go.transform.position = pos;
@@ -286,6 +286,45 @@ namespace MoonlightPost
                         body.color = new Color(0.9f, 0.5f, 0.7f);
                     }
                     Glow(pos, 6f, new Color(0.7f, 0.3f, 0.6f, 0.25f), go.transform);
+                    break;
+
+                case EnemyKind.Wraith:
+                    // 세 번째 보스: 옛 채석장 갱도 앞의 「부치지 못한 편지의 그림자」.
+                    // 내려찍기·부채꼴 구슬·돌진에, 작은 그림자를 불러내는 틈(보라색 원)이 섞인다.
+                    health.SetMax(30, true);
+                    enemy.displayName = "부치지 못한 편지의 그림자";
+                    enemy.isBoss = true;
+                    enemy.enrages = true;
+                    enemy.defeatFlag = "boss_quarry_defeated";
+                    enemy.moveSpeed = 1.9f;
+                    enemy.detectRange = 9f;
+                    enemy.attackRange = 3.2f;
+                    enemy.windupTime = 0.8f;
+                    enemy.lungeSpeed = 12f;
+                    enemy.lungeTime = 0.3f;
+                    enemy.recoverTime = 0.9f;
+                    enemy.slamRadius = 3f;
+                    enemy.hitRadius = 1.3f;
+                    enemy.spreadCount = 4;
+                    enemy.summonKinds = new[] { EnemyKind.Rat, EnemyKind.Bat };
+                    enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Spread, EnemyAttack.Summon, EnemyAttack.Lunge, EnemyAttack.Slam, EnemyAttack.Spread };
+                    var wraithFrames = GameAssets.Available ? GameAssets.BossFrames : null;
+                    if (wraithFrames != null)
+                    {
+                        body = Character(go, wraithFrames[0], 1.25f, 0.8f);
+                        // 오래된 편지지 빛깔: 누런 먹물
+                        body.color = new Color(0.95f, 0.78f, 0.5f);
+                        Object.Destroy(go.GetComponent<CharacterAnimator>());
+                        var anim = body.gameObject.AddComponent<FrameAnimator>();
+                        anim.frames = wraithFrames;
+                        anim.fps = 6f;
+                    }
+                    else
+                    {
+                        body = Character(go, Art.InkBoss, 1.3f, 0.8f);
+                        body.color = new Color(0.95f, 0.8f, 0.55f);
+                    }
+                    Glow(pos, 6f, new Color(1f, 0.75f, 0.4f, 0.22f), go.transform);
                     break;
 
                 case EnemyKind.Bat:

@@ -261,6 +261,136 @@
       "value": 10,
       "icon": "PaperLetter",
       "maxStack": 1
+    },
+    {
+      "id": "pickaxe",
+      "name": "오웬의 곡괭이",
+      "description": "오웬이 숲에서 삼 년 동안 쓴 곡괭이. 무너진 바위쯤은 깨뜨릴 수 있다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Key",
+      "maxStack": 1
+    },
+    {
+      "id": "ink_mailbag",
+      "name": "먹물이 스민 우편 자루",
+      "description": "삼 년 전 폭풍 밤의 우편 자루. 먹물이 배어 나온다. 도라에게 보여 주자.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Bag",
+      "maxStack": 1
+    },
+    {
+      "id": "mine_key",
+      "name": "우편 창고 열쇠",
+      "description": "옛 채석장 갱도 우편 창고의 열쇠. 도라가 삼 년 동안 지니고 있었다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Key",
+      "maxStack": 1
+    },
+    {
+      "id": "coal_sack",
+      "name": "석탄 자루",
+      "description": "고개 역 증기 기관차용 석탄. 바우에게 가져가자.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Bag",
+      "maxStack": 1
+    },
+    {
+      "id": "clock_key",
+      "name": "태엽 열쇠",
+      "description": "고개 역 시계의 녹슨 태엽 열쇠.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Key",
+      "maxStack": 1
+    },
+    {
+      "id": "star_page_1",
+      "name": "별지도 첫째 장",
+      "description": "유나의 별지도. 바닷바람에 조금 젖었다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "PaperLetter",
+      "maxStack": 1
+    },
+    {
+      "id": "star_page_2",
+      "name": "별지도 둘째 장",
+      "description": "유나의 별지도. 북쪽 하늘의 별이 빼곡하다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "PaperLetter",
+      "maxStack": 1
+    },
+    {
+      "id": "star_page_3",
+      "name": "별지도 셋째 장",
+      "description": "유나의 별지도. 달이 지나는 길이 그려져 있다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "PaperLetter",
+      "maxStack": 1
+    },
+    {
+      "id": "star_sand",
+      "name": "별모래 주머니",
+      "description": "유나가 천문대 지붕에서 모은 별모래. 최대 체력 +1.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 1,
+      "icon": "FireflyJar",
+      "maxStack": 1
+    },
+    {
+      "id": "night_badge",
+      "name": "야간 우체부 배지",
+      "description": "갱도의 편지를 다시 배달 중으로 돌린 우체부에게. 최대 체력 +1.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 1,
+      "icon": "Badge",
+      "maxStack": 1
+    },
+    {
+      "id": "star_stone",
+      "name": "노아의 별똥별 돌",
+      "description": "노아와 함께 주운 별똥별 돌. 회피가 조금 더 이어진다.",
+      "kind": "equipment",
+      "effect": "dodge",
+      "value": 15,
+      "icon": "Stamp",
+      "maxStack": 1
+    },
+    {
+      "id": "pocket_watch",
+      "name": "역장의 회중시계",
+      "description": "바우가 차던 회중시계. 편지 도구가 조금 더 강해지고 빨리 다시 쓸 수 있다.",
+      "kind": "equipment",
+      "effect": "tool",
+      "value": 15,
+      "icon": "GoldenStamp",
+      "maxStack": 1
+    },
+    {
+      "id": "star_map",
+      "name": "작은 별지도",
+      "description": "유나가 베껴 그린 작은 별지도. 밤에 밝게 보이는 범위가 넓어진다.",
+      "kind": "equipment",
+      "effect": "light",
+      "value": 1,
+      "icon": "PaperLetter",
+      "maxStack": 1
     }
   ]
 }

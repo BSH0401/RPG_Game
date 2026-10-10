@@ -148,7 +148,7 @@ namespace MoonlightPost
             // 무너진 터널(철길의 끝)
             var arch = useAssets ? GameAssets.Tile(House, 29, 20, 3, 3) : RockSprite(true);
             Spawner.Prop("Tunnel", new Vector2(47.6f, 20f), arch, new Vector2(3f, 1.4f), new Vector2(0f, 0.7f));
-            Spawner.Prop("TunnelRubble", new Vector2(47.6f, 20.2f), RockSprite(true), new Vector2(2.4f, 1f), new Vector2(0f, 0.5f));
+            WorldVisuals.I.Register(Spawner.Prop("TunnelRubble", new Vector2(47.6f, 20.2f), RockSprite(true), new Vector2(2.4f, 1f), new Vector2(0f, 0.5f)), "!tunnel_open");
 
             // 옛 신호소 공터
             Spawner.Building("SignalBox", new Vector2(28f, 28.6f), new Vector2(2.6f, 1.6f),

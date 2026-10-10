@@ -111,7 +111,7 @@ namespace MoonlightPost
                 CheckReach(letter.id);
 
                 // 받는 사람 알아내기 → (막혀 있으면) 받는 사람에게 한 번 가 보기 → 배달 조건 풀기
-                yield return Solve(player, letter, letter.revealFlag, n);
+                yield return Solve(player, letter.id, letter.revealFlag, n);
                 if (!LetterManager.IsRecipientRevealed(letter)) Problem(letter.id + ": 받는 사람이 밝혀지지 않음 (" + letter.revealFlag + ")");
                 if (!GameState.Check(letter.deliverCondition))
                 {
@@ -123,7 +123,7 @@ namespace MoonlightPost
                         if (scenery) yield return Shot(n.ToString("00") + "_blocked_" + letter.id);
                         yield return Drain(choice);
                     }
-                    yield return Solve(player, letter, letter.deliverCondition, n);
+                    yield return Solve(player, letter.id, letter.deliverCondition, n);
                     if (!GameState.Check(letter.deliverCondition)) Problem(letter.id + ": 배달 조건이 풀리지 않음 (" + letter.deliverCondition + ")");
                 }
                 if (letter.objectives != null)
@@ -146,6 +146,7 @@ namespace MoonlightPost
                 Log("   이동 약 " + walked.ToString("0") + "칸(걸어서 약 " + (walked / player.moveSpeed).ToString("0") + "초), 대사 " + linesShown + "줄");
 
                 if (scenery) yield return VillageShot(n.ToString("00") + "_after_" + letter.id);
+                if (scenery) yield return DoRequests(player, n);
                 if (scenery) yield return TalkToEveryone(player, "「" + letter.title + "」 배달 후");
             }
             if (scenery) yield return Overviews("end");
@@ -173,7 +174,7 @@ namespace MoonlightPost
         /// 조건의 남은 항목을 하나씩 해결한다: 단서는 조사하고, "has:아이템"은 그 아이템을 주는 곳을 찾아 줍고,
         /// 대화로 세우는 플래그는 그 주민에게 말을 걸고, 나머지(보스·사건)는 그 적들을 쓰러뜨린다.
         /// </summary>
-        IEnumerator Solve(PlayerController player, LetterDef letter, string condition, int n)
+        IEnumerator Solve(PlayerController player, string label, string condition, int n)
         {
             if (string.IsNullOrEmpty(condition)) yield break;
             for (int pass = 0; pass < 8 && !GameState.Check(condition); pass++)
@@ -206,7 +207,7 @@ namespace MoonlightPost
                 var foes = new List<GameObject>(NightDirector.I != null ? NightDirector.I.EventEnemies() : new GameObject[0]);
                 if (foes.Count == 0)
                 {
-                    Problem(letter.id + ": '" + term + "'을(를) 해결할 단서·물건·대화·적을 찾지 못함");
+                    Problem(label + ": '" + term + "'을(를) 해결할 단서·물건·대화·적을 찾지 못함");
                     yield break;
                 }
                 yield return Visit(player, foes[0].transform.position + new Vector3(0f, -3f, 0f), false);
@@ -215,6 +216,44 @@ namespace MoonlightPost
                 foreach (var f in foes)
                     if (f != null) f.GetComponent<Health>().TakeDamage(999, player.transform.position);
                 yield return Seconds(2f);
+            }
+        }
+
+        /// <summary>지금 받을 수 있는 의뢰를 모두 받아서 끝낸다(1회차만).</summary>
+        IEnumerator DoRequests(PlayerController player, int n)
+        {
+            foreach (var r in GameData.Requests)
+            {
+                if (!RequestManager.IsAvailable(r)) continue;
+                walked = 0f;
+                linesShown = 0;
+                var giver = NpcInteractable.Find(r.giver);
+                if (giver == null)
+                {
+                    Problem("의뢰 " + r.id + ": 의뢰하는 주민(" + r.giver + ")이 월드에 없다");
+                    continue;
+                }
+                yield return Visit(player, giver.transform.position);
+                giver.Interact(player);
+                yield return Drain(0);
+                if (!RequestManager.IsAccepted(r))
+                {
+                    Problem("의뢰 " + r.id + ": 말을 걸어도 의뢰를 받지 못함");
+                    continue;
+                }
+                yield return Solve(player, "의뢰 " + r.id, r.completeCondition, n);
+                var turnIn = NpcInteractable.Find(RequestManager.TurnIn(r));
+                if (turnIn == null)
+                {
+                    Problem("의뢰 " + r.id + ": 완료를 알릴 주민이 월드에 없다");
+                    continue;
+                }
+                yield return Visit(player, turnIn.transform.position);
+                turnIn.Interact(player);
+                if (scenery) yield return Shot(n.ToString("00") + "_request_" + r.id);
+                yield return Drain(0);
+                if (!RequestManager.IsDone(r)) Problem("의뢰 " + r.id + ": 끝내지 못함 (" + r.completeCondition + ")");
+                else Log("   의뢰 「" + r.title + "」 완료 — 이동 약 " + walked.ToString("0") + "칸(걸어서 약 " + (walked / player.moveSpeed).ToString("0") + "초), 대사 " + linesShown + "줄");
             }
         }
 

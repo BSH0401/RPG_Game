@@ -475,6 +475,8 @@ namespace MoonlightPost
             pickup.displayName = "빵 진열대";
             pickup.itemId = "croissant";
             pickup.count = 2;
+            pickup.bonusCondition = "reqdone:mira_bowl"; // 반죽 그릇을 찾아 주면 밤마다 하나 더
+            pickup.bonusCount = 1;
             pickup.perNight = true;
             pickup.verb = "확인하기";
             pickup.openLine = "미라: \"오늘 구운 거야. 배달 가는 길에 먹어!\"";

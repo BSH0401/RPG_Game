@@ -103,6 +103,18 @@
       "revisitLines": [
         { "speaker": "", "text": "발자국이 절벽 틈을 지나 북쪽 갯바위 선착장으로 이어진다." }
       ]
+    },
+    {
+      "id": "tunnel_whistle",
+      "displayName": "터널 틈",
+      "setFlag": "clue:tunnel_whistle",
+      "lines": [
+        { "speaker": "", "text": "무너진 터널 틈으로 바람이 빠져나가며 '삐이—' 하고 길게 운다." },
+        { "speaker": "", "text": "기적 소리의 정체는 바람이었다. 노아에게 알려 주자." }
+      ],
+      "revisitLines": [
+        { "speaker": "", "text": "터널 틈으로 바람이 '삐이—' 하고 운다." }
+      ]
     }
   ]
 }

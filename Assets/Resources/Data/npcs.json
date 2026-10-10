@@ -80,6 +80,15 @@
           ]
         },
         {
+          "condition": "mira_mother_letter",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "엄마 편지는 계산대 위에 세워 뒀어. 손님들이 다 읽고 가."
+            }
+          ]
+        },
+        {
           "condition": "lighthouse_lit",
           "lines": [
             {

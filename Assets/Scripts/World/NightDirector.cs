@@ -20,6 +20,8 @@ namespace MoonlightPost
     public class EncounterSpec
     {
         public string letterId;
+        /// <summary>letterId 대신 쓸 출현 조건(의뢰용, 예: "req:owen_nest").</summary>
+        public string condition;
         public string flag;
         public Vector2[] spawns;
         public EnemyKind[] kinds;
@@ -228,7 +230,8 @@ namespace MoonlightPost
         {
             foreach (var e in encounters)
             {
-                bool need = GameState.HasFlag("carrying:" + e.letterId) && !GameState.HasFlag(e.flag);
+                bool need = (string.IsNullOrEmpty(e.condition) ? GameState.HasFlag("carrying:" + e.letterId) : GameState.Check(e.condition))
+                            && !GameState.HasFlag(e.flag);
                 if (need && !e.spawned)
                 {
                     e.spawned = true;

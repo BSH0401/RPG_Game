@@ -28,6 +28,7 @@ namespace MoonlightPost
             var anim = GetComponent<SpriteAnimator>();
             if (anim != null) anim.FaceToward(player.transform.position);
             if (LetterManager.TryDeliver(npcId)) return;
+            if (RequestManager.TryHandle(npcId)) return;
 
             var def = Def;
             if (def?.talks != null)

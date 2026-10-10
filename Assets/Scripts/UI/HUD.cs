@@ -232,7 +232,8 @@ namespace MoonlightPost
                 objectiveHeights[i] = Mathf.Max(24 * s, Ui.Small.CalcHeight(new GUIContent("○ " + o.text), iw) + 2 * s);
                 extra += objectiveHeights[i];
             }
-            var box = new Rect(Screen.width - w - 16 * s, 16 * s, w, 118 * s + extra);
+            var box = new Rect(Screen.width - w - 16 * s, 16 * s, w, (letter == null ? 80 : 118) * s + extra);
+            DrawRequestPanel(box.yMax + 8 * s);
             Ui.Panel(box);
             if (letter == null)
             {
@@ -252,6 +253,34 @@ namespace MoonlightPost
                 GUI.Label(new Rect(x, y, iw, objectiveHeights[i]), objectiveLines[i], Ui.Small);
                 y += objectiveHeights[i];
             }
+        }
+
+        /// <summary>편지 칸 아래: 진행 중인 의뢰와 각각의 다음 할 일.</summary>
+        void DrawRequestPanel(float top)
+        {
+            float s = Ui.S;
+            float w = 380 * s;
+            float iw = w - 28 * s;
+            var lines = new List<string>();
+            foreach (var r in RequestManager.Active())
+            {
+                string next = null;
+                if (RequestManager.IsReady(r))
+                {
+                    var who = GameData.GetNpc(RequestManager.TurnIn(r));
+                    next = "<color=#7fd68a>→ " + (who != null ? who.displayName : "의뢰한 사람") + "에게 돌아가기</color>";
+                }
+                else if (r.objectives != null)
+                    foreach (var o in r.objectives)
+                        if (!GameState.Check(o.condition)) { next = "○ " + o.text; break; }
+                lines.Add("<b>" + r.title + "</b>\n  " + (next ?? ""));
+            }
+            if (lines.Count == 0) return;
+            string text = "<color=#ffd98a>의뢰</color>\n" + string.Join("\n", lines);
+            float h = Ui.Small.CalcHeight(new GUIContent(text), iw) + 16 * s;
+            var box = new Rect(Screen.width - w - 16 * s, top, w, h);
+            Ui.Panel(box);
+            GUI.Label(new Rect(box.x + 14 * s, box.y + 8 * s, iw, h - 12 * s), text, Ui.Small);
         }
 
         void DrawPrompt(PlayerController player)
@@ -277,7 +306,9 @@ namespace MoonlightPost
                 Vector3 sp = cam.WorldToScreenPoint(npc.transform.position + Vector3.up * 0.9f);
                 if (sp.z < 0) continue;
                 bool isTarget = letter != null && letter.recipientId == npc.npcId && LetterManager.IsRecipientRevealed(letter);
-                string label = isTarget ? "[편지] " + npc.DisplayName : npc.DisplayName;
+                string badge = RequestManager.BadgeFor(npc.npcId);
+                string label = isTarget ? "[편지] " + npc.DisplayName
+                    : badge != null ? "<color=#ffd98a>[" + badge + "]</color> " + npc.DisplayName : npc.DisplayName;
                 var r = new Rect(sp.x - 120 * s, Screen.height - sp.y - 26 * s, 240 * s, 26 * s);
                 Ui.Shadow(r, label, Ui.Center);
             }
@@ -413,6 +444,14 @@ namespace MoonlightPost
             {
                 info = LetterManager.NextAvailable() != null ? "들고 있는 편지가 없다. 우체국 창구에서 편지를 받자." : "모든 편지를 배달했다.";
             }
+
+            // 의뢰: 줄 수 있는 주민과 끝낸 의뢰를 받을 주민
+            foreach (var it in Interactable.All)
+                if (it is NpcInteractable who)
+                {
+                    var badge = RequestManager.BadgeFor(who.npcId);
+                    if (badge != null) Marker(map, who.transform.position, new Color(1f, 0.85f, 0.3f), "[" + badge + "] " + who.DisplayName);
+                }
 
             // 보름달 밤에는 아직 줍지 않은 잃어버린 우표가 지도에 보인다.
             if (NightDirector.Mood == NightMood.FullMoon)

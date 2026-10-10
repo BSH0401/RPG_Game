@@ -181,6 +181,86 @@
       "value": 0,
       "icon": "Key",
       "maxStack": 1
+    },
+    {
+      "id": "dough_bowl",
+      "name": "반죽 그릇",
+      "description": "미라의 할머니가 쓰시던 반죽 그릇. 이가 하나 빠졌다.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Croissant",
+      "maxStack": 1
+    },
+    {
+      "id": "date_stamp",
+      "name": "옛 날짜 도장",
+      "description": "달빛 우체국의 녹슨 날짜 도장. 도라에게 가져가자.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "SilverSeal",
+      "maxStack": 1
+    },
+    {
+      "id": "lens_shard",
+      "name": "등대 렌즈 조각",
+      "description": "폭풍 밤에 깨져 바다로 떨어진 등대 렌즈 조각.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "FireflyJar",
+      "maxStack": 1
+    },
+    {
+      "id": "old_bottle_letter",
+      "name": "오래된 병 편지",
+      "description": "테오가 주운 병 편지. 받는 사람: '달빛섬 빵집 아가씨께'.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "PaperLetter",
+      "maxStack": 1
+    },
+    {
+      "id": "owen_boots",
+      "name": "오웬의 산길 장화",
+      "description": "오웬이 우체부 시절 신던 장화. 회피가 더 멀리, 더 오래 이어진다.",
+      "kind": "equipment",
+      "effect": "dodge",
+      "value": 25,
+      "icon": "Feather",
+      "maxStack": 1
+    },
+    {
+      "id": "postmaster_stamp",
+      "name": "우체국장의 날짜 도장",
+      "description": "도라가 물려준 날짜 도장. 편지 도구가 더 강해지고 더 빨리 다시 쓸 수 있다.",
+      "kind": "equipment",
+      "effect": "tool",
+      "value": 25,
+      "icon": "SilverSeal",
+      "maxStack": 1
+    },
+    {
+      "id": "lighthouse_charm",
+      "name": "등대 렌즈 부적",
+      "description": "세린이 렌즈 부스러기로 만든 부적. 최대 체력 +1.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 1,
+      "icon": "Badge",
+      "maxStack": 1
+    },
+    {
+      "id": "paper_boat",
+      "name": "노아의 종이배",
+      "description": "노아가 접어 준 종이배 부적. 회피가 조금 더 이어진다.",
+      "kind": "equipment",
+      "effect": "dodge",
+      "value": 10,
+      "icon": "PaperLetter",
+      "maxStack": 1
     }
   ]
 }

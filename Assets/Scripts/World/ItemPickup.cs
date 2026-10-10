@@ -13,6 +13,9 @@ namespace MoonlightPost
         public string displayName = "상자";
         public string itemId;
         public int count = 1;
+        /// <summary>이 조건이 참이면 count 에 bonusCount 를 더 준다(의뢰를 끝낸 뒤 진열대가 넉넉해지는 등).</summary>
+        public string bonusCondition;
+        public int bonusCount;
         public string requireItem;
         public bool perNight;
         public string verb = "열기";
@@ -59,6 +62,7 @@ namespace MoonlightPost
 
             var def = GameData.GetItem(itemId);
             string itemName = def != null ? def.name : itemId;
+            int count = this.count + (!string.IsNullOrEmpty(bonusCondition) && GameState.Check(bonusCondition) ? bonusCount : 0);
             DialogueSystem.I.Show(new[]
             {
                 new DialogueLine("", openLine),

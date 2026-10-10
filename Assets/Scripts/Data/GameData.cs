@@ -70,6 +70,33 @@ namespace MoonlightPost
         public string rewardText;
     }
 
+    /// <summary>주민의 의뢰(곁가지 일거리). RequestManager 참고.</summary>
+    [Serializable]
+    public class RequestDef
+    {
+        public string id;
+        public string title;
+        /// <summary>의뢰를 주는 주민 id.</summary>
+        public string giver;
+        /// <summary>끝낸 의뢰를 받는 주민 id(비어 있으면 giver).</summary>
+        public string turnIn;
+        /// <summary>이 의뢰를 받을 수 있는 조건.</summary>
+        public string condition;
+        public LetterObjective[] objectives;
+        /// <summary>이 조건이 참이면 turnIn 에게 말을 걸어 끝낼 수 있다.</summary>
+        public string completeCondition;
+        public DialogueLine[] acceptLines;
+        public DialogueLine[] completeLines;
+        /// <summary>의뢰를 받을 때 건네받는 물건(전해 줄 병 편지 등).</summary>
+        public string giveItem;
+        public string[] consumeItems;
+        public string rewardItem;
+        public int rewardCount;
+        public string rewardText;
+        /// <summary>끝냈을 때 세우는 플래그(대사·풍경 변화용).</summary>
+        public string setFlag;
+    }
+
     [Serializable]
     public class ItemDef
     {
@@ -145,6 +172,12 @@ namespace MoonlightPost
     }
 
     [Serializable]
+    class RequestDatabase
+    {
+        public RequestDef[] requests;
+    }
+
+    [Serializable]
     class NpcDatabase
     {
         public NpcDef[] npcs;
@@ -174,6 +207,7 @@ namespace MoonlightPost
         static readonly Dictionary<string, ClueDef> clues = new Dictionary<string, ClueDef>();
         static readonly Dictionary<string, ItemDef> items = new Dictionary<string, ItemDef>();
         public static ItemDef[] Items { get; private set; } = new ItemDef[0];
+        public static RequestDef[] Requests { get; private set; } = new RequestDef[0];
 
         public static void Load()
         {
@@ -191,6 +225,8 @@ namespace MoonlightPost
             var clueDb = Read<ClueDatabase>("Data/clues");
             if (clueDb?.clues != null)
                 foreach (var c in clueDb.clues) clues[c.id] = c;
+
+            Requests = Read<RequestDatabase>("Data/requests")?.requests ?? new RequestDef[0];
 
             items.Clear();
             var itemDb = Read<ItemDatabase>("Data/items");

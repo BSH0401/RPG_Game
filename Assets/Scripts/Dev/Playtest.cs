@@ -113,6 +113,7 @@ namespace MoonlightPost
                 Log(n + ". 「" + letter.title + "」 → " + letter.recipientName + "  (밤 " + GameState.Night + ", " + NightDirector.MoodName(NightDirector.Mood) + ")");
                 CheckReach(letter.id);
                 CheckEnemies(letter.id + " 새 밤");
+                if (scenery) yield return HuntGolden(player, n);
 
                 // 받는 사람 알아내기 → (막혀 있으면) 받는 사람에게 한 번 가 보기 → 배달 조건 풀기
                 yield return Solve(player, letter.id, letter.revealFlag, n);
@@ -152,8 +153,17 @@ namespace MoonlightPost
 
                 if (scenery) yield return VillageShot(n.ToString("00") + "_after_" + letter.id);
                 if (letter.deliveredFlag == RailStop.UnlockFlag) yield return RideRails(player, n);
+                if (scenery && n == 2) yield return UpgradeTest(player);
                 if (scenery) yield return DoRequests(player, n);
                 if (scenery) yield return TalkToEveryone(player, "「" + letter.title + "」 배달 후");
+            }
+            if (scenery)
+            {
+                int trophies = GameState.ItemCount(Loot.Trophy), legends = 0;
+                foreach (var id in Loot.Legendaries)
+                    if (GameState.ItemCount(id) > 0) legends++;
+                Log("황금 그림자 " + trophies + "마리, 전설 장비 " + legends + "개, 먹물 결정 " + GameState.ItemCount(Upgrade.Crystal) + ", 달빛 조각 " + GameState.ItemCount(Upgrade.Shard));
+                if (trophies >= 4 && legends == 0) Problem("황금 그림자를 " + trophies + "마리 잡았는데 전설 장비가 하나도 없음(천장 동작 안 함)");
             }
             if (scenery) yield return Overviews("end");
             CheckReach("엔딩 후");
@@ -270,6 +280,93 @@ namespace MoonlightPost
                 if (!RequestManager.IsDone(r)) Problem("의뢰 " + r.id + ": 끝내지 못함 (" + r.completeCondition + ")");
                 else Log("   의뢰 「" + r.title + "」 완료 — 이동 약 " + walked.ToString("0") + "칸(걸어서 약 " + (walked / player.moveSpeed).ToString("0") + "초), 대사 " + linesShown + "줄");
             }
+        }
+
+        /// <summary>오늘 밤 황금 그림자를 찾아가 쓰러뜨리고 떨어진 전리품을 모두 줍는다.</summary>
+        IEnumerator HuntGolden(PlayerController player, int n)
+        {
+            var golden = NightDirector.Golden;
+            if (GameState.Night >= 2 && golden == null && !GameState.HasFlag(NightDirector.GoldenFlag))
+            {
+                Problem("밤 " + GameState.Night + ": 황금 그림자가 나오지 않음");
+                yield break;
+            }
+            if (golden == null) yield break;
+            if (!Flood(player.transform.position)) Flood(GameBootstrapSpawn());
+            var near = Stand(golden.transform.position, 4f);
+            if (near == null)
+            {
+                Problem("밤 " + GameState.Night + ": 황금 그림자(" + NightDirector.GoldenRegion + " " + (Vector2)golden.transform.position + ")에 걸어서 갈 수 없음");
+                yield break;
+            }
+            yield return Visit(player, near.Value, false);
+            yield return Seconds(0.6f);
+            bool firstShot = GameState.ItemCount(Loot.Trophy) == 0;
+            if (firstShot) yield return Shot(n.ToString("00") + "_golden");
+            int crystals = GameState.ItemCount(Upgrade.Crystal), trophies = GameState.ItemCount(Loot.Trophy);
+            if (golden != null) golden.Health.TakeDamage(999, player.transform.position);
+            yield return Seconds(1.2f);
+            if (firstShot) yield return Shot(n.ToString("00") + "_golden_loot");
+            // 전리품 줍기: 떨어진 자리마다 서 본다(빨려 들어오는지 확인).
+            for (int pass = 0; pass < 3 && LootDrop.All.Count > 0; pass++)
+                foreach (var drop in new List<LootDrop>(LootDrop.All))
+                {
+                    if (drop == null) continue;
+                    Teleport(player, drop.transform.position);
+                    yield return Seconds(0.25f);
+                }
+            yield return Seconds(0.4f);
+            if (LootDrop.All.Count > 0) Problem("밤 " + GameState.Night + ": 전리품 " + LootDrop.All.Count + "개를 줍지 못함");
+            if (!GameState.HasFlag(NightDirector.GoldenFlag)) Problem("밤 " + GameState.Night + ": 황금 그림자를 쓰러뜨렸는데 기록되지 않음");
+            int got = GameState.ItemCount(Upgrade.Crystal) - crystals;
+            if (GameState.ItemCount(Loot.Trophy) <= trophies) Problem("밤 " + GameState.Night + ": 황금 그림자 증표를 얻지 못함");
+            Log("   황금 그림자(" + NightDirector.GoldenRegion + ") 처치: 먹물 결정 +" + got + ", 증표 " + GameState.ItemCount(Loot.Trophy));
+        }
+
+        /// <summary>강화: 재료를 넉넉히 주고 우편가방을 +5까지 올려 본다(최대 체력이 2 늘어야 한다).</summary>
+        IEnumerator UpgradeTest(PlayerController player)
+        {
+            var bag = GameData.GetItem("mail_bag");
+            if (bag == null || GameState.ItemCount("mail_bag") == 0)
+            {
+                Problem("강화 검사: 우편가방이 없음");
+                yield break;
+            }
+            var bench = FindAnyObjectByType<Workbench>();
+            if (bench == null) Problem("강화 검사: 강화 작업대가 월드에 없음");
+            else
+            {
+                yield return Visit(player, bench.transform.position);
+                bench.Interact(player);
+                yield return Frames(3);
+                yield return Shot("upgrade_menu");
+                UpgradeMenu.Close();
+                yield return Frames(2);
+            }
+            GameState.AddItem(Upgrade.Crystal, 400, 999);
+            GameState.AddItem(Upgrade.Shard, 20, 99);
+            int hpBefore = GameState.MaxHp, tries = 0, fails = 0;
+            while (!Upgrade.IsMax(bag) && tries < 40)
+            {
+                tries++;
+                if (!UpgradeMenu.TryNow(bag, out bool ok))
+                {
+                    Problem("강화 검사: 재료가 있는데 강화를 시도하지 못함 (단계 " + Upgrade.Level(bag) + ")");
+                    break;
+                }
+                if (!ok) fails++;
+            }
+            int gained = GameState.MaxHp - hpBefore;
+            if (!Upgrade.IsMax(bag)) Problem("강화 검사: 40번 안에 +5에 닿지 못함");
+            else if (gained != 2) Problem("강화 검사: 우편가방 +5인데 최대 체력이 " + gained + " 늘어남(2 기대)");
+            else Log("   강화 검사: 우편가방 +5 (" + tries + "번 시도, 실패 " + fails + "번), 최대 체력 +" + gained);
+        }
+
+        static void Teleport(PlayerController player, Vector2 p)
+        {
+            var rb = player.GetComponent<Rigidbody2D>();
+            rb.position = p;
+            player.transform.position = p;
         }
 
         /// <summary>타이틀·일시정지·설정 화면 스크린샷.</summary>

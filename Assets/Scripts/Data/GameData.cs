@@ -111,6 +111,8 @@ namespace MoonlightPost
         public float value;
         /// <summary>Resources/Art/NinjaAdventure/Items 안의 그림 이름.</summary>
         public string icon;
+        /// <summary>"legendary" 면 전설 장비(금색 이름, 황금 그림자가 떨어뜨림).</summary>
+        public string rarity;
         public int maxStack;
         /// <summary>이 아이템을 rewardAt[i] 개 모으면 rewardItems[i] 를 준다(잃어버린 우표 등).</summary>
         public int[] rewardAt;
@@ -119,6 +121,7 @@ namespace MoonlightPost
         public bool IsEquipment => kind == "equipment";
         public bool IsConsumable => kind == "consumable";
         public bool IsPart => kind == "part";
+        public bool IsMaterial => kind == "material";
     }
 
     [Serializable]

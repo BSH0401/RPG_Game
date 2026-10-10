@@ -95,6 +95,11 @@ namespace MoonlightPost
 
         public EncounterSpec[] encounters = new EncounterSpec[0];
 
+        /// <summary>오늘 밤의 황금 그림자(없거나 쓰러뜨렸으면 null)와 나타난 지역 이름.</summary>
+        public static EnemyController Golden { get; private set; }
+        public static string GoldenRegion { get; private set; }
+        public static string GoldenFlag => "golden:" + GameState.Night;
+
         public bool NorthBlocked { get; private set; }
         public bool StationWestBlocked { get; private set; }
 
@@ -132,6 +137,7 @@ namespace MoonlightPost
         {
             Reroll();
             HUD.Toast(GameState.Night + "번째 밤 — " + MoodName(Mood) + ". " + MoodHint(Mood));
+            if (Golden != null) HUD.Toast("<color=#ffd34a>★ 황금 그림자</color>가 " + GoldenRegion + "에 나타났다!  [Tab] 지도");
         }
 
         public void Reroll()
@@ -226,7 +232,53 @@ namespace MoonlightPost
                 }
             }
 
+            SpawnGolden(rng);
             RefreshBoss();
+        }
+
+        /// <summary>
+        /// 밤마다(둘째 밤부터) 열린 지역 중 한 곳에 황금 그림자가 하나 나타난다. 일반 그림자보다 4배 튼튼하고 빠르며,
+        /// 쓰러뜨리면 전리품을 쏟는다(Loot). 그 밤에 잡으면 다시 나오지 않는다.
+        /// </summary>
+        void SpawnGolden(System.Random rng)
+        {
+            Golden = null;
+            GoldenRegion = null;
+            if (GameState.Night < 2 || GameState.HasFlag(GoldenFlag)) return;
+            var regions = new List<(string name, Vector2[] spots)>
+            {
+                ("동쪽 숲", NorthBlocked ? southSpawns : northSpawns), ("숲 끝 오두막 근처", eastSpawns),
+                ("폐역", stationSpawns), ("북쪽 숲", northForestSpawns),
+            };
+            if (GameState.HasFlag("lamp_lit"))
+            {
+                regions.Add(("서쪽 해안", coastSpawns));
+                regions.Add(("북쪽 갯바위", coastNorthSpawns));
+            }
+            if (GameState.HasFlag("tunnel_open"))
+            {
+                regions.Add(("별빛 고개", passSpawns));
+                regions.Add(("옛 채석장", quarrySpawns));
+            }
+            regions.RemoveAll(r => r.spots == null || r.spots.Length == 0);
+            if (regions.Count == 0) return;
+            var region = regions[rng.Next(regions.Count)];
+            var pos = region.spots[rng.Next(region.spots.Length)];
+            double k = rng.NextDouble();
+            var kind = k < 0.4 ? EnemyKind.Rat : (k < 0.75 || GameState.Night < 3 ? EnemyKind.Bat : EnemyKind.Mole);
+            var go = Spawner.Enemy(pos, kind);
+            var e = go.GetComponent<EnemyController>();
+            e.golden = true;
+            e.displayName = "황금 " + e.displayName;
+            e.Health.SetMax(e.Health.Max * 4 + 2, true);
+            e.moveSpeed *= 1.15f;
+            e.windupTime *= 0.9f;
+            e.SetBaseColor(new Color(1f, 0.84f, 0.32f));
+            go.transform.localScale = Vector3.one * 1.35f;
+            Spawner.Glow(pos + new Vector2(0f, 0.3f), 2.4f, new Color(1f, 0.85f, 0.35f, 0.4f), go.transform);
+            enemies.Add(go);
+            Golden = e;
+            GoldenRegion = region.name;
         }
 
         static void ClearEncounter(EncounterSpec e)

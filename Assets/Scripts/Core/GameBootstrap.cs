@@ -82,6 +82,7 @@ namespace MoonlightPost
             systems.AddComponent<Sound>();
             systems.AddComponent<Juice>();
             systems.AddComponent<GameMenu>();
+            systems.AddComponent<UpgradeMenu>();
 
             // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
             useAssets = GameAssets.Available;
@@ -262,6 +263,12 @@ namespace MoonlightPost
                 Spawner.Lamp(new Vector2(3.2f, 5.3f), true);
                 Spawner.Glow(new Vector2(3.2f, 6.5f), 9f, new Color(1f, 0.85f, 0.5f, 0.25f));
             }), "lamp_lit");
+
+            // 강화 작업대(모루): 우체국 오른쪽, 등불 옆
+            var anvil = Spawner.Prop("Workbench", new Vector2(4.6f, 5f), ItemOr("Anvil", Art.Chest(false)), new Vector2(0.9f, 0.4f), new Vector2(0f, 0.2f));
+            anvil.transform.localScale = Vector3.one * 1.3f;
+            anvil.AddComponent<Workbench>().rangeScale = 1.3f;
+            Spawner.Glow(new Vector2(4.6f, 5.6f), 2.6f, new Color(1f, 0.6f, 0.3f, 0.3f));
 
             Spawner.Lamp(new Vector2(-3.6f, 1.6f), true);
             Spawner.Lamp(new Vector2(5.6f, 1.6f), true);

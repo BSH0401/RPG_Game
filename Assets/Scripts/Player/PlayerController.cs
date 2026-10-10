@@ -54,7 +54,8 @@ namespace MoonlightPost
 
         // 장비 효과 (items.json 의 effect 값, 퍼센트)
         static float DodgeBonus => Inventory.EffectSum("dodge") / 100f;
-        static float ToolBonus => Inventory.EffectSum("tool") / 100f;
+        // 끼운 편지 도구 부품을 강화했으면 그만큼 더한다.
+        static float ToolBonus => (Inventory.EffectSum("tool") + Upgrade.Bonus(Inventory.CurrentToolPart, Upgrade.Level(Inventory.CurrentToolPart))) / 100f;
 
         readonly List<Collider2D> hits = new List<Collider2D>();
         readonly HashSet<EnemyController> dashHit = new HashSet<EnemyController>();
@@ -130,7 +131,8 @@ namespace MoonlightPost
         {
             UpdateVisual();
             bool busy = Time.timeScale == 0f || DialogueSystem.IsOpen || Health.IsDead
-                        || Time.frameCount == DialogueSystem.LastClosedFrame || Time.frameCount == GameMenu.LastClosedFrame;
+                        || Time.frameCount == DialogueSystem.LastClosedFrame || Time.frameCount == GameMenu.LastClosedFrame
+                        || Time.frameCount == UpgradeMenu.LastClosedFrame;
             if (busy)
             {
                 moveInput = Vector2.zero;

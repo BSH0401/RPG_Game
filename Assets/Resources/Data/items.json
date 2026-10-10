@@ -391,6 +391,80 @@
       "value": 1,
       "icon": "Scroll",
       "maxStack": 1
+    },
+    {
+      "id": "ink_crystal",
+      "name": "먹물 결정",
+      "description": "그림자가 흩어질 때 남기는 보랏빛 결정. 강화 작업대에서 장비를 강화하는 재료.",
+      "kind": "material",
+      "effect": "",
+      "value": 0,
+      "icon": "InkCrystal",
+      "maxStack": 999
+    },
+    {
+      "id": "moon_shard",
+      "name": "달빛 조각",
+      "description": "드물게 떨어지는 달빛 결정. 높은 단계(+3 이상)의 강화에 필요하다.",
+      "kind": "material",
+      "effect": "",
+      "value": 0,
+      "icon": "MoonShard",
+      "maxStack": 99
+    },
+    {
+      "id": "golden_trophy",
+      "name": "황금 그림자 증표",
+      "description": "황금 그림자를 쓰러뜨린 증거. 모을수록 전설 장비가 나오기 쉬워진다(4개마다 한 번은 반드시).",
+      "kind": "collectible",
+      "effect": "",
+      "value": 0,
+      "icon": "GoldCup",
+      "maxStack": 999
+    },
+    {
+      "id": "meteor_heart",
+      "name": "유성의 심장",
+      "description": "황금 그림자 속에서 빛나던 별의 심장. 최대 체력 +2.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 2,
+      "icon": "MeteorHeart",
+      "rarity": "legendary",
+      "maxStack": 1
+    },
+    {
+      "id": "comet_quill",
+      "name": "혜성 깃펜",
+      "description": "혜성의 꼬리로 만든 깃펜. 편지 도구가 훨씬 강해지고 빨리 다시 쓸 수 있다(+40%).",
+      "kind": "equipment",
+      "effect": "tool",
+      "value": 40,
+      "icon": "CometQuill",
+      "rarity": "legendary",
+      "maxStack": 1
+    },
+    {
+      "id": "galaxy_feather",
+      "name": "은하 깃털",
+      "description": "밤하늘을 건너온 새의 깃털. 회피가 훨씬 길게 이어진다(+40%).",
+      "kind": "equipment",
+      "effect": "dodge",
+      "value": 40,
+      "icon": "GalaxyFeather",
+      "rarity": "legendary",
+      "maxStack": 1
+    },
+    {
+      "id": "aurora_lamp",
+      "name": "오로라 등불",
+      "description": "오로라를 담은 등불. 밤에 밝게 보이는 범위가 크게 넓어진다.",
+      "kind": "equipment",
+      "effect": "light",
+      "value": 2,
+      "icon": "AuroraLamp",
+      "rarity": "legendary",
+      "maxStack": 1
     }
   ]
 }

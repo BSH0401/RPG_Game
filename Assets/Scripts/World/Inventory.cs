@@ -13,7 +13,7 @@ namespace MoonlightPost
             foreach (var stack in GameState.Items)
             {
                 var def = GameData.GetItem(stack.id);
-                if (def != null && def.IsEquipment && def.effect == effect) sum += def.value;
+                if (def != null && def.IsEquipment && def.effect == effect) sum += def.value + Upgrade.Bonus(def, GameState.UpgradeLevel(def.id));
             }
             return sum;
         }

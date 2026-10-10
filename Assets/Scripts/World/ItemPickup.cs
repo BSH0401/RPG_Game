@@ -71,6 +71,9 @@ namespace MoonlightPost
             {
                 GameState.SetFlag(Flag);
                 Inventory.Give(itemId, count);
+                // 상자(한 번만 열리는 것)는 먹물 결정도 쏟아낸다.
+                if (!perNight && pickupId != null && pickupId.StartsWith("chest_"))
+                    Loot.Drop((Vector2)transform.position + Vector2.down * 0.3f, Random.Range(4, 8), Random.value < 0.3f ? 1 : 0);
             });
         }
     }

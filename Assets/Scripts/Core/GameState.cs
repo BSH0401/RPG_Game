@@ -22,6 +22,9 @@ namespace MoonlightPost
         public string carryingLetterId = "";
         public int night;
         public int maxHp = GameState.BaseMaxHp;
+        /// <summary>장비 강화 단계(count = 단계)와 연속 실패 횟수(count = 횟수, 실패 보정).</summary>
+        public List<ItemStack> upgrades = new List<ItemStack>();
+        public List<ItemStack> upgradeFails = new List<ItemStack>();
     }
 
     /// <summary>
@@ -93,6 +96,37 @@ namespace MoonlightPost
             stack.count = Mathf.Min(maxStack, stack.count + count);
             flags.Add("got:" + id);
             Changed?.Invoke();
+        }
+
+        // ---------------------------------------------------------------- 강화
+
+        public static int UpgradeLevel(string id) => GetCount(data.upgrades, id);
+
+        public static void SetUpgradeLevel(string id, int level)
+        {
+            SetCount(data.upgrades, id, level);
+            Changed?.Invoke();
+        }
+
+        public static int UpgradeFails(string id) => GetCount(data.upgradeFails, id);
+        public static void SetUpgradeFails(string id, int fails) => SetCount(data.upgradeFails, id, fails);
+
+        static int GetCount(List<ItemStack> list, string id)
+        {
+            foreach (var s in list)
+                if (s.id == id) return s.count;
+            return 0;
+        }
+
+        static void SetCount(List<ItemStack> list, string id, int value)
+        {
+            foreach (var s in list)
+                if (s.id == id)
+                {
+                    s.count = value;
+                    return;
+                }
+            list.Add(new ItemStack { id = id, count = value });
         }
 
         public static bool RemoveItem(string id, int count = 1)
@@ -197,6 +231,8 @@ namespace MoonlightPost
             if (data.flags == null) data.flags = new List<string>();
             if (data.carryingLetterId == null) data.carryingLetterId = "";
             if (data.items == null) data.items = new List<ItemStack>();
+            if (data.upgrades == null) data.upgrades = new List<ItemStack>();
+            if (data.upgradeFails == null) data.upgradeFails = new List<ItemStack>();
             if (string.IsNullOrEmpty(data.toolPart)) data.toolPart = "seal_string";
             // 기본 편지 도구는 처음부터 가지고 있다.
             if (!data.items.Exists(s => s.id == "seal_string")) data.items.Insert(0, new ItemStack { id = "seal_string", count = 1 });

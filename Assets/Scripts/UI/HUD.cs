@@ -93,7 +93,12 @@ namespace MoonlightPost
 
         void Update()
         {
-            if (GameMenu.IsOpen) return;
+            if (GameMenu.IsOpen || UpgradeMenu.IsOpen) return;
+            if (BagOpen)
+            {
+                if (GameInput.MenuUp) bagScroll--;
+                if (GameInput.MenuDown) bagScroll++;
+            }
             if (GameInput.MapTogglePressed && !BagOpen && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
             if (GameInput.InventoryPressed && !MapOpen && (BagOpen || !DialogueSystem.IsOpen)) SetBag(!BagOpen);
             if (GameInput.HelpPressed)
@@ -182,20 +187,48 @@ namespace MoonlightPost
                 Ui.Icon(Ui.R(16, 102, 22, 22), GameAssets.ItemIcon("Croissant"));
                 Ui.Shadow(Ui.R(44, 100, 260, 26), "x" + food + "  [R] 먹기", Ui.Small);
             }
+
+            // 강화 재료
+            int crystals = GameState.ItemCount(Upgrade.Crystal), shards = GameState.ItemCount(Upgrade.Shard);
+            if (crystals > 0 || shards > 0)
+            {
+                float y = food > 0 ? 128 : 102;
+                DrawIconFit(Ui.R(16, y + 2, 22, 22), GameAssets.ItemIcon("InkCrystal"));
+                Ui.Shadow(Ui.R(44, y, 80, 26), crystals.ToString(), Ui.Small);
+                DrawIconFit(Ui.R(100, y + 2, 22, 22), GameAssets.ItemIcon("MoonShard"));
+                Ui.Shadow(Ui.R(128, y, 80, 26), shards.ToString(), Ui.Small);
+            }
         }
 
         /// <summary>가방(I): 가진 아이템의 그림·이름·설명.</summary>
+        int bagScroll;
+
         void DrawBag()
         {
             float s = Ui.S;
             Ui.Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0.02f, 0.03f, 0.08f, 0.75f));
-            float w = Mathf.Min(Screen.width - 60 * s, 720 * s);
-            var items = GameState.Items;
+            float w = Mathf.Min(Screen.width - 40 * s, 1160 * s);
+            // 장비가 먼저, 재료·열쇠는 뒤에. 두 줄로 놓고 넘치면 스크롤(W/S·휠).
+            var items = new List<ItemStack>(GameState.Items);
+            items.Sort((a, b) => BagOrder(a.id) - BagOrder(b.id));
             float rowH = 74 * s;
-            float h = 90 * s + Mathf.Max(1, items.Count) * rowH;
+            int cols = w > 900 * s ? 2 : 1;
+            int rowsFit = Mathf.Max(1, Mathf.FloorToInt((Screen.height - 140 * s) / rowH));
+            int rows = Mathf.CeilToInt(items.Count / (float)cols);
+            int maxScroll = Mathf.Max(0, rows - rowsFit);
+            var ev = Event.current;
+            if (ev.type == EventType.ScrollWheel)
+            {
+                bagScroll += ev.delta.y > 0 ? 1 : -1;
+                ev.Use();
+            }
+            bagScroll = Mathf.Clamp(bagScroll, 0, maxScroll);
+            int shownRows = Mathf.Min(rows, rowsFit);
+            float h = 90 * s + Mathf.Max(1, shownRows) * rowH;
             var box = new Rect((Screen.width - w) * 0.5f, Mathf.Max(20 * s, (Screen.height - h) * 0.5f), w, h);
             Ui.Panel(box);
-            GUI.Label(new Rect(box.x + 20 * s, box.y + 14 * s, w - 40 * s, 32 * s), "가방   <size=" + Ui.Px(15) + "><color=#9fb3ff>(I 닫기 · R 먹기)</color></size>", Ui.Title);
+            string scrollHint = maxScroll > 0 ? " · W/S 넘기기 (" + (bagScroll + 1) + "/" + (maxScroll + 1) + ")" : "";
+            GUI.Label(new Rect(box.x + 20 * s, box.y + 14 * s, w - 40 * s, 32 * s), "가방   <size=" + Ui.Px(15) + "><color=#9fb3ff>(I 닫기 · R 먹기" + scrollHint + ")</color></size>", Ui.Title);
 
             if (items.Count == 0)
             {
@@ -203,11 +236,13 @@ namespace MoonlightPost
                 return;
             }
 
-            for (int i = 0; i < items.Count; i++)
+            float colW = (w - 32 * s) / cols;
+            for (int i = bagScroll * cols; i < items.Count && i < (bagScroll + rowsFit) * cols; i++)
             {
                 var def = GameData.GetItem(items[i].id);
                 if (def == null) continue;
-                var row = new Rect(box.x + 16 * s, box.y + 58 * s + i * rowH, w - 32 * s, rowH - 8 * s);
+                int r = i / cols - bagScroll, c = i % cols;
+                var row = new Rect(box.x + 16 * s + c * colW, box.y + 58 * s + r * rowH, colW - 8 * s, rowH - 8 * s);
                 Ui.Fill(row, new Color(1f, 1f, 1f, 0.04f));
                 var iconBox = new Rect(row.x + 8 * s, row.y + 7 * s, 52 * s, 52 * s);
                 Ui.Fill(iconBox, new Color(0f, 0f, 0f, 0.35f));
@@ -219,15 +254,32 @@ namespace MoonlightPost
                     float iw = icon.width * k, ih = icon.height * k;
                     GUI.DrawTexture(new Rect(iconBox.center.x - iw * 0.5f, iconBox.center.y - ih * 0.5f, iw, ih), icon);
                 }
-                string tag = def.IsEquipment ? "<color=#9fe0a0>장비</color>"
+                string tag = Upgrade.IsLegendary(def) ? "<color=#ffd34a>전설 장비</color>"
+                    : def.IsEquipment ? "<color=#9fe0a0>장비</color>"
                     : def.IsConsumable ? "<color=#ffd98a>소모품</color>"
+                    : def.IsMaterial ? "<color=#c9a0ff>강화 재료</color>"
                     : def.kind == "collectible" ? "<color=#ffe08a>수집품</color>"
                     : def.IsPart ? (Inventory.CurrentToolPart == def ? "<color=#ffb070>편지 도구 · 사용 중</color>" : "<color=#ffb070>편지 도구</color>")
                     : "<color=#b8c4ff>열쇠</color>";
                 string count = items[i].count > 1 ? "  x" + items[i].count : "";
-                GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 4 * s, row.width - 90 * s, 28 * s), "<b>" + def.name + "</b>" + count + "   " + tag, Ui.Text);
-                GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 32 * s, row.width - 90 * s, 34 * s), def.description, Ui.Small);
+                string name = Upgrade.CanUpgrade(def) ? Upgrade.RichName(def) : def.name;
+                GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 4 * s, row.width - 90 * s, 28 * s), "<b>" + name + "</b>" + count + "   " + tag, Ui.Text);
+                string desc = Upgrade.CanUpgrade(def) && Upgrade.Level(def) > 0 ? Upgrade.Describe(def, Upgrade.Level(def)) + "  (강화됨)" : def.description;
+                GUI.Label(new Rect(iconBox.xMax + 14 * s, row.y + 32 * s, row.width - 90 * s, 34 * s), desc, Ui.Small);
             }
+        }
+
+        static int BagOrder(string id)
+        {
+            var d = GameData.GetItem(id);
+            if (d == null) return 9;
+            if (Upgrade.IsLegendary(d)) return 0;
+            if (d.IsEquipment) return 1;
+            if (d.IsPart) return 2;
+            if (d.IsConsumable) return 3;
+            if (d.IsMaterial) return 4;
+            if (d.kind == "collectible") return 5;
+            return 6;
         }
 
         void DrawLetterPanel()
@@ -337,14 +389,14 @@ namespace MoonlightPost
         {
             foreach (var e in EnemyController.Active)
             {
-                if (!e.isBoss) continue;
+                if (!e.isBoss && !e.golden) continue;
                 if (Vector2.Distance(player.transform.position, e.transform.position) > 12f) continue;
                 float s = Ui.S;
                 float w = 460 * s;
                 var r = new Rect((Screen.width - w) * 0.5f, 20 * s, w, 18 * s);
                 Ui.Fill(r, new Color(0f, 0f, 0f, 0.7f));
                 float t = (float)e.Health.Current / e.Health.Max;
-                Ui.Fill(new Rect(r.x + 2 * s, r.y + 2 * s, (w - 4 * s) * t, r.height - 4 * s), new Color(0.6f, 0.3f, 0.8f));
+                Ui.Fill(new Rect(r.x + 2 * s, r.y + 2 * s, (w - 4 * s) * t, r.height - 4 * s), e.golden ? new Color(1f, 0.78f, 0.25f) : new Color(0.6f, 0.3f, 0.8f));
                 Ui.Shadow(new Rect(r.x, r.yMax + 2 * s, w, 26 * s), e.displayName, Ui.Center);
                 return;
             }
@@ -477,6 +529,7 @@ namespace MoonlightPost
                 foreach (var c in Collectible.All)
                     if (!c.Taken) Marker(map, c.transform.position, new Color(1f, 0.85f, 0.4f), "우표");
 
+            if (NightDirector.Golden != null) Marker(map, NightDirector.Golden.transform.position, new Color(1f, 0.82f, 0.25f), "★ 황금 그림자");
             Marker(map, player.transform.position, new Color(0.5f, 0.9f, 1f), "나");
 
             var infoBox = new Rect(map.x, map.yMax + 16 * s, map.width, 120 * s);

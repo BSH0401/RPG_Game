@@ -48,6 +48,15 @@ namespace MoonlightPost
         public int shootDamage = 1;
         public EnemyAttack[] pattern = { EnemyAttack.Lunge };
 
+        [Header("전리품 (Loot)")]
+        /// <summary>떨어뜨리는 먹물 결정 수(±1)와 달빛 조각 확률.</summary>
+        public int lootCrystals;
+        public float shardChance;
+        /// <summary>밤마다 하나 나오는 황금 그림자(NightDirector).</summary>
+        public bool golden;
+        /// <summary>보스가 불러낸 그림자처럼 전리품이 없는 적.</summary>
+        public bool noLoot;
+
         [Header("원거리형: 플레이어와 이 거리를 유지하며 쏜다 (0 이면 사용 안 함)")]
         public float keepDistance;
 
@@ -405,7 +414,9 @@ namespace MoonlightPost
                         }
                         if (!found) continue;
                         var kind = summonKinds[Random.Range(0, summonKinds.Length)];
-                        minions.Add(Spawner.Enemy(p, kind));
+                        var minion = Spawner.Enemy(p, kind);
+                        minion.GetComponent<EnemyController>().noLoot = true;
+                        minions.Add(minion);
                         if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, p, 16f, new Color(0.6f, 0.4f, 1f), 600, 1.2f);
                     }
                     RingFx.Spawn(transform.position, 1.6f, new Color(0.6f, 0.4f, 1f, 0.9f));
@@ -478,8 +489,12 @@ namespace MoonlightPost
             Juice.HitStop(0.15f);
         }
 
+        /// <summary>몸 색을 바꾼다(황금 그림자).</summary>
+        public void SetBaseColor(Color c) => baseColor = c;
+
         void OnDied()
         {
+            Loot.FromEnemy(this);
             if (!string.IsNullOrEmpty(defeatFlag))
             {
                 GameState.SetFlag(defeatFlag);

@@ -369,6 +369,16 @@ namespace MoonlightPost
                     Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
                     break;
             }
+            // 전리품: 먹물 결정 수와 달빛 조각 확률
+            switch (kind)
+            {
+                case EnemyKind.Rat: enemy.lootCrystals = 2; enemy.shardChance = 0.05f; break;
+                case EnemyKind.Bat: enemy.lootCrystals = 2; enemy.shardChance = 0.06f; break;
+                case EnemyKind.Mole: enemy.lootCrystals = 3; enemy.shardChance = 0.1f; break;
+                case EnemyKind.Boss: enemy.lootCrystals = 15; break;
+                case EnemyKind.Squid: enemy.lootCrystals = 20; break;
+                case EnemyKind.Wraith: enemy.lootCrystals = 25; break;
+            }
             enemy.Init(body);
             return go;
         }

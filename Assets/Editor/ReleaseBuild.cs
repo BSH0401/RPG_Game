@@ -16,7 +16,7 @@ namespace MoonlightPost.EditorTools
     /// </summary>
     public static class ReleaseBuild
     {
-        public const string Version = "0.2.0";
+        public const string Version = "0.3.0";
         const string TempDir = "Assets/_ReleaseTemp";
         const string ScenePath = TempDir + "/Main.unity";
         const string OutDir = "Build/Release/MoonlightPost";

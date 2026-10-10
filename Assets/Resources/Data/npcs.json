@@ -5,6 +5,81 @@
       "displayName": "미라",
       "talks": [
         {
+          "condition": "festival,owen_comes",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "오빠가 새벽 반죽을 쳐 줬어. 삼 년 만에. ...약속, 늦게라도 지켰네."
+            }
+          ]
+        },
+        {
+          "condition": "festival",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "축제야! 오늘은 빵을 세 배로 구웠어. 오빠 몫은 따로 싸 뒀고."
+            }
+          ]
+        },
+        {
+          "condition": "owen_comes",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "오빠가 내려왔어! 지금 가게 옆에서 장작 패고 있어."
+            },
+            {
+              "speaker": "미라",
+              "text": "말은 여전히 없지만... 아침마다 반죽 그릇을 먼저 꺼내 놔."
+            }
+          ]
+        },
+        {
+          "condition": "owen_waits",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "오빠가 매주 편지를 보내겠대. 기다릴 거야."
+            },
+            {
+              "speaker": "미라",
+              "text": "반죽처럼, 천천히 부풀게."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:mira_bread_letter",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "빵 식기 전에... 아니, 천천히 조심해서 가. 숲은 오늘도 길이 바뀌었대."
+            }
+          ]
+        },
+        {
+          "condition": "mira_knows",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "답장 다 썼어. 우체국 창구에 맡겨 둘게. 이번엔 내가 먼저야."
+            }
+          ]
+        },
+        {
+          "condition": "storm_truth",
+          "lines": [
+            {
+              "speaker": "미라",
+              "text": "세린 언니한테 들었어. 그날 밤 오빠가 무슨 편지를 들고 갔는지."
+            },
+            {
+              "speaker": "미라",
+              "text": "...난 그것도 모르고 삼 년 동안 화만 냈네."
+            }
+          ]
+        },
+        {
           "condition": "lighthouse_lit",
           "lines": [
             {
@@ -138,6 +213,60 @@
           ]
         },
         {
+          "condition": "festival",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "축제다! 도라 할머니가 우체국에 왔어! 옛날 우체부 얘기 해 준대!"
+            }
+          ]
+        },
+        {
+          "condition": "carrying:festival_letter",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "내 이름은 맨 위에 제일 크게 썼어! 도라 할머니 꼭 데려와 줘!"
+            }
+          ]
+        },
+        {
+          "condition": "hana_coming",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "테오 아저씨 딸이 봄에 온대! 나랑 친구 해 줬으면 좋겠다."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:teo_letter",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "테오 아저씨한테 우체통 얘기 해 준 거 나야. 엄마한테 편지가 닿았던 그 우체통!"
+            }
+          ]
+        },
+        {
+          "condition": "teo_collecting",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "테오 아저씨 알아? 바닷가에서 유리병 줍는 아저씨. 병 속 편지 꺼내는 법 알려 줬어!"
+            }
+          ]
+        },
+        {
+          "condition": "carrying:serin_request",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "유리병 아저씨? 해변 서쪽 끝 바다 쪽에 병을 줄줄이 세워 둔 데가 있어!"
+            }
+          ]
+        },
+        {
           "condition": "lighthouse_lit",
           "lines": [
             {
@@ -195,6 +324,19 @@
           ]
         },
         {
+          "condition": "carrying:postmaster_letter",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "우체국장? 우리 섬에 그런 사람이 있었어?"
+            },
+            {
+              "speaker": "노아",
+              "text": "...아, 우체국 앞 게시판! 거기 옛날 근무표가 붙어 있었어."
+            }
+          ]
+        },
+        {
           "condition": "carrying:flour_letter",
           "lines": [
             {
@@ -241,11 +383,64 @@
           ]
         },
         {
+          "condition": "owen_comes",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "빵집 장작은 내가 맡기로 했네. 삼 년 동안 숲에서 패 온 솜씨지."
+            }
+          ]
+        },
+        {
+          "condition": "owen_waits",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "답장은 매주 쓰기로 했네. 언젠가 직접 들고 가겠지만... 아직은 아니야."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:owen_old_letter",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "그 편지... 그날 밤 바다에 잃어버린 가방에 있던 거로군."
+            },
+            {
+              "speaker": "오웬",
+              "text": "받는 사람 칸은 번졌겠지. 오두막 앞에 같은 글을 수십 번 고쳐 쓴 초안이 있네. 보면 알 걸세."
+            }
+          ]
+        },
+        {
+          "condition": "storm_truth",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "세린이 그 편지를 받았다고? 삼 년이나 늦게... 그래도 닿았군."
+            },
+            {
+              "speaker": "오웬",
+              "text": "아무도 날 탓하지 않는다더군. 나만 빼고."
+            }
+          ]
+        },
+        {
           "condition": "lighthouse_lit",
           "lines": [
             {
               "speaker": "오웬",
               "text": "서쪽 등대에 불이 들어온 걸 봤네. 예전에 나도 그 불빛을 보며 배달을 다녔지."
+            }
+          ]
+        },
+        {
+          "condition": "dora_home",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "국장님이 내 편지를 받으셨다고? ...뭐라고 하시던가. 아니, 말하지 말게."
             }
           ]
         },
@@ -287,6 +482,15 @@
       "displayName": "낡은 우체통",
       "talks": [
         {
+          "condition": "teo_sent",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "투입구에서 바다 냄새가 난다. 편지는 지금 바다를 건너는 중인 것 같다."
+            }
+          ]
+        },
+        {
           "condition": "lamp_lit",
           "lines": [
             {
@@ -314,6 +518,42 @@
       "id": "keeper",
       "displayName": "세린",
       "talks": [
+        {
+          "condition": "festival",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "축제 날엔 등대 불을 두 배로 밝혀 두기로 했어요. 바다 건너에서도 보이게."
+            }
+          ]
+        },
+        {
+          "condition": "storm_truth",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "그 밤의 편지를 받고 나니, 이상하게 마음이 가벼워요. 등대 불도 더 밝아진 것 같고요."
+            }
+          ]
+        },
+        {
+          "condition": "teo_collecting",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "해변의 그분, 테오 씨라고 하더군요. 아침마다 유리병 꾸러미를 우체국에 놓고 간대요."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:serin_request",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "서쪽 해안, 바다 쪽 끝에 유리병이 모인 곳이 있을 거예요. 그분 거처는 그 근처겠죠."
+            }
+          ]
+        },
         {
           "condition": "lighthouse_lit",
           "lines": [
@@ -356,6 +596,160 @@
             {
               "speaker": "",
               "text": "바위 틈에 꽂힌 낡은 표지: '등대 가는 길 — 등불이 켜지면 다시 열림'."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dora",
+      "displayName": "도라",
+      "talks": [
+        {
+          "condition": "festival,dora_returns",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "창구는 내가 지킬 테니, 배달은 너한테 맡긴다. 편지 무게를 아는 우체부는 귀하거든."
+            }
+          ]
+        },
+        {
+          "condition": "festival",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "손님으로 온 축제가 이렇게 즐거울 줄이야. 우체국은 네 거다, 새 우체부."
+            }
+          ]
+        },
+        {
+          "condition": "hana_coming",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "바다 건너에서 편지가 왔다고? 등대 불이 켜지니 바닷길도 다시 열리는구먼."
+            }
+          ]
+        },
+        {
+          "condition": "storm_truth",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "세린이 그 편지를 받았다니... 삼 년 늦은 배달이라도, 배달은 배달이지."
+            },
+            {
+              "speaker": "도라",
+              "text": "그 밤에 오웬을 보낸 건 나였다. 그 아이 탓이 아니야. 그걸 이제야 편지가 대신 말해 줬구먼."
+            }
+          ]
+        },
+        {
+          "condition": "teo_collecting",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "떠밀려 온 편지들이라... 그 밤 오웬의 가방에 들어 있던 것도 있을 게다."
+            }
+          ]
+        },
+        {
+          "condition": "dora_home",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "편지를 받고 나니 잠이 잘 오는구먼. 우체국 창구는 잘 있나?"
+            },
+            {
+              "speaker": "도라",
+              "text": "닿지 못한 편지가 쌓이면 먹물이 된다는 옛말이 있지. 우체국 문을 닫은 뒤로 그림자가 늘어난 건... 아마 내 탓일 게다."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "...누구신가. 새 우체부? 그 창구에 다시 사람이 앉았구먼."
+            },
+            {
+              "speaker": "도라",
+              "text": "나는 이제 아무것도 아닐세. 불 꺼진 집에 사는 늙은이지."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "teo",
+      "displayName": "테오",
+      "talks": [
+        {
+          "condition": "festival",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "축제라니, 이 섬에 떠밀려 온 뒤로 처음이야. 봄이 오면 하나도 이 등불을 보겠지."
+            }
+          ]
+        },
+        {
+          "condition": "hana_coming",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "봄이 오면 이 해변에서 기다릴 거야. 유리병 대신 배를."
+            }
+          ]
+        },
+        {
+          "condition": "teo_sent",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "편지가 정말 닿을까? ...아니, 우체부 양반이 넣었으니 닿겠지."
+            }
+          ]
+        },
+        {
+          "condition": "carrying:teo_letter",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "숲 끝의 낡은 우체통 말이야. 노아 말로는 녹슨 표지판 북쪽이라던데."
+            }
+          ]
+        },
+        {
+          "condition": "teo_helps",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "병마다 어디서 떠밀려 왔는지 적고 있지. 북쪽 곶, 남쪽 모래톱... 편지마다 고향이 있어."
+            }
+          ]
+        },
+        {
+          "condition": "teo_collecting",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "오늘 아침에도 병 세 개. 모래 털어서 우체국에 맡겼네."
+            }
+          ]
+        },
+        {
+          "condition": "",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "...이 해변에 사람이 오다니. 등대 불이 꺼진 뒤로 처음이군."
+            },
+            {
+              "speaker": "테오",
+              "text": "유리병? 바다가 가져다주는 거라면 뭐든 줍지. 언젠가 내 앞으로 온 것도 있을지 모르니까."
             }
           ]
         }

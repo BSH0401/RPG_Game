@@ -127,6 +127,16 @@ namespace MoonlightPost
             hat = "#3f5c3b", brim = "#2b412a", skin = "#e0b48e", cloth = "#7b6249", collar = "#a89070", pants = "#3a3430", beard = true
         });
 
+        public static Sprite Dora => PersonSprite("dora", new PersonLook
+        {
+            hat = "#c9c4cf", brim = "#a39eab", skin = "#e8bea0", cloth = "#5b4a7a", collar = "#d8cfe0", pants = "#3a3048"
+        });
+
+        public static Sprite Teo => PersonSprite("teo", new PersonLook
+        {
+            hat = "#d8b860", brim = "#a88a40", skin = "#c99a74", cloth = "#3d6a8a", collar = "#e6eef2", pants = "#4a4036", beard = true
+        });
+
         public static Sprite ShadowRat => Cached("rat", () =>
         {
             var c = new PixelCanvas(22, 18);

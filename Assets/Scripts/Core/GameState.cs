@@ -109,11 +109,19 @@ namespace MoonlightPost
 
         /// <summary>
         /// "a,b,!c" 형식의 조건을 검사한다. 쉼표는 AND, 느낌표는 NOT. 빈 조건은 항상 참.
+        /// 세로줄은 OR: "a,b|c" = (a 그리고 b) 또는 c.
         /// "carrying:편지id" 는 해당 편지를 들고 있을 때 참.
         /// </summary>
         public static bool Check(string condition)
         {
             if (string.IsNullOrWhiteSpace(condition)) return true;
+            foreach (var group in condition.Split('|'))
+                if (CheckAll(group)) return true;
+            return false;
+        }
+
+        static bool CheckAll(string condition)
+        {
             foreach (var raw in condition.Split(','))
             {
                 var term = raw.Trim();

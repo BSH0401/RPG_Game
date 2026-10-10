@@ -171,14 +171,21 @@ namespace MoonlightPost
             return body;
         }
 
-        /// <summary>actor 시트가 있으면 그것을, 없으면 코드로 그린 sprite 를 쓴다.</summary>
-        public static NpcInteractable Npc(string id, Vector2 pos, Sprite sprite, float scale = 1f, string actor = null)
+        /// <summary>
+        /// actor 시트가 있으면 그것을, 없으면 코드로 그린 sprite 를 쓴다.
+        /// actorTint 는 같은 시트를 쓰는 다른 주민과 구별하려고 시트 그림에만 곱하는 색이다.
+        /// </summary>
+        public static NpcInteractable Npc(string id, Vector2 pos, Sprite sprite, float scale = 1f, string actor = null, Color? actorTint = null)
         {
             var go = new GameObject("NPC_" + id);
             go.transform.SetParent(Root, false);
             go.transform.position = pos;
             var sheet = actor != null && GameAssets.Available ? GameAssets.Sheet(actor) : null;
-            if (sheet != null) Character(go, sheet);
+            if (sheet != null)
+            {
+                var body = Character(go, sheet);
+                if (actorTint.HasValue) body.color *= actorTint.Value;
+            }
             else Character(go, sprite, scale);
             go.AddComponent<CircleCollider2D>().radius = 0.35f;
             var npc = go.AddComponent<NpcInteractable>();

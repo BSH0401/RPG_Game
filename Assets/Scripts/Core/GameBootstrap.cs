@@ -12,6 +12,7 @@ namespace MoonlightPost
     ///   x  17      : 산울타리, 가운데(y -2~2)에 숲으로 가는 문
     ///   x  17 ~ 42 : 숲길. 가운데 덤불이 막고 있어 북쪽 길 / 남쪽 길로 나뉜다. 밤마다 한쪽 길이 쓰러진 나무로 막힌다.
     ///   x  42 ~ 52 : 숲 끝. 오웬의 오두막, 녹슨 표지판, 낡은 우체통.
+    ///   편지 5~12통째의 주민(도라·테오)·단서·축제는 GameBootstrap.Story.cs.
     ///
     /// 그림은 Art(코드로 그린 픽셀 아트)에서 가져온다. 실제 아트와 Tilemap 씬으로 옮길 때는
     /// 이 클래스는 씬의 참조를 연결하는 역할만 남기면 된다.
@@ -98,6 +99,7 @@ namespace MoonlightPost
             }
             BuildVillage();
             BuildForest();
+            BuildStory();
             BuildAmbience();
             var player = BuildPlayer();
             SetupCamera(player.transform);
@@ -347,7 +349,9 @@ namespace MoonlightPost
                     windows = 1, windowsLit = true, door = true
                 }));
             Spawner.Glow(new Vector2(47.5f, -5f), 4f, new Color(1f, 0.78f, 0.45f, 0.3f));
-            Spawner.Npc("owen", new Vector2(47.5f, -6.9f), Art.Owen, 1f, "Hunter");
+            // 미라의 편지에 마음을 정하면(owen_comes) 오두막을 떠나 빵집 곁으로 온다.
+            WorldVisuals.I.Register(Spawner.Npc("owen", new Vector2(47.5f, -6.9f), Art.Owen, 1f, "Hunter").gameObject, "!owen_comes");
+            WorldVisuals.I.Register(Spawner.Npc("owen", new Vector2(-11.2f, 3.2f), Art.Owen, 1f, "Hunter").gameObject, "owen_comes");
 
             // 낡은 우체통 (편지 3의 받는 곳)
             var mailbox = Spawner.Prop("NPC_old_mailbox", new Vector2(49f, 7.6f), Art.Mailbox, new Vector2(0.8f, 0.5f), new Vector2(0f, 0.25f));

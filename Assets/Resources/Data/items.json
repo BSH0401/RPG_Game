@@ -121,6 +121,26 @@
       "value": 3,
       "icon": "Croissant",
       "maxStack": 5
+    },
+    {
+      "id": "storm_lantern",
+      "name": "오웬의 폭풍 등불",
+      "description": "삼 년 전 폭풍 밤에도 꺼지지 않았던 등불. 밤길이 더 넓게 보인다.",
+      "kind": "equipment",
+      "effect": "light",
+      "value": 1,
+      "icon": "FireflyJar",
+      "maxStack": 1
+    },
+    {
+      "id": "sea_glass",
+      "name": "하나의 바다 유리",
+      "description": "테오의 딸 하나가 어릴 때 준 푸른 바다 유리. 최대 체력 +1.",
+      "kind": "equipment",
+      "effect": "maxHp",
+      "value": 1,
+      "icon": "Badge",
+      "maxStack": 1
     }
   ]
 }

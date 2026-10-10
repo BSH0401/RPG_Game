@@ -25,6 +25,45 @@
       "revisitLines": [
         { "speaker": "표지판", "text": "'(북쪽) 달빛 우체국 제2 수취함 — 닿지 못한 편지를 받습니다.'" }
       ]
+    },
+    {
+      "id": "duty_roster",
+      "displayName": "우체국 옛 근무표",
+      "setFlag": "clue:duty_roster",
+      "lines": [
+        { "speaker": "", "text": "우체국 앞 게시판에 빛바랜 근무표가 붙어 있다." },
+        { "speaker": "근무표", "text": "'우체국장: 도라 / 야간 배달: 오웬 / — 폭풍 이후 무기한 휴업 —'" },
+        { "speaker": "", "text": "옛 우체국장은 도라. 마을 서남쪽, 불 꺼진 집에 산다. 받는 사람이 지도에 표시되었다." }
+      ],
+      "revisitLines": [
+        { "speaker": "근무표", "text": "'우체국장: 도라 / 야간 배달: 오웬 / — 폭풍 이후 무기한 휴업 —'" }
+      ]
+    },
+    {
+      "id": "bottle_pile",
+      "displayName": "유리병 무더기",
+      "setFlag": "clue:bottle_pile",
+      "lines": [
+        { "speaker": "", "text": "모래 위에 유리병들이 줄지어 늘어서 있다. 병마다 젖은 편지가 들어 있다." },
+        { "speaker": "", "text": "누군가 일부러 모아 둔 것이다. 발자국이 해안 북쪽, 유목이 쌓인 곳으로 이어진다." },
+        { "speaker": "", "text": "유리병을 줍는 사람의 거처가 지도에 표시되었다." }
+      ],
+      "revisitLines": [
+        { "speaker": "", "text": "유리병마다 젖은 편지가 들어 있다. 발자국은 해안 북쪽으로 이어진다." }
+      ]
+    },
+    {
+      "id": "unsent_drafts",
+      "displayName": "보내지 못한 초안 묶음",
+      "setFlag": "clue:unsent_drafts",
+      "lines": [
+        { "speaker": "", "text": "오두막 앞 상자 위에 구겨진 편지지가 수십 장 쌓여 있다." },
+        { "speaker": "초안", "text": "'미라에게. 미안하다.' '미라에게. 그날 밤...' '미라에게. 약속을 못 지켰다.'" },
+        { "speaker": "", "text": "모두 같은 사람에게 쓰다 만 편지다. 번진 편지의 받는 사람은 미라였다. 지도에 표시되었다." }
+      ],
+      "revisitLines": [
+        { "speaker": "초안", "text": "'미라에게. 약속을 못 지켰다.' ...끝까지 쓴 장은 하나도 없다." }
+      ]
     }
   ]
 }

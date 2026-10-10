@@ -134,9 +134,25 @@ namespace MoonlightPost
                 case "오웬": return Faceset("Hunter");
                 case "노아": return Faceset("Child");
                 case "세린": return Faceset("Princess");
+                case "도라": return Faceset("Woman");
+                case "테오": return Faceset("Hunter");
                 default: return null;
             }
         }
+
+        /// <summary>얼굴 그림을 다른 주민과 함께 쓰는 주민의 색(월드의 캐릭터 색과 같다).</summary>
+        public static Color PortraitTint(string speaker)
+        {
+            switch (speaker)
+            {
+                case "도라": return DoraTint;
+                case "테오": return TeoTint;
+                default: return Color.white;
+            }
+        }
+
+        public static readonly Color DoraTint = new Color(0.78f, 0.72f, 1f);
+        public static readonly Color TeoTint = new Color(0.6f, 0.8f, 1f);
 
         public static AudioClip Sfx(string name) => Resources.Load<AudioClip>(Root + "Audio/Sfx/" + name);
         public static AudioClip Music(string name) => Resources.Load<AudioClip>(Root + "Audio/Music/" + name);

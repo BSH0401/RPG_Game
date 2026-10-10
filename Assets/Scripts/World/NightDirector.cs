@@ -45,7 +45,7 @@ namespace MoonlightPost
                 case NightMood.Fog: return "앞이 잘 보이지 않는다. 숲에 그림자가 더 많다.";
                 case NightMood.Fireflies: return "반딧불이가 길을 밝힌다. 그림자들이 조금 숨었다.";
                 case NightMood.FullMoon: return "달빛에 잃어버린 우표가 반짝인다. [Tab] 지도에 표시된다.";
-                default: return "조용한 밤이다.";
+                default: return "조용한 밤이다. 숲의 길이 바뀌었다.";
             }
         }
 

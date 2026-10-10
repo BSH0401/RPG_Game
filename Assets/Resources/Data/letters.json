@@ -257,7 +257,7 @@
       "title": "삼 년 늦은 폭풍 경보",
       "senderName": "옛 우체국장 도라 (삼 년 전)",
       "recipientId": "keeper",
-      "recipientName": "등대지기 세린 (우체국 앞)",
+      "recipientName": "등대지기 세린 (오늘 밤은 등대에)",
       "recipientHint": "",
       "revealFlag": "",
       "condition": "delivered:serin_request",
@@ -266,10 +266,10 @@
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "테오가 보낸 첫 꾸러미가 도착했다. 소금에 절은 봉투들 사이에 우체국 소인이 찍힌 편지가 하나 있다." },
         { "speaker": "우체국 창구", "text": "날짜는 삼 년 전 폭풍 치던 밤. 보낸 사람: 우체국장 도라. 받는 사람: 등대지기 세린." },
-        { "speaker": "", "text": "봉투 겉에 붉은 글씨로 '긴급'이라고 적혀 있다. 세린은 지금 우체국 앞에 있다." }
+        { "speaker": "", "text": "봉투 겉에 붉은 글씨로 '긴급'이라고 적혀 있다. 세린은 오늘 밤 등대 불을 지키러 등대에 올라가 있다." }
       ],
       "deliverPrompt": [
-        { "speaker": "세린", "text": "...도라 국장님 글씨네요. 삼 년 전, 그날 밤 날짜." },
+        { "speaker": "세린", "text": "이 밤중에 여기까지... 무슨 편지길래요? ...도라 국장님 글씨네요. 삼 년 전, 그날 밤 날짜." },
         { "speaker": "세린", "text": "이 편지가 그날 왔더라면, 나는 등대를 떠나 마을로 왔을까요?" }
       ],
       "choices": [

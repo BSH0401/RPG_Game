@@ -21,7 +21,7 @@ namespace MoonlightPost
             }
         }
 
-        public override string Prompt => IsRecipientOfCarriedLetter ? DisplayName + "에게 편지 전하기" : DisplayName + "와(과) 대화";
+        public override string Prompt => IsRecipientOfCarriedLetter ? DisplayName + "에게 편지 전하기" : Josa.Gwa(DisplayName) + " 대화";
 
         public override void Interact(PlayerController player)
         {

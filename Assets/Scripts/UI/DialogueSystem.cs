@@ -14,6 +14,8 @@ namespace MoonlightPost
         public static bool IsOpen => I != null && I.open;
         /// <summary>대화가 닫힌 프레임. 같은 키 입력이 다른 행동(재대화, 회피)으로 이어지지 않게 막는 데 쓴다.</summary>
         public static int LastClosedFrame { get; private set; } = -1;
+        /// <summary>대화가 열릴 때마다 호출된다(자동 플레이테스트의 대사 기록용).</summary>
+        public static event Action<IList<DialogueLine>, string[]> Shown;
 
         readonly List<DialogueLine> lines = new List<DialogueLine>();
         string[] choices;
@@ -42,6 +44,7 @@ namespace MoonlightPost
             }
 
             choices = hasChoices ? choiceTexts : null;
+            Shown?.Invoke(lines, choices);
             onChoice = chosen;
             onDone = done;
             index = 0;
@@ -74,6 +77,14 @@ namespace MoonlightPost
                 index++;
                 if (index >= lines.Count) Close();
             }
+        }
+
+        /// <summary>입력 없이 한 단계 넘긴다. 선택지에서는 choice 번째(범위를 넘으면 마지막)를 고른다.</summary>
+        public void Step(int choice)
+        {
+            if (!open) return;
+            if (AtChoices) Choose(Mathf.Clamp(choice, 0, choices.Length - 1));
+            else if (++index >= lines.Count) Close();
         }
 
         void Choose(int i)
@@ -126,7 +137,10 @@ namespace MoonlightPost
                     float size = 114f * s;
                     var frame = new Rect(box.x + pad, box.y + (box.height - size) * 0.5f + 6f * s, size, size);
                     Ui.Fill(new Rect(frame.x - 3f * s, frame.y - 3f * s, frame.width + 6f * s, frame.height + 6f * s), new Color(0.78f, 0.66f, 0.42f, 0.9f));
+                    var oldColor = GUI.color;
+                    GUI.color = GameAssets.PortraitTint(line.speaker);
                     GUI.DrawTexture(frame, portrait);
+                    GUI.color = oldColor;
                     textX = frame.xMax + 20f * s;
                 }
                 GUI.Label(new Rect(textX, box.y + 32f * s, box.xMax - pad - textX, box.height - 44f * s), line.text, Ui.Text);

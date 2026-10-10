@@ -36,6 +36,7 @@ namespace MoonlightPost
         public static bool AdvancePressed => Down(Key.E) || Down(Key.Space) || Down(Key.Enter) || MouseLeftDown;
         public static bool HelpPressed => Down(Key.F1);
         public static bool ResetPressed => Down(Key.F12);
+        public static bool SkipPressed => Down(Key.F11);
         public static bool InventoryPressed => Down(Key.I);
         public static bool UseItemPressed => Down(Key.R);
         /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
@@ -74,6 +75,7 @@ namespace MoonlightPost
                                           || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0);
         public static bool HelpPressed => Input.GetKeyDown(KeyCode.F1);
         public static bool ResetPressed => Input.GetKeyDown(KeyCode.F12);
+        public static bool SkipPressed => Input.GetKeyDown(KeyCode.F11);
         public static bool InventoryPressed => Input.GetKeyDown(KeyCode.I);
         public static bool UseItemPressed => Input.GetKeyDown(KeyCode.R);
         /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>

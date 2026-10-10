@@ -38,8 +38,9 @@ namespace MoonlightPost
             visuals.Register(Spawner.Glow(LighthousePos + new Vector2(0f, 6f), 2f, new Color(0.6f, 0.3f, 0.9f, 0.5f)).gameObject, "!lighthouse_lit");
 
             // 등대지기 세린: 등대 앞에 있다가, 불을 켠 뒤에는 마을(노아 곁)로 온다.
-            visuals.Register(Spawner.Npc("keeper", LighthousePos + new Vector2(1.8f, -0.9f), Art.Mira, 1f, "Princess").gameObject, "!lighthouse_lit");
-            visuals.Register(Spawner.Npc("keeper", new Vector2(-2.6f, 4.3f), Art.Mira, 1f, "Princess").gameObject, "lighthouse_lit");
+            // 폭풍 경보(편지 7)를 들고 있는 밤에는 등대 불을 지키러 다시 등대에 가 있다.
+            visuals.Register(Spawner.Npc("keeper", LighthousePos + new Vector2(1.8f, -0.9f), Art.Mira, 1f, "Princess").gameObject, "!lighthouse_lit|carrying:storm_warning");
+            visuals.Register(Spawner.Npc("keeper", new Vector2(-2.6f, 4.3f), Art.Mira, 1f, "Princess").gameObject, "lighthouse_lit,!carrying:storm_warning");
 
             // 바위와 유목 (충돌 있음). 위쪽 가장자리는 절벽 바위 줄.
             var big = RockSprite(true);

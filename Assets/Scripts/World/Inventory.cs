@@ -39,7 +39,7 @@ namespace MoonlightPost
                         if (reward != null)
                             DialogueSystem.I.Show(new[]
                             {
-                                new DialogueLine("", def.name + "을(를) " + def.rewardAt[i] + "개 모았다!"),
+                                new DialogueLine("", def.name + " " + def.rewardAt[i] + "장을 모았다!"),
                                 new DialogueLine("", "보상: " + reward.name + "\n" + reward.description)
                             });
                         Sound.Play("Delivered", 0.8f);
@@ -60,7 +60,7 @@ namespace MoonlightPost
                 }
                 GameState.RemoveItem(def.id);
                 if (def.effect == "heal") player.Health.Heal(UnityEngine.Mathf.RoundToInt(def.value));
-                HUD.Toast(def.name + "을(를) 먹었다. 체력 회복!");
+                HUD.Toast(Josa.Eul(def.name) + " 먹었다. 체력 회복!");
                 Sound.Play("Clue", 0.6f);
                 GameState.Save();
                 return true;

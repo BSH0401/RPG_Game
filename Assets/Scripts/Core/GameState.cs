@@ -42,7 +42,9 @@ namespace MoonlightPost
         /// <summary>새 밤이 시작되면 호출된다(숲의 길과 적 배치가 바뀐다).</summary>
         public static event Action NightChanged;
 
-        static string SavePath => Path.Combine(Application.persistentDataPath, "moonlight_post_save.json");
+        /// <summary>저장 파일 이름. 자동 플레이테스트는 다른 이름을 써서 플레이어의 저장을 건드리지 않는다.</summary>
+        public static string SaveFileName = "moonlight_post_save.json";
+        static string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
 
         public static int Night => data.night;
         /// <summary>기본 체력 + 장비(maxHp 효과) 보너스.</summary>

@@ -249,6 +249,24 @@
           ]
         },
         {
+          "condition": "owen_comes",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "오웬 아저씨가 마을에 왔어! 미라 누나 빵집에서 장작 패는데, 한 번에 쩍쩍 갈라져!"
+            }
+          ]
+        },
+        {
+          "condition": "storm_truth",
+          "lines": [
+            {
+              "speaker": "노아",
+              "text": "엄마가 그러는데, 삼 년 전에 오웬 아저씨가 엄마한테 편지를 들고 오다가 다쳤대. ...아저씨한테 고맙다고 해야지."
+            }
+          ]
+        },
+        {
           "condition": "teo_collecting",
           "lines": [
             {
@@ -482,6 +500,15 @@
       "displayName": "낡은 우체통",
       "talks": [
         {
+          "condition": "hana_coming",
+          "lines": [
+            {
+              "speaker": "",
+              "text": "우체통은 조용하다. 바다 건너에서 온 답장이 지나간 자리처럼, 투입구가 은빛으로 반짝인다."
+            }
+          ]
+        },
+        {
           "condition": "teo_sent",
           "lines": [
             {
@@ -633,6 +660,28 @@
           ]
         },
         {
+          "condition": "owen_comes",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "오웬이 마을로 내려왔다고? ...내 집에 먼저 들르라고 전해 주게."
+            },
+            {
+              "speaker": "도라",
+              "text": "할 말이 삼 년 치 쌓였어. 대부분은 '고맙다'겠지만."
+            }
+          ]
+        },
+        {
+          "condition": "owen_waits",
+          "lines": [
+            {
+              "speaker": "도라",
+              "text": "오웬은 아직 숲에 있겠다고? 괜찮아. 편지가 오가는 동안엔 길이 끊긴 게 아니야."
+            }
+          ]
+        },
+        {
           "condition": "storm_truth",
           "lines": [
             {
@@ -737,6 +786,19 @@
             {
               "speaker": "테오",
               "text": "오늘 아침에도 병 세 개. 모래 털어서 우체국에 맡겼네."
+            }
+          ]
+        },
+        {
+          "condition": "lighthouse_lit",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "등대에 불이 들어왔군! 이 년 만이야."
+            },
+            {
+              "speaker": "테오",
+              "text": "불빛이 바다를 비추니, 병들이 더 많이 떠밀려 오겠어. 바빠지겠는걸."
             }
           ]
         },

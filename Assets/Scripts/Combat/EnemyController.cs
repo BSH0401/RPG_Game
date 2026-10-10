@@ -398,7 +398,7 @@ namespace MoonlightPost
             spreadCount += 2;
             rainCount += 2;
             baseColor = Color.Lerp(baseColor, new Color(1f, 0.3f, 0.4f), 0.4f);
-            HUD.Toast(displayName + "이(가) 분노했다! 공격이 빨라진다.");
+            HUD.Toast(Josa.Ga(displayName) + " 분노했다! 공격이 빨라진다.");
             RingFx.Spawn(transform.position, 3f, new Color(1f, 0.3f, 0.4f, 0.9f), 0.5f);
             CameraFollow.Shake(0.3f, 0.2f);
             Juice.HitStop(0.15f);
@@ -411,7 +411,7 @@ namespace MoonlightPost
                 GameState.SetFlag(defeatFlag);
                 GameState.Save();
             }
-            if (isBoss) HUD.Toast(displayName + "을(를) 물리쳤다!");
+            if (isBoss) HUD.Toast(Josa.Eul(displayName) + " 물리쳤다!");
             RingFx.Spawn(transform.position, isBoss ? 2.5f : 1f, new Color(0.8f, 0.7f, 1f, 0.9f), 0.5f);
             if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, transform.position, 16f, Color.white, 600, isBoss ? 3f : 1.5f);
             Sound.Play("EnemyDie");

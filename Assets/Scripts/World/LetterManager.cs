@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace MoonlightPost
 {
@@ -70,9 +71,8 @@ namespace MoonlightPost
 
             var lines = new List<DialogueLine>();
             if (next.receiveLines != null) lines.AddRange(next.receiveLines);
-            lines.Add(new DialogueLine("", "「" + next.title + "」을(를) 받았다. (체력 회복)"));
+            lines.Add(new DialogueLine("", Josa.Eul("「" + next.title + "」") + " 받았다. (체력 회복)"));
             DialogueSystem.I.Show(lines);
-            HUD.Toast(GameState.Night + "번째 밤 — 동쪽 숲의 길이 바뀌었다.");
             Sound.Play("LetterGet");
         }
 
@@ -109,6 +109,28 @@ namespace MoonlightPost
                 DialogueSystem.I.Show(prompt, () => Complete(letter));
             }
             return true;
+        }
+
+        /// <summary>
+        /// 개발용(F11): 편지가 없으면 창구에서 다음 편지를 받고, 들고 있으면 단서·보스를 건너뛰고
+        /// 첫 번째 선택지로 바로 배달한다. 이야기 뒷부분을 빨리 확인할 때 쓴다.
+        /// </summary>
+        public static void DevSkip()
+        {
+            var letter = Carrying;
+            if (letter == null)
+            {
+                var player = Object.FindAnyObjectByType<PlayerController>();
+                if (player != null) HandleCounter(player);
+                return;
+            }
+            GameState.SetFlag(letter.revealFlag);
+            if (!string.IsNullOrEmpty(letter.deliverCondition))
+                foreach (var term in letter.deliverCondition.Split(','))
+                    if (!term.Trim().StartsWith("!")) GameState.SetFlag(term.Trim());
+            if (letter.choices != null && letter.choices.Length > 0) GameState.SetFlag(letter.choices[0].setFlag);
+            Complete(letter);
+            HUD.Toast("[개발용] 「" + letter.title + "」 배달을 건너뛰었다.");
         }
 
         static void Complete(LetterDef letter)

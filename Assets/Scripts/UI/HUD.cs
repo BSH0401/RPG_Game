@@ -84,6 +84,8 @@ namespace MoonlightPost
                 showHelp = !showHelp;
                 helpUntil = float.MaxValue;
             }
+            if (GameInput.SkipPressed && !DialogueSystem.IsOpen && !MapOpen && !BagOpen)
+                LetterManager.DevSkip(); // 개발용: 다음 편지로 건너뛰기
             if (GameInput.ResetPressed)
             {
                 // 개발용: 저장을 지우고 처음부터.
@@ -282,11 +284,15 @@ namespace MoonlightPost
         {
             float s = Ui.S;
             toasts.RemoveAll(t => Time.unscaledTime > t.until);
+            float y = 80 * s;
             for (int i = 0; i < toasts.Count; i++)
             {
-                var r = new Rect(Screen.width * 0.5f - 300 * s, (80 + i * 36) * s, 600 * s, 32 * s);
+                float w = 600 * s;
+                float h = Mathf.Max(32 * s, Ui.Center.CalcHeight(new GUIContent(toasts[i].text), w - 24 * s) + 8 * s);
+                var r = new Rect(Screen.width * 0.5f - w * 0.5f, y, w, h);
                 Ui.Panel(r);
-                GUI.Label(r, toasts[i].text, Ui.Center);
+                GUI.Label(new Rect(r.x + 12 * s, r.y, r.width - 24 * s, r.height), toasts[i].text, Ui.Center);
+                y += h + 4 * s;
             }
         }
 

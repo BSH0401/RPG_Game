@@ -16,7 +16,7 @@ namespace MoonlightPost
             var visuals = WorldVisuals.I;
 
             // 도라: 처음엔 불 꺼진 집 앞, 축제 날엔 우체국 앞
-            var doraTint = new Color(0.82f, 0.78f, 1f);
+            var doraTint = GameAssets.DoraTint;
             visuals.Register(Spawner.Npc("dora", new Vector2(-8.6f, -6.2f), Art.Dora, 1f, "Woman", doraTint).gameObject, "!festival");
             visuals.Register(Spawner.Npc("dora", new Vector2(4.4f, 3.4f), Art.Dora, 1f, "Woman", doraTint).gameObject, "festival");
             visuals.Register(Group("DoraHouse_Lit", () =>
@@ -25,19 +25,27 @@ namespace MoonlightPost
                 Spawner.Lamp(new Vector2(-8.4f, -4.4f), true);
             }), "dora_home");
 
-            // 테오: 해안 유목 곁의 모닥불, 축제 날엔 마을로
-            var teoTint = new Color(0.7f, 0.85f, 1f);
+            // 테오: 해안 입구 가까운 유목 곁의 모닥불(적이 나오는 곳과 떨어져 있다), 축제 날엔 마을로
+            var teoTint = GameAssets.TeoTint;
             visuals.Register(Group("Teo_Camp", () =>
             {
-                Spawner.Npc("teo", new Vector2(-25f, 6.6f), Art.Teo, 1f, "Hunter", teoTint);
-                Spawner.Glow(new Vector2(-26.2f, 6.4f), 4f, new Color(1f, 0.6f, 0.3f, 0.3f));
+                Spawner.Npc("teo", new Vector2(-19.2f, 7.3f), Art.Teo, 1f, "Hunter", teoTint);
+                Spawner.Glow(new Vector2(-20.2f, 7.5f), 4f, new Color(1f, 0.6f, 0.3f, 0.3f));
             }), "!festival");
             visuals.Register(Spawner.Npc("teo", new Vector2(-8.4f, -2.4f), Art.Teo, 1f, "Hunter", teoTint).gameObject, "festival");
 
             // 단서
             Sprite sign = useAssets ? GameAssets.Tile("TilesetNature", 5, 8) : Art.Signpost;
             visuals.Register(Clue("duty_roster", new Vector2(-4.6f, 6.2f), sign).gameObject, "delivered:owen_reply");
-            visuals.Register(Clue("bottle_pile", new Vector2(-40.5f, -4.6f), ItemOr("FireflyJar", Art.FlourSack)).gameObject, "delivered:lighthouse_letter");
+            // 유리병 무더기: 병 하나는 작아서 잘 안 보이므로 몇 개를 늘어놓고 달빛을 비춘다.
+            visuals.Register(Group("BottlePile", () =>
+            {
+                var bottle = ItemOr("FireflyJar", Art.FlourSack);
+                Clue("bottle_pile", new Vector2(-40.5f, -4.6f), bottle);
+                foreach (var p in new[] { new Vector2(-41.3f, -4.9f), new Vector2(-39.7f, -4.4f), new Vector2(-38.9f, -4.9f) })
+                    Spawner.Prop("Bottle", p, bottle);
+                Spawner.Glow(new Vector2(-40.2f, -4.2f), 4f, new Color(0.65f, 0.85f, 1f, 0.3f));
+            }), "delivered:lighthouse_letter");
             visuals.Register(Clue("unsent_drafts", new Vector2(45.4f, -6.4f), ItemOr("PaperLetter", Art.Signpost)).gameObject, "delivered:storm_warning");
 
             // 축제: 광장과 길가에 등불이 걸린다.

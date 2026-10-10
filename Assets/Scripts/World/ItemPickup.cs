@@ -62,7 +62,7 @@ namespace MoonlightPost
             DialogueSystem.I.Show(new[]
             {
                 new DialogueLine("", openLine),
-                new DialogueLine("", itemName + (count > 1 ? " " + count + "개" : "") + "을(를) 얻었다." + (def != null ? "\n" + def.description : ""))
+                new DialogueLine("", Josa.Eul(itemName + (count > 1 ? " " + count + "개" : "")) + " 얻었다." + (def != null ? "\n" + def.description : ""))
             }, () =>
             {
                 GameState.SetFlag(Flag);

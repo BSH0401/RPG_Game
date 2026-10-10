@@ -38,7 +38,18 @@ namespace MoonlightPost
                     {
                         var give = talk.giveItem;
                         int count = talk.giveCount > 0 ? talk.giveCount : 1;
-                        DialogueSystem.I.Show(talk.lines, string.IsNullOrEmpty(give) ? (System.Action)null : () => Inventory.Give(give, count));
+                        var flag = talk.setFlag;
+                        var toast = talk.toast;
+                        DialogueSystem.I.Show(talk.lines, () =>
+                        {
+                            if (!string.IsNullOrEmpty(flag))
+                            {
+                                GameState.SetFlag(flag);
+                                GameState.Save();
+                                if (!string.IsNullOrEmpty(toast)) HUD.Toast(toast);
+                            }
+                            if (!string.IsNullOrEmpty(give)) Inventory.Give(give, count);
+                        });
                         return;
                     }
                 }

@@ -103,6 +103,7 @@ namespace MoonlightPost
             BuildForest();
             BuildStory();
             BuildNorth();
+            BuildLetterTasks();
             BuildAmbience();
             var player = BuildPlayer();
             SetupCamera(player.transform);

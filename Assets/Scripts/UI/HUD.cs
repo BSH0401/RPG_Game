@@ -215,11 +215,25 @@ namespace MoonlightPost
         {
             float s = Ui.S;
             float w = 380 * s;
-            var box = new Rect(Screen.width - w - 16 * s, 16 * s, w, 118 * s);
-            Ui.Panel(box);
-            float x = box.x + 14 * s;
-            float iw = box.width - 28 * s;
             var letter = LetterManager.Carrying;
+            float x = Screen.width - w - 16 * s + 14 * s;
+            float iw = w - 28 * s;
+            // 탐험 과제: ○ 할 일, ● 끝낸 일. 긴 문장은 줄바꿈하고 그만큼 칸을 늘린다.
+            int objectiveCount = letter?.objectives != null ? letter.objectives.Length : 0;
+            var objectiveLines = new string[objectiveCount];
+            var objectiveHeights = new float[objectiveCount];
+            float extra = objectiveCount > 0 ? 8 * s : 0f;
+            for (int i = 0; i < objectiveCount; i++)
+            {
+                var o = letter.objectives[i];
+                bool done = GameState.Check(o.condition);
+                objectiveLines[i] = done ? "<color=#7fd68a>●</color> <color=#9aa0b0>" + o.text + "</color>" : "<color=#ffd98a>○</color> " + o.text;
+                // 색 태그를 뺀 글자로 높이를 잰다(태그까지 세면 줄바꿈 위치가 어긋난다).
+                objectiveHeights[i] = Mathf.Max(24 * s, Ui.Small.CalcHeight(new GUIContent("○ " + o.text), iw) + 2 * s);
+                extra += objectiveHeights[i];
+            }
+            var box = new Rect(Screen.width - w - 16 * s, 16 * s, w, 118 * s + extra);
+            Ui.Panel(box);
             if (letter == null)
             {
                 GUI.Label(new Rect(x, box.y + 10 * s, iw, 30 * s), "들고 있는 편지 없음", Ui.Title);
@@ -232,6 +246,12 @@ namespace MoonlightPost
             GUI.Label(new Rect(x, box.y + 42 * s, iw, 24 * s), "보낸 이: " + letter.senderName, Ui.Small);
             string to = LetterManager.IsRecipientRevealed(letter) ? "받는 이: " + letter.recipientName : "받는 이: ???  (단서를 찾자)";
             GUI.Label(new Rect(x, box.y + 66 * s, iw, 48 * s), to, Ui.Small);
+            float y = box.y + 122 * s;
+            for (int i = 0; i < objectiveCount; i++)
+            {
+                GUI.Label(new Rect(x, y, iw, objectiveHeights[i]), objectiveLines[i], Ui.Small);
+                y += objectiveHeights[i];
+            }
         }
 
         void DrawPrompt(PlayerController player)
@@ -285,9 +305,10 @@ namespace MoonlightPost
             float s = Ui.S;
             toasts.RemoveAll(t => Time.unscaledTime > t.until);
             float y = 80 * s;
+            // 오른쪽 위 편지 칸과 겹치지 않도록, 화면이 좁으면 알림 폭을 줄인다.
+            float w = Mathf.Min(600 * s, Screen.width - 2 * (380 + 32) * s);
             for (int i = 0; i < toasts.Count; i++)
             {
-                float w = 600 * s;
                 float h = Mathf.Max(32 * s, Ui.Center.CalcHeight(new GUIContent(toasts[i].text), w - 24 * s) + 8 * s);
                 var r = new Rect(Screen.width * 0.5f - w * 0.5f, y, w, h);
                 Ui.Panel(r);

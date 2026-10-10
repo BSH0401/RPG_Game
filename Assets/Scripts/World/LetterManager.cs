@@ -15,8 +15,7 @@ namespace MoonlightPost
 
         public static bool IsDelivered(LetterDef letter) => GameState.HasFlag("delivered:" + letter.id);
 
-        public static bool IsRecipientRevealed(LetterDef letter) =>
-            string.IsNullOrEmpty(letter.revealFlag) || GameState.HasFlag(letter.revealFlag);
+        public static bool IsRecipientRevealed(LetterDef letter) => GameState.Check(letter.revealFlag);
 
         public static string RecipientLabel(LetterDef letter) =>
             IsRecipientRevealed(letter) ? letter.recipientName : letter.recipientHint;
@@ -84,6 +83,8 @@ namespace MoonlightPost
 
             if (!GameState.Check(letter.deliverCondition))
             {
+                // 받는 사람을 만나긴 했다는 표시(과제 "~에게 찾아가기"에 쓴다).
+                GameState.SetFlag("met:" + letter.id);
                 DialogueSystem.I.Show(letter.blockedLines);
                 return true;
             }
@@ -124,17 +125,32 @@ namespace MoonlightPost
                 if (player != null) HandleCounter(player);
                 return;
             }
-            GameState.SetFlag(letter.revealFlag);
-            if (!string.IsNullOrEmpty(letter.deliverCondition))
-                foreach (var term in letter.deliverCondition.Split(','))
-                    if (!term.Trim().StartsWith("!")) GameState.SetFlag(term.Trim());
+            Satisfy(letter.revealFlag);
+            Satisfy(letter.deliverCondition);
+            if (letter.objectives != null)
+                foreach (var o in letter.objectives) Satisfy(o.condition);
             if (letter.choices != null && letter.choices.Length > 0) GameState.SetFlag(letter.choices[0].setFlag);
             Complete(letter);
             HUD.Toast("[개발용] 「" + letter.title + "」 배달을 건너뛰었다.");
         }
 
+        /// <summary>개발용: 조건의 긍정 항목을 모두 참으로 만든다(아이템은 얻고, 플래그는 세운다).</summary>
+        static void Satisfy(string condition)
+        {
+            if (string.IsNullOrEmpty(condition)) return;
+            foreach (var raw in condition.Split('|')[0].Split(','))
+            {
+                var term = raw.Trim();
+                if (term.Length == 0 || term.StartsWith("!") || term.StartsWith("carrying:")) continue;
+                if (term.StartsWith("has:") || term.StartsWith("got:")) GameState.AddItem(term.Substring(4));
+                else GameState.SetFlag(term);
+            }
+        }
+
         static void Complete(LetterDef letter)
         {
+            if (letter.consumeItems != null)
+                foreach (var id in letter.consumeItems) GameState.RemoveItem(id);
             GameState.SetFlag("delivered:" + letter.id);
             GameState.SetFlag(letter.deliveredFlag);
             if (letter.rewardMaxHp > 0) GameState.AddMaxHp(letter.rewardMaxHp);

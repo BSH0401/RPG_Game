@@ -110,36 +110,25 @@ namespace MoonlightPost
                 Log(n + ". 「" + letter.title + "」 → " + letter.recipientName + "  (밤 " + GameState.Night + ", " + NightDirector.MoodName(NightDirector.Mood) + ")");
                 CheckReach(letter.id);
 
-                if (!LetterManager.IsRecipientRevealed(letter))
-                {
-                    var clue = FindClue(letter.revealFlag);
-                    if (clue == null) Problem(letter.id + ": 받는 사람을 밝힐 단서(" + letter.revealFlag + ")가 월드에 없다");
-                    else
-                    {
-                        yield return Visit(player, clue.transform.position);
-                        clue.Interact(player);
-                        if (scenery) yield return Shot(n.ToString("00") + "_clue_" + clue.clueId);
-                        yield return Drain(choice);
-                        if (!LetterManager.IsRecipientRevealed(letter)) Problem(letter.id + ": 단서를 조사해도 받는 사람이 밝혀지지 않음");
-                    }
-                }
-
+                // 받는 사람 알아내기 → (막혀 있으면) 받는 사람에게 한 번 가 보기 → 배달 조건 풀기
+                yield return Solve(player, letter, letter.revealFlag, n);
+                if (!LetterManager.IsRecipientRevealed(letter)) Problem(letter.id + ": 받는 사람이 밝혀지지 않음 (" + letter.revealFlag + ")");
                 if (!GameState.Check(letter.deliverCondition))
                 {
-                    EnemyController boss = null;
-                    foreach (var e in FindObjectsByType<EnemyController>(FindObjectsSortMode.None))
-                        if (e.isBoss) boss = e;
-                    if (boss == null) Problem(letter.id + ": 배달 조건(" + letter.deliverCondition + ")을 풀 보스가 없음");
-                    else
+                    var target = NpcInteractable.Find(letter.recipientId);
+                    if (target != null)
                     {
-                        yield return Visit(player, boss.transform.position + new Vector3(0f, -3f, 0f), false);
-                        yield return Seconds(1.2f);
-                        if (scenery) yield return Shot(n.ToString("00") + "_boss_" + boss.displayName);
-                        boss.GetComponent<Health>().TakeDamage(999, player.transform.position);
-                        yield return Seconds(2f);
+                        yield return Visit(player, target.transform.position);
+                        target.Interact(player);
+                        if (scenery) yield return Shot(n.ToString("00") + "_blocked_" + letter.id);
+                        yield return Drain(choice);
                     }
-                    if (!GameState.Check(letter.deliverCondition)) Problem(letter.id + ": 보스를 쓰러뜨려도 배달 조건이 풀리지 않음");
+                    yield return Solve(player, letter, letter.deliverCondition, n);
+                    if (!GameState.Check(letter.deliverCondition)) Problem(letter.id + ": 배달 조건이 풀리지 않음 (" + letter.deliverCondition + ")");
                 }
+                if (letter.objectives != null)
+                    foreach (var o in letter.objectives)
+                        if (!GameState.Check(o.condition)) Problem(letter.id + ": 배달 직전인데 끝나지 않은 과제: " + o.text);
 
                 var npc = NpcInteractable.Find(letter.recipientId);
                 if (npc == null)
@@ -178,6 +167,64 @@ namespace MoonlightPost
             }
             transcript.AppendLine("----- 점검 끝 -----");
             transcript.AppendLine();
+        }
+
+        /// <summary>
+        /// 조건의 남은 항목을 하나씩 해결한다: 단서는 조사하고, "has:아이템"은 그 아이템을 주는 곳을 찾아 줍고,
+        /// 대화로 세우는 플래그는 그 주민에게 말을 걸고, 나머지(보스·사건)는 그 적들을 쓰러뜨린다.
+        /// </summary>
+        IEnumerator Solve(PlayerController player, LetterDef letter, string condition, int n)
+        {
+            if (string.IsNullOrEmpty(condition)) yield break;
+            for (int pass = 0; pass < 8 && !GameState.Check(condition); pass++)
+            {
+                string term = null;
+                foreach (var raw in condition.Split('|')[0].Split(','))
+                {
+                    var t = raw.Trim();
+                    if (t.Length > 0 && !t.StartsWith("!") && !GameState.HasFlag(t)) { term = t; break; }
+                }
+                if (term == null) yield break;
+
+                Interactable target = FindClue(term);
+                if (target == null && term.StartsWith("has:"))
+                    foreach (var it in Interactable.All)
+                        if (it is ItemPickup p && p.itemId == term.Substring(4)) { target = it; break; }
+                if (target == null)
+                    foreach (var it in Interactable.All)
+                        if (it is NpcInteractable npc && FirstTalk(npc)?.setFlag == term) { target = it; break; }
+
+                if (target != null)
+                {
+                    yield return Visit(player, target.transform.position);
+                    target.Interact(player);
+                    if (scenery) yield return Shot(n.ToString("00") + "_task_" + term.Replace(':', '-'));
+                    yield return Drain(0);
+                    continue;
+                }
+
+                var foes = new List<GameObject>(NightDirector.I != null ? NightDirector.I.EventEnemies() : new GameObject[0]);
+                if (foes.Count == 0)
+                {
+                    Problem(letter.id + ": '" + term + "'을(를) 해결할 단서·물건·대화·적을 찾지 못함");
+                    yield break;
+                }
+                yield return Visit(player, foes[0].transform.position + new Vector3(0f, -3f, 0f), false);
+                yield return Seconds(1.2f);
+                if (scenery) yield return Shot(n.ToString("00") + "_fight_" + term.Replace(':', '-'));
+                foreach (var f in foes)
+                    if (f != null) f.GetComponent<Health>().TakeDamage(999, player.transform.position);
+                yield return Seconds(2f);
+            }
+        }
+
+        static NpcTalk FirstTalk(NpcInteractable npc)
+        {
+            var def = GameData.GetNpc(npc.npcId);
+            if (def?.talks == null) return null;
+            foreach (var t in def.talks)
+                if (GameState.Check(t.condition)) return t;
+            return null;
         }
 
         static ClueInteractable FindClue(string flag)

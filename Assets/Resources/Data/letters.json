@@ -43,7 +43,13 @@
       "deliveredFlag": "bakery_open",
       "rewardMaxHp": 0,
       "rewardItem": "mail_bag",
-      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +2)  [I] 키로 가방을 열어 보자."
+      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +2)  [I] 키로 가방을 열어 보자.",
+      "objectives": [
+        {
+          "text": "받는 사람 단서 찾기 (동쪽 숲)",
+          "condition": "clue:flour_sack"
+        }
+      ]
     },
     {
       "id": "owen_reply",
@@ -54,12 +60,16 @@
       "recipientHint": "",
       "revealFlag": "",
       "condition": "delivered:flour_letter",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "has:flour_bag",
+      "blockedLines": [
+        { "speaker": "미라", "text": "오빠한테서 편지가? ...밀가루는? 같이 보냈다면서." },
+        { "speaker": "", "text": "밀가루 자루를 숲 입구에 두고 왔다. 마을 동쪽 문을 지나 바로 앞이다." }
+      ],
       "receiveLines": [
-        { "speaker": "우체국 창구", "text": "숲 입구 우편함에 답장이 꽂혀 있었다. 밀가루 자루와 함께 도착한 편지다." },
+        { "speaker": "우체국 창구", "text": "숲 입구 우편함에 답장이 꽂혀 있었다. 밀가루 자루는 너무 무거워 우편함 옆에 두고 갔다고 한다." },
         { "speaker": "우체국 창구", "text": "보낸 사람은 오웬. 받는 사람은 빵집 주인 미라." },
         { "speaker": "", "text": "봉투가 얇아서 마지막 줄이 비쳐 보인다. '...그래도 나는 돌아가지 않을 거다.'" },
+        { "speaker": "", "text": "편지만 전하면 반쪽짜리 배달이다. 숲 입구에서 밀가루 자루도 챙겨 가자." },
         { "speaker": "우체국 창구", "text": "창구 서랍 깊은 곳에서 오래된 '속달 봉투' 묶음이 나왔다. 옛 우체부가 쓰던 편지 도구다." }
       ],
       "receiveItem": "express_letter",
@@ -88,7 +98,14 @@
       "deliveredFlag": "reply_delivered",
       "rewardMaxHp": 0,
       "rewardItem": "paper_letter",
-      "rewardText": "미라가 편지지로 단단히 접은 '날아가는 편지'를 쥐여주었다. [C] 키로 편지 도구를 바꿀 수 있다."
+      "rewardText": "미라가 편지지로 단단히 접은 '날아가는 편지'를 쥐여주었다. [C] 키로 편지 도구를 바꿀 수 있다.",
+      "objectives": [
+        {
+          "text": "숲 입구에 둔 밀가루 자루 챙기기",
+          "condition": "has:flour_bag|delivered:owen_reply"
+        }
+      ],
+      "consumeItems": ["flour_bag"]
     },
     {
       "id": "postmaster_letter",
@@ -97,7 +114,7 @@
       "recipientId": "dora",
       "recipientName": "북쪽 폐역 승강장의 옛 우체국장 도라",
       "recipientHint": "봉투에는 '우체국장님께'라고만 적혀 있다. 지금 이 섬에는 우체국장이 없다.",
-      "revealFlag": "clue:duty_roster",
+      "revealFlag": "clue:duty_roster,clue:door_note",
       "condition": "delivered:owen_reply",
       "deliverCondition": "",
       "blockedLines": [],
@@ -132,7 +149,17 @@
       ],
       "deliveredFlag": "dora_home",
       "rewardMaxHp": 0,
-      "rewardText": "도라의 집 창문에 불이 켜졌다. 옛 우체국장은 무언가 더 알고 있는 것 같다."
+      "rewardText": "도라의 집 창문에 불이 켜졌다. 옛 우체국장은 무언가 더 알고 있는 것 같다.",
+      "objectives": [
+        {
+          "text": "게시판에서 옛 우체국장 알아내기",
+          "condition": "clue:duty_roster"
+        },
+        {
+          "text": "옛 우체국장의 집 찾아가기 (마을 서남쪽)",
+          "condition": "clue:door_note"
+        }
+      ]
     },
     {
       "id": "noah_letter",
@@ -159,7 +186,17 @@
       "choices": [],
       "deliveredFlag": "lamp_lit",
       "rewardMaxHp": 0,
-      "rewardText": "멀리 마을 쪽에서 불빛이 켜지는 것이 보인다. 우체국으로 돌아가 보자."
+      "rewardText": "멀리 마을 쪽에서 불빛이 켜지는 것이 보인다. 우체국으로 돌아가 보자.",
+      "objectives": [
+        {
+          "text": "녹슨 표지판에서 받는 곳 찾기 (동쪽 숲)",
+          "condition": "clue:old_sign"
+        },
+        {
+          "text": "우체통을 막은 먹물 그림자 물리치기",
+          "condition": "boss_forest_defeated"
+        }
+      ]
     },
     {
       "id": "lighthouse_letter",
@@ -206,7 +243,17 @@
       ],
       "deliveredFlag": "lighthouse_lit",
       "rewardMaxHp": 0,
-      "rewardText": "등대에 불이 켜졌다! 섬 전체가 환해진다. 우체국으로 돌아가 보자."
+      "rewardText": "등대에 불이 켜졌다! 섬 전체가 환해진다. 우체국으로 돌아가 보자.",
+      "objectives": [
+        {
+          "text": "서쪽 해안을 지나 등대까지 가기",
+          "condition": "boss_coast_defeated|delivered:lighthouse_letter"
+        },
+        {
+          "text": "등대 앞 바다의 먹물 문어 물리치기",
+          "condition": "boss_coast_defeated"
+        }
+      ]
     },
     {
       "id": "serin_request",
@@ -217,8 +264,11 @@
       "recipientHint": "받는 사람: '해변에서 유리병을 줍는 분께'. 세린도 이름을 모른다.",
       "revealFlag": "clue:bottle_pile",
       "condition": "delivered:lighthouse_letter",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "cleared:teo_camp",
+      "blockedLines": [
+        { "speaker": "", "text": "테오가 꺼져 가는 모닥불 뒤에 웅크려 있다. 먹물 박쥐들이 모닥불을 빙빙 돌고 있다!" },
+        { "speaker": "테오", "text": "편지고 뭐고, 저것들부터 어떻게 좀 해 주게!" }
+      ],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "등대에 불이 켜진 다음 밤, 세린이 직접 우체국을 찾아왔다." },
         { "speaker": "세린", "text": "등대 위에서 보니, 해변을 따라 유리병을 줍는 사람이 있더라고요. 매일 밤, 혼자서." },
@@ -250,7 +300,17 @@
       ],
       "deliveredFlag": "teo_collecting",
       "rewardMaxHp": 0,
-      "rewardText": "이제 바다에서 떠밀려 온 편지가 우체국 창구로 모인다."
+      "rewardText": "이제 바다에서 떠밀려 온 편지가 우체국 창구로 모인다.",
+      "objectives": [
+        {
+          "text": "유리병 줍는 사람 찾기 (서쪽 해안)",
+          "condition": "clue:bottle_pile"
+        },
+        {
+          "text": "모닥불을 둘러싼 그림자 쫓아내기",
+          "condition": "cleared:teo_camp"
+        }
+      ]
     },
     {
       "id": "storm_warning",
@@ -261,12 +321,16 @@
       "recipientHint": "",
       "revealFlag": "",
       "condition": "delivered:serin_request",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "has:lamp_oil",
+      "blockedLines": [
+        { "speaker": "세린", "text": "우체부님? 미안해요, 지금은 램프 앞을 떠날 수가 없어요. 기름이 거의 다 떨어졌거든요." },
+        { "speaker": "세린", "text": "해안 절벽 틈으로 올라가면 북쪽 갯바위에 옛 우편 선착장이 있어요. 거기 창고에 기름통이 남아 있을 거예요." }
+      ],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "테오가 보낸 첫 꾸러미가 도착했다. 소금에 절은 봉투들 사이에 우체국 소인이 찍힌 편지가 하나 있다." },
         { "speaker": "우체국 창구", "text": "날짜는 삼 년 전 폭풍 치던 밤. 보낸 사람: 우체국장 도라. 받는 사람: 등대지기 세린." },
-        { "speaker": "", "text": "봉투 겉에 붉은 글씨로 '긴급'이라고 적혀 있다. 세린은 오늘 밤 등대 불을 지키러 등대에 올라가 있다." }
+        { "speaker": "", "text": "봉투 겉에 붉은 글씨로 '긴급'이라고 적혀 있다. 세린은 오늘 밤 등대 불을 지키러 등대에 올라가 있다." },
+        { "speaker": "", "text": "등대 램프 기름이 거의 떨어졌다는 소문이다. 세린에게 무언가 필요할지도 모른다." }
       ],
       "deliverPrompt": [
         { "speaker": "세린", "text": "이 밤중에 여기까지... 무슨 편지길래요? ...도라 국장님 글씨네요. 삼 년 전, 그날 밤 날짜." },
@@ -294,7 +358,18 @@
       ],
       "deliveredFlag": "storm_truth",
       "rewardMaxHp": 0,
-      "rewardText": "삼 년 전 폭풍 치던 밤의 일이 조금씩 드러나고 있다."
+      "rewardText": "삼 년 전 폭풍 치던 밤의 일이 조금씩 드러나고 있다.",
+      "objectives": [
+        {
+          "text": "등대의 세린 찾아가기",
+          "condition": "met:storm_warning|has:lamp_oil"
+        },
+        {
+          "text": "북쪽 갯바위 선착장에서 램프 기름 찾기",
+          "condition": "has:lamp_oil"
+        }
+      ],
+      "consumeItems": ["lamp_oil"]
     },
     {
       "id": "owen_old_letter",
@@ -305,11 +380,15 @@
       "recipientHint": "받는 사람 칸이 바닷물에 번져 읽을 수 없다. 보낸 사람은 오웬. 오웬의 오두막에 가 보자.",
       "revealFlag": "clue:unsent_drafts",
       "condition": "delivered:storm_warning",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "has:letter_half",
+      "blockedLines": [
+        { "speaker": "", "text": "편지 뒷장이 없다. 반쪽짜리 편지를 건넬 수는 없다." },
+        { "speaker": "", "text": "테오는 뒷장이 북쪽 숲 철길 쪽으로 날아갔다고 했다." }
+      ],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "테오의 두 번째 꾸러미. 같은 폭풍 밤, 바다에 잃어버린 우편가방에서 나온 편지다." },
         { "speaker": "우체국 창구", "text": "보낸 사람은 오웬. 그런데 받는 사람 칸은 바닷물에 번져 한 글자도 읽을 수 없다." },
+        { "speaker": "테오", "text": "(쪽지) 꺼낼 때 뒷장이 찢겨 바람에 날아갔네. 북쪽 숲 철길 쪽으로 날아가는 걸 봤어. 미안하네." },
         { "speaker": "", "text": "오웬의 오두막에 가 보면 누구에게 쓴 편지인지 알 수 있을지도 모른다." }
       ],
       "deliverPrompt": [
@@ -338,7 +417,18 @@
       ],
       "deliveredFlag": "mira_knows",
       "rewardMaxHp": 0,
-      "rewardText": "미라가 무언가를 쓰기 시작했다. 우체국 창구로 돌아가 보자."
+      "rewardText": "미라가 무언가를 쓰기 시작했다. 우체국 창구로 돌아가 보자.",
+      "objectives": [
+        {
+          "text": "오두막에서 받는 사람 알아내기 (동쪽 숲)",
+          "condition": "clue:unsent_drafts"
+        },
+        {
+          "text": "날아간 편지 뒷장 찾기 (북쪽 숲 철길 끝)",
+          "condition": "has:letter_half"
+        }
+      ],
+      "consumeItems": ["letter_half"]
     },
     {
       "id": "mira_bread_letter",
@@ -349,8 +439,11 @@
       "recipientHint": "",
       "revealFlag": "",
       "condition": "delivered:owen_old_letter",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "cleared:hut_siege",
+      "blockedLines": [
+        { "speaker": "", "text": "오두막 앞을 그림자 떼가 둘러싸고 있다. 빵 냄새를 맡고 몰려든 모양이다!" },
+        { "speaker": "오웬", "text": "(오두막 안에서) 우체부인가? 문밖의 것들부터 쫓아 주게!" }
+      ],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "미라가 아직 따뜻한 빵 바구니와 편지 한 통을 맡기고 갔다." },
         { "speaker": "미라", "text": "오빠한테 전해 줘. 빵은 식기 전에! ...아니, 식어도 괜찮아. 오빠는 식은 빵도 좋아했으니까." },
@@ -384,7 +477,13 @@
       "deliveredFlag": "owen_answered",
       "rewardMaxHp": 0,
       "rewardText": "오웬의 폭풍 등불을 받았다. (밤에 보이는 범위 확대)",
-      "rewardItem": "storm_lantern"
+      "rewardItem": "storm_lantern",
+      "objectives": [
+        {
+          "text": "오두막을 둘러싼 그림자 떼 쫓아내기",
+          "condition": "cleared:hut_siege"
+        }
+      ]
     },
     {
       "id": "teo_letter",
@@ -395,8 +494,11 @@
       "recipientHint": "주소는 '바다 건너'. 배가 끊긴 곳으로 보낼 길을 찾아야 한다. 북쪽 폐역에 무언가 있을지도 모른다.",
       "revealFlag": "clue:station_timetable",
       "condition": "delivered:mira_bread_letter",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "has:signal_key",
+      "blockedLines": [
+        { "speaker": "", "text": "우편차 문이 녹슨 자물쇠로 잠겨 있다. 투입구도 안쪽에서 빗장이 걸려 있다." },
+        { "speaker": "", "text": "시간표 아래 쪽지에 '우편차 열쇠는 북쪽 숲 신호소에 맡김'이라고 적혀 있었다." }
+      ],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "이번 꾸러미에는 떠밀려 온 편지 대신, 테오가 직접 쓴 편지가 들어 있었다." },
         { "speaker": "테오", "text": "(쪽지) 우체부 양반, 부탁이 있네. 바다 건너 내 딸 하나에게 보내는 편지야. 배가 끊겨서 이 년째 못 보냈지." },
@@ -426,23 +528,34 @@
       ],
       "deliveredFlag": "teo_sent",
       "rewardMaxHp": 0,
-      "rewardText": "승강장의 등불이 하나둘 켜졌다. 바다 건너에서 답장이 올지도 모른다."
+      "rewardText": "승강장의 등불이 하나둘 켜졌다. 바다 건너에서 답장이 올지도 모른다.",
+      "objectives": [
+        {
+          "text": "폐역 승강장에서 열차 시간표 찾기",
+          "condition": "clue:station_timetable"
+        },
+        {
+          "text": "우편차 열쇠 찾기 (북쪽 숲 신호소)",
+          "condition": "has:signal_key"
+        }
+      ],
+      "consumeItems": ["signal_key"]
     },
     {
       "id": "hana_reply",
       "title": "바다를 건너온 답장",
       "senderName": "바다 건너의 하나",
       "recipientId": "teo",
-      "recipientName": "서쪽 해안의 테오",
-      "recipientHint": "",
-      "revealFlag": "",
+      "recipientName": "북쪽 갯바위 선착장의 테오",
+      "recipientHint": "테오에게 가야 한다. 그런데 오늘 밤 모닥불 곁에 테오가 없다.",
+      "revealFlag": "clue:teo_footprints",
       "condition": "delivered:teo_letter",
       "deliverCondition": "",
       "blockedLines": [],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "창구 위에 젖지 않은 편지 한 통이 놓여 있었다. 누가 두고 갔는지 아무도 모른다." },
         { "speaker": "우체국 창구", "text": "봉투에는 낯선 나라의 우표. 받는 사람: '등대 불빛이 보이는 섬의 아빠에게'." },
-        { "speaker": "", "text": "등대가 다시 빛나자, 바다 건너에서도 이 섬이 보이게 된 걸까. 서쪽 해안의 테오에게 가자." }
+        { "speaker": "", "text": "등대가 다시 빛나자, 바다 건너에서도 이 섬이 보이게 된 걸까. 서쪽 해안 테오의 모닥불로 가 보자." }
       ],
       "deliverPrompt": [
         { "speaker": "테오", "text": "...이건, 하나 글씨다." },
@@ -471,7 +584,13 @@
       "deliveredFlag": "hana_coming",
       "rewardMaxHp": 0,
       "rewardText": "하나의 바다 유리를 받았다. (최대 체력 +1)",
-      "rewardItem": "sea_glass"
+      "rewardItem": "sea_glass",
+      "objectives": [
+        {
+          "text": "테오가 간 곳 알아내기 (해안의 모닥불)",
+          "condition": "clue:teo_footprints"
+        }
+      ]
     },
     {
       "id": "festival_letter",
@@ -482,12 +601,15 @@
       "recipientHint": "",
       "revealFlag": "",
       "condition": "delivered:hana_reply",
-      "deliverCondition": "",
-      "blockedLines": [],
+      "deliverCondition": "sign:owen,sign:teo,sign:serin",
+      "blockedLines": [
+        { "speaker": "", "text": "봉투에 아직 비어 있는 이름 칸이 있다. 모두의 이름을 받아 온 뒤에 건네자." }
+      ],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "창구에 커다란 봉투가 놓여 있다. 겉면에 여러 사람의 글씨가 빼곡하다." },
         { "speaker": "노아", "text": "우체부님! 우리 다 같이 썼어. 도라 할머니한테 주는 거야!" },
         { "speaker": "미라", "text": "등대에 불이 켜진 기념으로 축제를 열기로 했어. 그런데 꼭 와야 할 사람이 한 명 있거든." },
+        { "speaker": "", "text": "봉투를 살펴보니 아직 오웬, 테오, 세린의 이름 칸이 비어 있다. 세 사람에게 서명을 받아 오자." },
         { "speaker": "", "text": "받는 사람: 옛 우체국장 도라. 마을 서남쪽 집으로 가자." }
       ],
       "deliverPrompt": [
@@ -515,7 +637,21 @@
       ],
       "deliveredFlag": "festival",
       "rewardMaxHp": 0,
-      "rewardText": "광장에 축제 등불이 걸렸다! 맡은 편지를 모두 배달했다. 우체국 창구로 돌아가자."
+      "rewardText": "광장에 축제 등불이 걸렸다! 맡은 편지를 모두 배달했다. 우체국 창구로 돌아가자.",
+      "objectives": [
+        {
+          "text": "오웬의 서명 받기",
+          "condition": "sign:owen"
+        },
+        {
+          "text": "테오의 서명 받기 (서쪽 해안)",
+          "condition": "sign:teo"
+        },
+        {
+          "text": "세린의 서명 받기",
+          "condition": "sign:serin"
+        }
+      ]
     }
   ],
   "endings": [

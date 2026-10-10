@@ -13,6 +13,22 @@ namespace MoonlightPost
         public GameObject instance;
     }
 
+    /// <summary>
+    /// 편지 과제용 작은 사건: 그 편지를 들고 있는 동안 정해진 곳에 그림자 떼가 모인다.
+    /// 모두 물리치면 flag 가 서고(배달 조건 등에 쓴다) 다시 나오지 않는다.
+    /// </summary>
+    public class EncounterSpec
+    {
+        public string letterId;
+        public string flag;
+        public Vector2[] spawns;
+        public EnemyKind[] kinds;
+        public string startToast;
+        public string clearToast;
+        public readonly List<GameObject> live = new List<GameObject>();
+        public bool spawned;
+    }
+
     /// <summary>밤의 분위기. 밤마다 하나가 정해져 시야·적 수·숨은 우표 표시가 달라진다.</summary>
     public enum NightMood { Clear, Fog, Fireflies, FullMoon }
 
@@ -69,8 +85,20 @@ namespace MoonlightPost
         /// <summary>북쪽 갯바위(해안과 함께 우체국 등불을 켠 뒤 열림).</summary>
         public Vector2[] coastNorthSpawns = new Vector2[0];
 
+        public EncounterSpec[] encounters = new EncounterSpec[0];
+
         public bool NorthBlocked { get; private set; }
         public bool StationWestBlocked { get; private set; }
+
+        /// <summary>지금 살아 있는 보스와 사건의 적(자동 플레이테스트가 쓴다).</summary>
+        public IEnumerable<GameObject> EventEnemies()
+        {
+            foreach (var b in bosses)
+                if (b.instance != null) yield return b.instance;
+            foreach (var e in encounters)
+                foreach (var g in e.live)
+                    if (g != null) yield return g;
+        }
 
         readonly List<GameObject> enemies = new List<GameObject>();
         readonly List<GameObject> moodObjects = new List<GameObject>();
@@ -133,6 +161,7 @@ namespace MoonlightPost
                 if (b.instance != null) Destroy(b.instance);
                 b.instance = null;
             }
+            foreach (var e in encounters) ClearEncounter(e);
 
             // 밤이 깊어질수록 열린 길의 적이 조금 늘고 종류도 다양해진다.
             int night = GameState.Night;
@@ -170,8 +199,46 @@ namespace MoonlightPost
             RefreshBoss();
         }
 
+        static void ClearEncounter(EncounterSpec e)
+        {
+            // 목록을 먼저 비워서, 파괴된 적을 "모두 물리쳤다"로 착각하지 않게 한다.
+            var old = new List<GameObject>(e.live);
+            e.live.Clear();
+            e.spawned = false;
+            foreach (var g in old)
+                if (g != null) Destroy(g);
+        }
+
+        void Update()
+        {
+            foreach (var e in encounters)
+            {
+                if (!e.spawned) continue;
+                e.live.RemoveAll(g => g == null);
+                if (e.live.Count > 0) continue;
+                e.spawned = false;
+                GameState.SetFlag(e.flag);
+                GameState.Save();
+                if (!string.IsNullOrEmpty(e.clearToast)) HUD.Toast(e.clearToast);
+                Sound.Play("Clue");
+            }
+        }
+
         void RefreshBoss()
         {
+            foreach (var e in encounters)
+            {
+                bool need = GameState.HasFlag("carrying:" + e.letterId) && !GameState.HasFlag(e.flag);
+                if (need && !e.spawned)
+                {
+                    e.spawned = true;
+                    for (int i = 0; i < e.spawns.Length; i++)
+                        e.live.Add(Spawner.Enemy(e.spawns[i], e.kinds[i % e.kinds.Length]));
+                    if (!string.IsNullOrEmpty(e.startToast)) HUD.Toast(e.startToast);
+                }
+                else if (!need && e.spawned) ClearEncounter(e);
+            }
+
             foreach (var b in bosses)
             {
                 bool defeated = GameState.HasFlag(b.defeatFlag);

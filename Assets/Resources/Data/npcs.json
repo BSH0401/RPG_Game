@@ -387,6 +387,21 @@
       "displayName": "오웬",
       "talks": [
         {
+          "condition": "carrying:festival_letter,!sign:owen",
+          "setFlag": "sign:owen",
+          "toast": "봉투에 오웬의 이름이 더해졌다.",
+          "lines": [
+            {
+              "speaker": "오웬",
+              "text": "축제 초대장? ...내 이름도 넣겠다고?"
+            },
+            {
+              "speaker": "오웬",
+              "text": "그래, 맨 아래 작게라도 쓰지. 국장님이 읽으실 테니 또박또박."
+            }
+          ]
+        },
+        {
           "condition": "delivered:flour_letter,!got:hut_key",
           "giveItem": "hut_key",
           "lines": [
@@ -527,6 +542,21 @@
       "id": "keeper",
       "displayName": "세린",
       "talks": [
+        {
+          "condition": "carrying:festival_letter,!sign:serin",
+          "setFlag": "sign:serin",
+          "toast": "봉투에 세린의 이름이 더해졌다.",
+          "lines": [
+            {
+              "speaker": "세린",
+              "text": "도라 국장님께 드리는 편지요? 물론이죠."
+            },
+            {
+              "speaker": "세린",
+              "text": "'등대지기 세린'. ...삼 년 전 그 밤의 편지, 잘 받았다고도 적을게요."
+            }
+          ]
+        },
         {
           "condition": "festival",
           "lines": [
@@ -717,6 +747,21 @@
       "id": "teo",
       "displayName": "테오",
       "talks": [
+        {
+          "condition": "carrying:festival_letter,!sign:teo",
+          "setFlag": "sign:teo",
+          "toast": "봉투에 테오의 이름이 더해졌다.",
+          "lines": [
+            {
+              "speaker": "테오",
+              "text": "축제? 떠돌이 이름도 넣어 주나!"
+            },
+            {
+              "speaker": "테오",
+              "text": "커다랗게 써 주지. 바다 건너에서도 보이게."
+            }
+          ]
+        },
         {
           "condition": "festival",
           "lines": [

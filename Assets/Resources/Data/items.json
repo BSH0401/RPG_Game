@@ -141,6 +141,46 @@
       "value": 1,
       "icon": "Badge",
       "maxStack": 1
+    },
+    {
+      "id": "flour_bag",
+      "name": "밀가루 자루",
+      "description": "오웬이 미라에게 보내는 밀가루 한 자루. 답장과 함께 전하자.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Bag",
+      "maxStack": 1
+    },
+    {
+      "id": "lamp_oil",
+      "name": "램프 기름통",
+      "description": "옛 우편 선착장 창고에 남아 있던 등대 램프 기름.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "FireflyJar",
+      "maxStack": 1
+    },
+    {
+      "id": "letter_half",
+      "name": "편지 뒷장",
+      "description": "바람에 날려 간 오웬의 옛 편지 뒷장.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "PaperLetter",
+      "maxStack": 1
+    },
+    {
+      "id": "signal_key",
+      "name": "우편차 열쇠꾸러미",
+      "description": "옛 신호소에 맡겨 두었던 우편차 열쇠.",
+      "kind": "key",
+      "effect": "",
+      "value": 0,
+      "icon": "Key",
+      "maxStack": 1
     }
   ]
 }

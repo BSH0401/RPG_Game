@@ -29,6 +29,14 @@ namespace MoonlightPost
         public DialogueLine[] lines;
     }
 
+    /// <summary>편지 하나의 탐험 과제. condition 이 참이면 완료로 표시된다.</summary>
+    [Serializable]
+    public class LetterObjective
+    {
+        public string text;
+        public string condition;
+    }
+
     [Serializable]
     public class LetterDef
     {
@@ -39,7 +47,7 @@ namespace MoonlightPost
         public string recipientName;
         /// <summary>받는 사람이 밝혀지기 전에 보이는 설명.</summary>
         public string recipientHint;
-        /// <summary>이 플래그를 얻으면 받는 사람과 지도 위치가 공개된다. 비어 있으면 처음부터 공개.</summary>
+        /// <summary>이 조건이 참이 되면 받는 사람과 지도 위치가 공개된다(예: "clue:a,clue:b"). 비어 있으면 처음부터 공개.</summary>
         public string revealFlag;
         /// <summary>우체국 창구에서 이 편지를 받을 수 있는 조건.</summary>
         public string condition;
@@ -52,6 +60,10 @@ namespace MoonlightPost
         public DialogueLine[] deliverPrompt;
         public DeliveryChoice[] choices;
         public string deliveredFlag;
+        /// <summary>오른쪽 위 편지 칸에 보이는 탐험 과제 목록.</summary>
+        public LetterObjective[] objectives;
+        /// <summary>배달할 때 건네고 없어지는 아이템(찾아 온 밀가루 자루, 램프 기름 등).</summary>
+        public string[] consumeItems;
         public int rewardMaxHp;
         /// <summary>배달 보상 아이템 id (items.json).</summary>
         public string rewardItem;
@@ -90,6 +102,10 @@ namespace MoonlightPost
         /// <summary>이 대사가 끝나면 주는 아이템. 한 번만 주려면 condition 에 "!got:아이템id" 를 넣는다.</summary>
         public string giveItem;
         public int giveCount;
+        /// <summary>이 대사가 끝나면 세우는 플래그(예: 서명 받기). 한 번만 하려면 condition 에 "!플래그" 를 넣는다.</summary>
+        public string setFlag;
+        /// <summary>setFlag 를 세울 때 띄우는 알림.</summary>
+        public string toast;
     }
 
     [Serializable]

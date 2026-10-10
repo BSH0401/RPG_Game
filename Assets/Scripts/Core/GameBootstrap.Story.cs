@@ -32,7 +32,9 @@ namespace MoonlightPost
             {
                 Spawner.Npc("teo", new Vector2(-19.2f, 7.3f), Art.Teo, 1f, "Hunter", teoTint);
                 Spawner.Glow(new Vector2(-20.2f, 7.5f), 4f, new Color(1f, 0.6f, 0.3f, 0.3f));
-            }), "!festival");
+            }), "!festival,!carrying:hana_reply");
+            // 바다 건너 답장(편지 11)이 오는 밤에는 배를 기다리러 북쪽 갯바위 선착장에 나가 있다.
+            visuals.Register(Spawner.Npc("teo", new Vector2(-42.4f, 26.6f), Art.Teo, 1f, "Hunter", teoTint).gameObject, "carrying:hana_reply");
             visuals.Register(Spawner.Npc("teo", new Vector2(-8.4f, -2.4f), Art.Teo, 1f, "Hunter", teoTint).gameObject, "festival");
 
             // 단서

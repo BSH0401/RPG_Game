@@ -101,6 +101,8 @@ namespace MoonlightPost
                 showHelp = !showHelp;
                 helpUntil = float.MaxValue;
             }
+            // 개발용 키(F11 건너뛰기, F12 저장 삭제)는 에디터와 개발 빌드에서만 동작한다. 배포용 빌드에서는 꺼진다.
+            if (!Debug.isDebugBuild) return;
             if (GameInput.SkipPressed && !DialogueSystem.IsOpen && !MapOpen && !BagOpen)
                 LetterManager.DevSkip(); // 개발용: 다음 편지로 건너뛰기
             if (GameInput.ResetPressed)

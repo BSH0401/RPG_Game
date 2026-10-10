@@ -123,8 +123,8 @@
 | R | 크루아상 먹기 (체력 3 회복) |
 | Esc | 메뉴(계속하기 · 설정 · 타이틀로 · 저장하고 종료). 지도·가방이 열려 있으면 닫기 |
 | F1 | 조작법 보이기/숨기기 |
-| F11 | 다음 편지로 건너뛰기 (개발용: 편지가 없으면 받고, 있으면 첫 번째 선택지로 바로 배달) |
-| F12 | 저장 삭제 후 새 게임 (개발용) |
+| F11 | 다음 편지로 건너뛰기 (개발용, 에디터·개발 빌드에서만: 편지가 없으면 받고, 있으면 첫 번째 선택지로 바로 배달) |
+| F12 | 저장 삭제 후 새 게임 (개발용, 에디터·개발 빌드에서만) |
 
 ### 설정 (타이틀 또는 Esc 메뉴)
 
@@ -275,6 +275,16 @@ Docs/GameDesign.md       기획서
 - **새 주민/단서 위치**: `Spawner.Npc(...)`, `GameBootstrap.Clue(...)`. 이야기 중반 이후의 것은 `GameBootstrap.Story.cs`에 모아 두었다.
   단서는 `WorldVisuals.Register(Clue(...).gameObject, "delivered:앞편지id")`처럼 등록해 이야기보다 먼저 발견되지 않게 한다.
 - **적 종류**: `Spawner.Enemy`에서 `EnemyController`의 수치와 `pattern`(Lunge/Slam 조합)을 바꿔 만든다.
+
+## 배포용 빌드
+
+메뉴 **달빛 우체국 → 배포용 빌드 (Windows)** (또는 명령줄
+`Unity.exe -batchmode -quit -projectPath . -executeMethod MoonlightPost.EditorTools.ReleaseBuild.Build`).
+
+- 결과: `Build/Release/MoonlightPost/`(실행 파일)과 이를 묶은 `Build/MoonlightPost_v버전_Windows.zip`(읽어보기.txt 포함).
+- 개발 빌드가 아니므로 "Development Build" 표시와 개발용 키(F11 건너뛰기, F12 저장 삭제)가 빠진다.
+- 제품 이름·버전·아이콘·창 설정은 `Assets/Editor/ReleaseBuild.cs`에서 빌드할 때마다 적용한다(버전은 `Version`).
+  아이콘은 `Assets/Editor/AppIcon.png`.
 
 ## 자동 플레이테스트
 

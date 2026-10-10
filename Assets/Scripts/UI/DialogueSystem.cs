@@ -56,7 +56,7 @@ namespace MoonlightPost
 
         void Update()
         {
-            if (!open || Time.frameCount == openedFrame) return;
+            if (!open || Time.frameCount == openedFrame || GameMenu.IsOpen) return;
 
             if (AtChoices)
             {

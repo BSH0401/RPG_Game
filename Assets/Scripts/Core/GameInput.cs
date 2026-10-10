@@ -42,6 +42,12 @@ namespace MoonlightPost
         /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
         public static bool GuardHeld => MouseRightHeld || Held(Key.K);
         public static bool SwitchToolPressed => Down(Key.C);
+        public static bool PausePressed => Down(Key.Escape);
+        public static bool MenuUp => Down(Key.W) || Down(Key.UpArrow);
+        public static bool MenuDown => Down(Key.S) || Down(Key.DownArrow);
+        public static bool MenuLeft => Down(Key.A) || Down(Key.LeftArrow);
+        public static bool MenuRight => Down(Key.D) || Down(Key.RightArrow);
+        public static bool MenuConfirm => Down(Key.Enter) || Down(Key.Space) || Down(Key.E);
 
         public static bool ChoicePressed(int index)
         {
@@ -81,6 +87,12 @@ namespace MoonlightPost
         /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
         public static bool GuardHeld => Input.GetMouseButton(1) || Input.GetKey(KeyCode.K);
         public static bool SwitchToolPressed => Input.GetKeyDown(KeyCode.C);
+        public static bool PausePressed => Input.GetKeyDown(KeyCode.Escape);
+        public static bool MenuUp => Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
+        public static bool MenuDown => Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow);
+        public static bool MenuLeft => Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow);
+        public static bool MenuRight => Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
+        public static bool MenuConfirm => Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E);
 
         public static bool ChoicePressed(int index)
         {

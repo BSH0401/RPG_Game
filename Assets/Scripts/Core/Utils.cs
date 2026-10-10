@@ -8,6 +8,13 @@ namespace MoonlightPost
         public static string Eul(string word) => word + Pick(word, "을", "를");
         public static string Ga(string word) => word + Pick(word, "이", "가");
         public static string Gwa(string word) => word + Pick(word, "과", "와");
+        /// <summary>"으로/로". ㄹ 받침 뒤에는 "로"(예: 고개 역으로, 신호소로, 마을로).</summary>
+        public static string Euro(string word)
+        {
+            char last = string.IsNullOrEmpty(word) ? ' ' : word[word.Length - 1];
+            if (last >= '가' && last <= '힣' && (last - '가') % 28 == 8) return word + "로";
+            return word + Pick(word, "으로", "로");
+        }
 
         const string Skip = "」』)]\"'”’ ";
 

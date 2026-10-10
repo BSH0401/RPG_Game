@@ -36,6 +36,7 @@ namespace MoonlightPost
 
             Directory.CreateDirectory(outDir);
             GameState.SaveFileName = "moonlight_post_playtest.json";
+            GameMenu.SkipTitle = true;
             GameState.DeleteSave();
             var go = new GameObject("Playtest");
             DontDestroyOnLoad(go);
@@ -86,6 +87,7 @@ namespace MoonlightPost
             openDirty = true;
 
             if (scenery) yield return Overviews("start");
+            if (scenery) yield return MenuShots();
             CheckReach("시작");
 
             for (int n = 1; n <= 20; n++)
@@ -147,6 +149,7 @@ namespace MoonlightPost
                 Log("   이동 약 " + walked.ToString("0") + "칸(걸어서 약 " + (walked / player.moveSpeed).ToString("0") + "초), 대사 " + linesShown + "줄");
 
                 if (scenery) yield return VillageShot(n.ToString("00") + "_after_" + letter.id);
+                if (letter.deliveredFlag == RailStop.UnlockFlag) yield return RideRails(player, n);
                 if (scenery) yield return DoRequests(player, n);
                 if (scenery) yield return TalkToEveryone(player, "「" + letter.title + "」 배달 후");
             }
@@ -258,6 +261,45 @@ namespace MoonlightPost
                 yield return Drain(0);
                 if (!RequestManager.IsDone(r)) Problem("의뢰 " + r.id + ": 끝내지 못함 (" + r.completeCondition + ")");
                 else Log("   의뢰 「" + r.title + "」 완료 — 이동 약 " + walked.ToString("0") + "칸(걸어서 약 " + (walked / player.moveSpeed).ToString("0") + "초), 대사 " + linesShown + "줄");
+            }
+        }
+
+        /// <summary>타이틀·일시정지·설정 화면 스크린샷.</summary>
+        IEnumerator MenuShots()
+        {
+            GameMenu.ShowTitle();
+            yield return Frames(3);
+            yield return Shot("menu_title");
+            GameMenu.ShowPause();
+            yield return Frames(3);
+            yield return Shot("menu_pause");
+            GameMenu.ShowSettings();
+            yield return Frames(3);
+            yield return Shot("menu_settings");
+            GameMenu.Hide();
+            yield return Frames(3);
+            if (Time.timeScale != 1f) Problem("메뉴를 닫았는데 게임이 멈춰 있음 (timeScale " + Time.timeScale + ")");
+        }
+
+        /// <summary>빠른 이동: 모든 정거장에서 타 보고, 내린 자리가 걸을 수 있는 곳인지 확인한다.</summary>
+        IEnumerator RideRails(PlayerController player, int n)
+        {
+            var stops = RailStop.Ordered();
+            if (stops.Count < 2) Problem("빠른 이동: 정거장이 " + stops.Count + "개뿐");
+            foreach (var from in stops)
+            {
+                yield return Visit(player, from.transform.position);
+                from.Interact(player);
+                if (scenery && from == stops[0]) yield return Shot(n.ToString("00") + "_rail_menu");
+                yield return Drain(0); // 첫 번째 목적지
+                yield return Seconds(1.2f);
+                var dest = stops[from == stops[0] ? 1 : 0];
+                // 내린 직후 근처 그림자에게 떠밀릴 수 있으므로 2칸 안이면 도착으로 본다.
+                if (Vector2.Distance(player.transform.position, dest.arrival) > 2f)
+                    Problem("빠른 이동: " + from.stopName + " → " + dest.stopName + " 도착하지 않음 (" + (Vector2)player.transform.position + ")");
+                else if (!Free(dest.arrival)) Problem("빠른 이동: " + dest.stopName + "의 내리는 자리가 막혀 있음");
+                else Log("   빠른 이동 " + from.stopName + " → " + dest.stopName + " 확인");
+                if (scenery && from == stops[0]) yield return Shot(n.ToString("00") + "_rail_arrive");
             }
         }
 

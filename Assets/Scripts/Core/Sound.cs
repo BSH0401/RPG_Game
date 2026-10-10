@@ -75,6 +75,9 @@ namespace MoonlightPost
 
         void Update()
         {
+            // 설정 화면의 음량(기본값 0.7·0.8 이 예전 고정값 0.35·0.6 과 같다)
+            musicVolume = 0.5f * Settings.MusicVolume;
+            sfxVolume = 0.75f * Settings.SfxVolume;
             var player = PlayerController.I;
             if (player == null) return;
 

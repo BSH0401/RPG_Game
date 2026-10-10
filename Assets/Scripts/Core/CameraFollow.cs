@@ -15,7 +15,7 @@ namespace MoonlightPost
 
         public static void Shake(float duration, float strength = 0.15f)
         {
-            if (I == null) return;
+            if (I == null || !Settings.ScreenShake) return;
             I.shakeUntil = Time.unscaledTime + duration;
             I.shakeStrength = strength;
         }

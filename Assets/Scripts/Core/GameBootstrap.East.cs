@@ -42,6 +42,27 @@ namespace MoonlightPost
             BuildTunnelCut(visuals);
             BuildPass(visuals);
             BuildQuarry(visuals);
+            BuildRailStops();
+        }
+
+        /// <summary>철길 빠른 이동 정거장: 폐역, 북쪽 숲 신호소, 고개 역(RailStop).</summary>
+        void BuildRailStops()
+        {
+            RailStopAt("폐역", 0, new Vector2(8.6f, RailY), new Vector2(8.2f, 24.6f));
+            RailStopAt("북쪽 숲 신호소", 1, new Vector2(31.6f, RailY), new Vector2(31.6f, 23f));
+            RailStopAt("고개 역", 2, new Vector2(64.4f, RailY), new Vector2(64f, 23.4f));
+        }
+
+        void RailStopAt(string stopName, int order, Vector2 pos, Vector2 arrival)
+        {
+            var go = Spawner.Prop("RailStop_" + order, pos, Art.RailCar(false));
+            go.transform.localScale = new Vector3(0.5f, 0.6f, 1f);
+            var stop = go.AddComponent<RailStop>();
+            stop.stopName = stopName;
+            stop.order = order;
+            stop.arrival = arrival;
+            stop.rangeScale = 2.2f;
+            WorldVisuals.I.Register(Spawner.Glow(pos + new Vector2(0f, 0.6f), 2.4f, new Color(1f, 0.85f, 0.5f, 0.25f)).gameObject, RailStop.UnlockFlag);
         }
 
         /// <summary>북쪽 숲 끝의 무너진 터널: 곡괭이로 잔해를 치우면(tunnel_open) 동쪽으로 길이 열린다.</summary>

@@ -130,7 +130,7 @@ namespace MoonlightPost
         {
             UpdateVisual();
             bool busy = Time.timeScale == 0f || DialogueSystem.IsOpen || Health.IsDead
-                        || Time.frameCount == DialogueSystem.LastClosedFrame;
+                        || Time.frameCount == DialogueSystem.LastClosedFrame || Time.frameCount == GameMenu.LastClosedFrame;
             if (busy)
             {
                 moveInput = Vector2.zero;

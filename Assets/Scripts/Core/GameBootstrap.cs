@@ -81,6 +81,7 @@ namespace MoonlightPost
             hud.postOfficePos = PostOfficePos;
             systems.AddComponent<Sound>();
             systems.AddComponent<Juice>();
+            systems.AddComponent<GameMenu>();
 
             // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
             useAssets = GameAssets.Available;
@@ -111,7 +112,7 @@ namespace MoonlightPost
             SetupCamera(player.transform);
 
             if (GameState.Night == 0)
-                HUD.Toast("우체국 창구(E)에서 첫 편지를 받자.");
+                HUD.Toast("우체국 창구(E)에서 첫 편지를 받자.   [Esc] 메뉴");
         }
 
         // ------------------------------------------------------------------ 바닥

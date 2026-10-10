@@ -47,7 +47,23 @@ namespace MoonlightPost
         void Awake()
         {
             I = this;
+            showHelp = Settings.ShowHelp;
             helpUntil = Time.unscaledTime + 25f;
+        }
+
+        /// <summary>설정 화면의 "조작법 안내".</summary>
+        public static void SetHelp(bool show)
+        {
+            if (I == null) return;
+            I.showHelp = show;
+            I.helpUntil = float.MaxValue;
+        }
+
+        /// <summary>지도·가방을 닫는다(Esc).</summary>
+        public static void CloseOverlays()
+        {
+            SetMap(false);
+            SetBag(false);
         }
 
         void OnDestroy()
@@ -77,6 +93,7 @@ namespace MoonlightPost
 
         void Update()
         {
+            if (GameMenu.IsOpen) return;
             if (GameInput.MapTogglePressed && !BagOpen && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
             if (GameInput.InventoryPressed && !MapOpen && (BagOpen || !DialogueSystem.IsOpen)) SetBag(!BagOpen);
             if (GameInput.HelpPressed)
@@ -111,7 +128,7 @@ namespace MoonlightPost
         {
             Ui.Ensure();
             var player = PlayerController.I;
-            if (player == null) return;
+            if (player == null || GameMenu.TitleOpen) return;
 
             DrawStatus(player);
             DrawLetterPanel();
@@ -398,7 +415,7 @@ namespace MoonlightPost
                 "Q  편지 도구   C  도구 바꾸기\n" +
                 "R  먹기 (체력 회복)\n" +
                 "I  가방   Tab / M  지도\n" +
-                "F12  저장 삭제 후 새 게임", Ui.Small);
+                "Esc  메뉴 · 설정", Ui.Small);
         }
 
         void DrawMap(PlayerController player)

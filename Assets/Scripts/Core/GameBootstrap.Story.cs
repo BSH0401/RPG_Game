@@ -4,7 +4,7 @@ namespace MoonlightPost
 {
     /// <summary>
     /// 편지 5~12통째에 필요한 주민·단서·마을 변화.
-    ///   도라(옛 우체국장): 마을 서남쪽 불 꺼진 집 앞. 첫 편지를 받으면 집에 불이 켜진다.
+    ///   도라(옛 우체국장): 밤마다 북쪽 폐역 승강장에 나가 있다. 첫 편지를 받으면 마을 서남쪽 집으로 돌아가 불을 켠다.
     ///   테오(유리병 줍는 사람): 서쪽 해안 북쪽의 유목 곁. 등대에 불이 켜진 뒤 떠밀려 온 편지를 모은다.
     ///   마지막 편지(festival)를 배달하면 광장에 축제 등불이 걸리고 주민들이 우체국 앞에 모인다.
     /// 단서는 그 편지를 받을 무렵에만 나타나서, 이야기보다 먼저 발견되지 않게 한다.
@@ -15,9 +15,10 @@ namespace MoonlightPost
         {
             var visuals = WorldVisuals.I;
 
-            // 도라: 처음엔 불 꺼진 집 앞, 축제 날엔 우체국 앞
+            // 도라: 처음엔 폐역 승강장, 편지를 받은 뒤엔 집 앞, 축제 날엔 우체국 앞
             var doraTint = GameAssets.DoraTint;
-            visuals.Register(Spawner.Npc("dora", new Vector2(-8.6f, -6.2f), Art.Dora, 1f, "Woman", doraTint).gameObject, "!festival");
+            visuals.Register(Spawner.Npc("dora", StationPos + new Vector2(-3.4f, -1.2f), Art.Dora, 1f, "Woman", doraTint).gameObject, "!dora_home");
+            visuals.Register(Spawner.Npc("dora", new Vector2(-8.6f, -6.2f), Art.Dora, 1f, "Woman", doraTint).gameObject, "dora_home,!festival");
             visuals.Register(Spawner.Npc("dora", new Vector2(4.4f, 3.4f), Art.Dora, 1f, "Woman", doraTint).gameObject, "festival");
             visuals.Register(Group("DoraHouse_Lit", () =>
             {
@@ -46,6 +47,7 @@ namespace MoonlightPost
                     Spawner.Prop("Bottle", p, bottle);
                 Spawner.Glow(new Vector2(-40.2f, -4.2f), 4f, new Color(0.65f, 0.85f, 1f, 0.3f));
             }), "delivered:lighthouse_letter");
+            visuals.Register(Clue("station_timetable", StationPos + new Vector2(3.4f, -1.4f), sign).gameObject, "delivered:mira_bread_letter");
             visuals.Register(Clue("unsent_drafts", new Vector2(45.4f, -6.4f), ItemOr("PaperLetter", Art.Signpost)).gameObject, "delivered:storm_warning");
 
             // 축제: 광장과 길가에 등불이 걸린다.

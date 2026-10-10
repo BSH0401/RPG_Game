@@ -12,6 +12,7 @@ namespace MoonlightPost
     ///   x  17      : 산울타리, 가운데(y -2~2)에 숲으로 가는 문
     ///   x  17 ~ 42 : 숲길. 가운데 덤불이 막고 있어 북쪽 길 / 남쪽 길로 나뉜다. 밤마다 한쪽 길이 쓰러진 나무로 막힌다.
     ///   x  42 ~ 52 : 숲 끝. 오웬의 오두막, 녹슨 표지판, 낡은 우체통.
+    ///   y  11 ~ 33 : 북쪽 띠(옛 철길). 북쪽 갯바위 / 폐역 / 북쪽 숲 — GameBootstrap.North.cs.
     ///   편지 5~12통째의 주민(도라·테오)·단서·축제는 GameBootstrap.Story.cs.
     ///
     /// 그림은 Art(코드로 그린 픽셀 아트)에서 가져온다. 실제 아트와 Tilemap 씬으로 옮길 때는
@@ -24,9 +25,10 @@ namespace MoonlightPost
 
         static GameBootstrap instance;
         GameObject worldRoot;
+        NightDirector director;
         bool useAssets;
 
-        static readonly Rect WorldBounds = new Rect(-50f, -11f, 102f, 22f);
+        public static readonly Rect WorldBounds = new Rect(-50f, -11f, 102f, 44f);
         static readonly Vector2 PlayerSpawn = new Vector2(0f, 2.8f);
         static readonly Vector2 PostOfficePos = new Vector2(0f, 7.5f);
 
@@ -100,6 +102,7 @@ namespace MoonlightPost
             BuildVillage();
             BuildForest();
             BuildStory();
+            BuildNorth();
             BuildAmbience();
             var player = BuildPlayer();
             SetupCamera(player.transform);
@@ -125,22 +128,28 @@ namespace MoonlightPost
             hud.regions.Add(new HUD.MapRegion { area = CoastArea, color = new Color(0.36f, 0.32f, 0.3f), label = "서쪽 해안" });
             hud.regions.Add(new HUD.MapRegion { area = new Rect(-50f, -11f, 34f, 5f), color = new Color(0.1f, 0.18f, 0.38f), label = "" });
             hud.regions.Add(new HUD.MapRegion { area = new Rect(-50f, -6f, 4f, 17f), color = new Color(0.1f, 0.18f, 0.38f), label = "" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(-16f, 11f, 33f, 22f), color = new Color(0.26f, 0.26f, 0.3f), label = "폐역" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(17f, 11f, 35f, 22f), color = new Color(0.08f, 0.2f, 0.16f), label = "북쪽 숲" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(-46f, 11f, 30f, 22f), color = new Color(0.4f, 0.36f, 0.32f), label = "북쪽 갯바위" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(-50f, 11f, 4f, 22f), color = new Color(0.1f, 0.18f, 0.38f), label = "" });
+            hud.regions.Add(new HUD.MapRegion { area = new Rect(-16f, 20f, 64f, 3f), color = new Color(0.36f, 0.3f, 0.28f), label = "" });
 
             // 충돌: 바깥 경계, 바다, 울타리, 덤불
-            Spawner.Collider("Wall_N", new Vector2(1f, 11.5f), new Vector2(104f, 1f));
+            Spawner.Collider("Wall_N", new Vector2(1f, 33.5f), new Vector2(104f, 1f));
             Spawner.Collider("Wall_S", new Vector2(1f, -11.5f), new Vector2(104f, 1f));
-            Spawner.Collider("Wall_W", new Vector2(-50.5f, 0f), new Vector2(1f, 24f));
+            Spawner.Collider("Wall_W", new Vector2(-50.5f, 11f), new Vector2(1f, 46f));
             // 마을과 해안 사이: 가운데(y -2~2)만 길이 나 있다
             Spawner.Collider("CoastFence_N", new Vector2(-16.5f, 6.5f), new Vector2(1f, 9f));
             Spawner.Collider("CoastFence_S", new Vector2(-16.5f, -6.5f), new Vector2(1f, 9f));
             // 해안의 바다(남쪽과 서쪽)
             Spawner.Collider("CoastSea_S", new Vector2(-33.5f, -8.6f), new Vector2(33f, 4.8f));
-            Spawner.Collider("CoastSea_W", new Vector2(-48.1f, 0f), new Vector2(3.8f, 22f));
-            Spawner.Collider("Wall_E", new Vector2(52.5f, 0f), new Vector2(1f, 24f));
+            Spawner.Collider("CoastSea_W", new Vector2(-48.1f, 11f), new Vector2(3.8f, 44f));
+            Spawner.Collider("Wall_E", new Vector2(52.5f, 11f), new Vector2(1f, 46f));
             Spawner.Collider("Sea", new Vector2(-4f, -9.6f), new Vector2(24f, 2.8f));
             Spawner.Collider("Fence_N", new Vector2(17f, 6.5f), new Vector2(1f, 9f));
             Spawner.Collider("Fence_S", new Vector2(17f, -6.5f), new Vector2(1f, 9f));
             Spawner.Collider("Thicket", ThicketArea.center, ThicketArea.size);
+            BuildNorthColliders();
         }
 
         void BuildPaintedGround()
@@ -156,6 +165,17 @@ namespace MoonlightPost
             g.Fill(new Rect(-50f, -11f, 3.8f, 22f), GroundPainter.Water);
             g.Fill(new Rect(-17f, -1.2f, 3.2f, 2.4f), GroundPainter.Cobble, true, 15);
             g.Fill(forest, GroundPainter.ForestFloor);
+            // 북쪽 띠: 갯바위(모래·물웅덩이), 폐역(풀·자갈), 북쪽 숲
+            g.Fill(new Rect(-50f, 11f, 34f, 22f), GroundPainter.Sand);
+            g.Fill(new Rect(-50f, 11f, 3.8f, 22f), GroundPainter.Water);
+            foreach (var r in TidePools) g.Fill(r, GroundPainter.Water, true, 20);
+            g.Fill(new Rect(-16f, 11f, 33f, 22f), GroundPainter.Grass);
+            g.Fill(new Rect(-15f, 12f, 31f, 19f), GroundPainter.Cobble, true, 21);
+            g.Fill(new Rect(17f, 11f, 35f, 22f), GroundPainter.ForestFloor);
+            g.Fill(new Rect(11f, -1.2f, 2.2f, 21f), GroundPainter.Dirt, true, 22);
+            g.Fill(new Rect(17f, 19.8f, 30f, 3.4f), GroundPainter.Dirt, true, 23);
+            g.Fill(new Rect(37.8f, 6f, 2.4f, 15f), GroundPainter.Dirt, true, 24);
+            g.Fill(new Rect(25f, 23f, 6f, 6f), GroundPainter.Dirt, true, 25);
 
             // 바닷가: 모래 → 물거품 → 바다
             g.Fill(new Rect(-16f, -8.2f, 24.6f, 1.3f), GroundPainter.Sand, true, 1);
@@ -186,6 +206,8 @@ namespace MoonlightPost
             for (int y = 2; y < 11; y++) Hedge("Fence", new Vector2(17f, y), 1, y);
             for (int y = -11; y < -2; y++) Hedge("Fence", new Vector2(17f, y), 1, y + 50);
             for (int y = -3; y < 3; y++) Hedge("Thicket", new Vector2(31f, y), 22, y + 100);
+            for (int y = 11; y < 33; y++)
+                if (y < FenceSouthY - 0.5f || y > FenceNorthY) Hedge("Fence", new Vector2(17f, y), 1, y + 150);
         }
 
         void Hedge(string name, Vector2 bottomCenter, int widthTiles, int seed)
@@ -200,10 +222,14 @@ namespace MoonlightPost
         {
             int i = 0;
             for (float x = -45f; x <= 51.5f; x += 2.3f, i++)
-                Spawner.Tree(new Vector2(x + (i % 2) * 0.6f, 11.1f + (i % 3) * 0.25f), x > 17f || i % 3 == 0, i);
+            {
+                float tx = x + (i % 2) * 0.6f;
+                if (!InRidgeGap(tx)) Spawner.Tree(new Vector2(tx, 11.1f + (i % 3) * 0.25f), tx > 17f || i % 3 == 0, i);
+                if (tx > -16f) Spawner.Tree(new Vector2(tx, 33.1f + (i % 3) * 0.25f), tx > 17f || i % 3 == 0, i + 40);
+            }
             for (float x = 17.5f; x < 52f; x += 1f)
                 Hedge("Border", new Vector2(x, -11.9f), 1, (int)x + 200);
-            for (float y = -11f; y < 11f; y += 1f)
+            for (float y = -11f; y < 33f; y += 1f)
             {
                 Hedge("Border", new Vector2(52.6f, y), 1, (int)y + 300);
                 if (y > -8f && (y < -2.5f || y > 1.5f)) Hedge("Border", new Vector2(-16.6f, y), 1, (int)y + 400);
@@ -368,7 +394,7 @@ namespace MoonlightPost
             var sack = Clue("flour_sack", new Vector2(34f, 7f), Art.FlourSack);
             Clue("old_sign", new Vector2(44.6f, 4.4f), useAssets ? GameAssets.Tile("TilesetNature", 5, 8) : Art.Signpost);
 
-            var director = new GameObject("NightDirector").AddComponent<NightDirector>();
+            director = new GameObject("NightDirector").AddComponent<NightDirector>();
             director.transform.SetParent(worldRoot.transform, false);
             director.northLog = northLog;
             director.southLog = southLog;
@@ -389,7 +415,7 @@ namespace MoonlightPost
             };
         }
 
-        void Chest(string id, Vector2 pos, string itemId, string requireItem)
+        ItemPickup Chest(string id, Vector2 pos, string itemId, string requireItem)
         {
             Sprite closed = useAssets ? GameAssets.ChestClosed : null, open = useAssets ? GameAssets.ChestOpen : null;
             if (closed == null || open == null)
@@ -410,6 +436,7 @@ namespace MoonlightPost
             pickup.visual = go.GetComponent<SpriteRenderer>();
             pickup.closedSprite = closed;
             pickup.openSprite = open;
+            return pickup;
         }
 
         /// <summary>섬 곳곳에 숨긴 잃어버린 우표 8장. 건물 뒤, 덤불 사이, 지도 구석에 있다.</summary>
@@ -418,10 +445,10 @@ namespace MoonlightPost
             var spots = new[]
             {
                 new Vector2(-12.2f, 8.9f),   // 빵집 뒤
-                new Vector2(-15.2f, -6.8f),  // 서쪽 바닷가
+                new Vector2(-38.5f, 30.5f),  // 북쪽 갯바위, 선착장 옆
                 new Vector2(13f, -7.4f),     // 남쪽 집 뒤
-                new Vector2(15.6f, 9.4f),    // 마을 북동쪽 구석
-                new Vector2(31.5f, 10.1f),   // 북쪽 길, 통나무 너머
+                new Vector2(14.6f, 29.2f),   // 폐역 북동쪽 마른 나무 뒤
+                new Vector2(45.6f, 24.6f),   // 북쪽 숲, 무너진 터널 위
                 new Vector2(37.2f, -10.2f),  // 남쪽 길 나무 뒤
                 new Vector2(51.4f, 0.8f),    // 숲 동쪽 끝
                 new Vector2(41.6f, 3.6f),    // 덤불 사이(덤불에 가려져 있다)
@@ -479,6 +506,10 @@ namespace MoonlightPost
                 if (x > 20f && x < 42f && y > -3f && y < 3f) y += y >= 0f ? 3.5f : -3.5f;
                 Firefly.Spawn(amb, new Vector2(x, y), new Color(0.8f, 1f, 0.55f), 1.2f, 1f);
             }
+            // 북쪽 숲의 반딧불이
+            for (int i = 0; i < 18; i++)
+                Firefly.Spawn(amb, new Vector2(Mathf.Lerp(19f, 51f, PixelCanvas.Hash(i, 5, 502)), Mathf.Lerp(12f, 32f, PixelCanvas.Hash(i, 6, 502))),
+                    new Color(0.8f, 1f, 0.55f), 1.2f, 1f);
             // 마을 나무 근처의 반딧불이
             foreach (var p in new[] { new Vector2(-13f, 7f), new Vector2(13f, 7.5f), new Vector2(-12f, 1f), new Vector2(6f, 8f) })
                 Firefly.Spawn(amb, p, new Color(1f, 0.95f, 0.6f), 1f, 1f);

@@ -95,7 +95,7 @@
       "title": "우체국장님께",
       "senderName": "숲 끝 오두막의 오웬",
       "recipientId": "dora",
-      "recipientName": "마을 서남쪽 집의 옛 우체국장 도라",
+      "recipientName": "북쪽 폐역 승강장의 옛 우체국장 도라",
       "recipientHint": "봉투에는 '우체국장님께'라고만 적혀 있다. 지금 이 섬에는 우체국장이 없다.",
       "revealFlag": "clue:duty_roster",
       "condition": "delivered:owen_reply",
@@ -107,7 +107,7 @@
         { "speaker": "", "text": "우체국 앞 게시판에 옛 근무표가 붙어 있었던 것 같다. 살펴보자." }
       ],
       "deliverPrompt": [
-        { "speaker": "도라", "text": "...우체국장이라. 그 이름으로 불린 지 삼 년이 넘었구먼." },
+        { "speaker": "도라", "text": "...이 밤중에 폐역까지 찾아오다니. 우체국장이라. 그 이름으로 불린 지 삼 년이 넘었구먼." },
         { "speaker": "", "text": "봉투 뒷면의 '오웬'이라는 글씨를 본 도라의 손이 멈춘다." }
       ],
       "choices": [
@@ -390,21 +390,21 @@
       "id": "teo_letter",
       "title": "바다 건너 하나에게",
       "senderName": "서쪽 해안의 테오",
-      "recipientId": "old_mailbox",
-      "recipientName": "숲 끝의 낡은 우체통",
-      "recipientHint": "주소는 '바다 건너'. 배가 끊긴 곳으로는 보낼 수 없다... '닿지 못한 편지'를 받는 곳을 찾자.",
-      "revealFlag": "clue:old_sign",
+      "recipientId": "mail_train",
+      "recipientName": "북쪽 폐역의 옛 우편 열차",
+      "recipientHint": "주소는 '바다 건너'. 배가 끊긴 곳으로 보낼 길을 찾아야 한다. 북쪽 폐역에 무언가 있을지도 모른다.",
+      "revealFlag": "clue:station_timetable",
       "condition": "delivered:mira_bread_letter",
       "deliverCondition": "",
       "blockedLines": [],
       "receiveLines": [
         { "speaker": "우체국 창구", "text": "이번 꾸러미에는 떠밀려 온 편지 대신, 테오가 직접 쓴 편지가 들어 있었다." },
         { "speaker": "테오", "text": "(쪽지) 우체부 양반, 부탁이 있네. 바다 건너 내 딸 하나에게 보내는 편지야. 배가 끊겨서 이 년째 못 보냈지." },
-        { "speaker": "테오", "text": "(쪽지) 노아한테 들었네. 숲 끝에 '닿지 못한 편지'를 받는 우체통이 있다며?" },
-        { "speaker": "", "text": "숲 끝의 낡은 우체통으로 가자." }
+        { "speaker": "테오", "text": "(쪽지) 옛날엔 북쪽 역에서 우편 열차가 항구까지 편지를 날랐다더군. 그 열차가 아직 거기 서 있다면..." },
+        { "speaker": "", "text": "북쪽 폐역에 가 보자. 승강장 어딘가에 옛 시간표가 남아 있을지도 모른다." }
       ],
       "deliverPrompt": [
-        { "speaker": "", "text": "우체통 투입구가 다시 달빛으로 차오른다." },
+        { "speaker": "", "text": "녹슨 우편차의 투입구가 달빛으로 차오른다. 삼 년 동안 멈춰 있던 열차인데, 투입구만은 깨끗하다." },
         { "speaker": "", "text": "편지를 넣으려는데, 봉투 끝에 적힌 짧은 추신이 비쳐 보인다. '아빠는 이제 등대 불빛이 보이는 곳에 산다.'" }
       ],
       "choices": [
@@ -412,7 +412,7 @@
           "text": "그대로 넣는다",
           "setFlag": "teo_plain",
           "lines": [
-            { "speaker": "", "text": "편지가 투입구 안으로 미끄러져 들어가고, 빛이 바다 쪽으로 길게 뻗었다." }
+            { "speaker": "", "text": "편지가 우편차 안으로 사라지고, 철길 끝 무너진 터널 쪽에서 기적 소리 같은 바람이 불어왔다." }
           ]
         },
         {
@@ -420,13 +420,13 @@
           "setFlag": "teo_stamped",
           "lines": [
             { "speaker": "", "text": "소인을 찍자 봉투가 은빛으로 빛난다. 이 편지는 이제 정식으로 '배달 중'이다." },
-            { "speaker": "", "text": "편지가 투입구 안으로 미끄러져 들어가고, 빛이 바다 쪽으로 길게 뻗었다." }
+            { "speaker": "", "text": "편지가 우편차 안으로 사라지고, 철길 끝 무너진 터널 쪽에서 기적 소리 같은 바람이 불어왔다." }
           ]
         }
       ],
       "deliveredFlag": "teo_sent",
       "rewardMaxHp": 0,
-      "rewardText": "바다 쪽으로 빛이 뻗어 나갔다. 답장이 올지도 모른다."
+      "rewardText": "승강장의 등불이 하나둘 켜졌다. 바다 건너에서 답장이 올지도 모른다."
     },
     {
       "id": "hana_reply",

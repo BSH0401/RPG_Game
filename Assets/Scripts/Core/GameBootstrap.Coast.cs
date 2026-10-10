@@ -46,6 +46,7 @@ namespace MoonlightPost
             var big = RockSprite(true);
             var small = RockSprite(false);
             for (float x = -45f; x < -18f; x += 3.1f)
+                if (!InRidgeGap(x)) // 절벽 틈으로 북쪽 갯바위에 올라간다
                 Spawner.Prop("Cliff", new Vector2(x, 9.4f + Mathf.Repeat(x, 2f) * 0.4f), big, new Vector2(3.2f, 0.9f), new Vector2(0f, 0.45f));
             foreach (var p in new[]
                      {

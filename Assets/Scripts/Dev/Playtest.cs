@@ -80,6 +80,10 @@ namespace MoonlightPost
             transcript.AppendLine("=================== " + (route + 1) + "회차 ===================");
             var player = FindAnyObjectByType<PlayerController>();
             player.Health.Invulnerable = true;
+            // GameState.Load 가 구독을 비우므로 새 게임마다 다시 구독한다.
+            GameState.Changed += MarkDirty;
+            GameState.NightChanged += MarkDirty;
+            openDirty = true;
 
             if (scenery) yield return Overviews("start");
             CheckReach("시작");
@@ -195,9 +199,13 @@ namespace MoonlightPost
 
         const float Cell = 0.25f;
         const float PlayerRadius = 0.35f;
-        static readonly Rect Bounds = new Rect(-50f, -11f, 102f, 22f);
+        static Rect Bounds => GameBootstrap.WorldBounds;
         bool[,] reach;
         int[,] dist;
+        bool[,] openCells;
+        bool openDirty = true;
+
+        void MarkDirty() => openDirty = true;
 
         /// <summary>플레이어 위치에서 바닥 칸을 따라 퍼져 나가며 걸어서 닿는 칸을 구한다.</summary>
         bool Flood(Vector2 from)
@@ -205,10 +213,16 @@ namespace MoonlightPost
             int w = Mathf.CeilToInt(Bounds.width / Cell), h = Mathf.CeilToInt(Bounds.height / Cell);
             reach = new bool[w, h];
             dist = new int[w, h];
-            var open = new bool[w, h];
-            for (int x = 0; x < w; x++)
-            for (int y = 0; y < h; y++)
-                open[x, y] = Free(CellPos(x, y));
+            // 걸을 수 있는 칸은 게임 상태(플래그·밤)가 바뀔 때만 다시 계산한다.
+            if (openDirty || openCells == null)
+            {
+                openCells = new bool[w, h];
+                for (int x = 0; x < w; x++)
+                for (int y = 0; y < h; y++)
+                    openCells[x, y] = Free(CellPos(x, y));
+                openDirty = false;
+            }
+            var open = openCells;
             var q = new Queue<Vector2Int>();
             var s = ToCell(from);
             if (!open[s.x, s.y]) return false;
@@ -290,6 +304,12 @@ namespace MoonlightPost
                 if (needed) Problem("[" + label + "] 걸어서 닿을 수 없음: " + it.DisplayName + " @ " + (Vector2)it.transform.position);
                 else locked.Add(it.DisplayName);
             }
+            foreach (var c in Collectible.All)
+            {
+                if (c.Taken) continue;
+                count++;
+                if (Stand(c.transform.position, 0.8f) == null) locked.Add("우표@" + (Vector2)c.transform.position);
+            }
             Log("   도달 검사(" + label + "): 대상 " + count + "개" + (locked.Count > 0 ? ", 아직 못 가는 곳: " + string.Join(", ", locked) : ""));
         }
 
@@ -329,7 +349,7 @@ namespace MoonlightPost
 
         IEnumerator Overviews(string tag)
         {
-            foreach (var (pos, label) in new[] { (new Vector2(-1f, 0.5f), "village"), (new Vector2(34f, 0f), "forest"), (new Vector2(-33f, 1f), "coast") })
+            foreach (var (pos, label) in new[] { (new Vector2(-1f, 0.5f), "village"), (new Vector2(34f, 0f), "forest"), (new Vector2(-33f, 1f), "coast"), (new Vector2(0f, 22f), "station"), (new Vector2(34f, 22f), "northforest"), (new Vector2(-33f, 22f), "northshore") })
             {
                 yield return MoveCamera(pos, 11.5f);
                 yield return Shot("overview_" + tag + "_" + label);

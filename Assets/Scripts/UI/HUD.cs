@@ -374,6 +374,7 @@ namespace MoonlightPost
 
             Marker(map, postOfficePos, new Color(1f, 0.85f, 0.4f), "우체국");
             Marker(map, GameBootstrap.LighthousePos, GameState.HasFlag("lighthouse_lit") ? new Color(1f, 0.95f, 0.6f) : new Color(0.6f, 0.5f, 0.8f), "등대");
+            Marker(map, GameBootstrap.StationPos, GameState.HasFlag("teo_sent") ? new Color(1f, 0.85f, 0.55f) : new Color(0.6f, 0.6f, 0.65f), "폐역");
 
             var letter = LetterManager.Carrying;
             string info;
@@ -402,7 +403,7 @@ namespace MoonlightPost
             var infoBox = new Rect(map.x, map.yMax + 16 * s, map.width, 120 * s);
             Ui.Panel(infoBox);
             GUI.Label(new Rect(infoBox.x + 14 * s, infoBox.y + 10 * s, infoBox.width - 28 * s, infoBox.height - 20 * s),
-                info + "\n<color=#9fb3ff>동쪽 숲의 길은 밤마다 조금씩 바뀐다. 쓰러진 나무가 길을 막고 있다면 반대쪽 길로 돌아가자.</color>", Ui.Text);
+                info + "\n<color=#9fb3ff>밤마다 길이 조금씩 바뀐다. 숲의 쓰러진 나무나 폐역 건널목의 잔해가 길을 막고 있다면 반대쪽으로 돌아가자.</color>", Ui.Text);
         }
 
         Rect ToMap(Rect map, Rect area)

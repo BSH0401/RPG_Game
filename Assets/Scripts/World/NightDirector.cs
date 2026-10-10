@@ -61,7 +61,16 @@ namespace MoonlightPost
         public Vector2[] coastSpawns = new Vector2[0];
         public BossSpec[] bosses = new BossSpec[0];
 
+        // 북쪽 띠(GameBootstrap.North): 폐역 건널목 잔해와 적 위치
+        public GameObject stationWestBlock;
+        public GameObject stationEastBlock;
+        public Vector2[] stationSpawns = new Vector2[0];
+        public Vector2[] northForestSpawns = new Vector2[0];
+        /// <summary>북쪽 갯바위(해안과 함께 우체국 등불을 켠 뒤 열림).</summary>
+        public Vector2[] coastNorthSpawns = new Vector2[0];
+
         public bool NorthBlocked { get; private set; }
+        public bool StationWestBlocked { get; private set; }
 
         readonly List<GameObject> enemies = new List<GameObject>();
         readonly List<GameObject> moodObjects = new List<GameObject>();
@@ -100,6 +109,10 @@ namespace MoonlightPost
             southLog.SetActive(!NorthBlocked);
             // 단서는 항상 열린 길 위에 놓는다.
             flourSack.position = NorthBlocked ? flourSackSouth : flourSackNorth;
+            // 폐역: 두 건널목 중 한쪽이 잔해로 막힌다.
+            StationWestBlocked = rng.Next(2) == 0;
+            if (stationWestBlock != null) stationWestBlock.SetActive(StationWestBlocked);
+            if (stationEastBlock != null) stationEastBlock.SetActive(!StationWestBlocked);
             SpawnEnemies(rng);
         }
 
@@ -144,6 +157,15 @@ namespace MoonlightPost
                 foreach (var p in Pick(coastSpawns, Mood == NightMood.Fog ? 4 : 3, rng))
                     enemies.Add(Spawner.Enemy(p, i++ % 2 == 0 ? EnemyKind.Bat : EnemyKind.Mole));
             }
+
+            // 폐역과 북쪽 숲: 들쥐·박쥐, 밤이 깊으면 두더지도.
+            foreach (var p in Pick(stationSpawns, Mood == NightMood.Fog ? 3 : 2, rng))
+                enemies.Add(Spawner.Enemy(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Rat));
+            foreach (var p in Pick(northForestSpawns, Mathf.Clamp(night, 2, 3) + (Mood == NightMood.Fog ? 1 : 0), rng))
+                enemies.Add(Spawner.Enemy(p, night >= 3 && rng.NextDouble() < 0.4 ? EnemyKind.Mole : (rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Rat)));
+            if (GameState.HasFlag("lamp_lit"))
+                foreach (var p in Pick(coastNorthSpawns, 2, rng))
+                    enemies.Add(Spawner.Enemy(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Mole));
 
             RefreshBoss();
         }

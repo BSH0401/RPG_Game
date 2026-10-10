@@ -13,7 +13,7 @@ namespace MoonlightPost
         const string House = "TilesetHouse";
         const string WaterSheet = "TilesetWater";
 
-        const int GroundX0 = -50, GroundX1 = 52, GroundY0 = -11, GroundY1 = 11;
+        const int GroundX0 = -50, GroundX1 = 52, GroundY0 = -11, GroundY1 = 33;
         const int CoastMaxX = -17; // 이 x 이하는 해안(모래)
 
         /// <summary>길(흙길) 영역. 셀 단위(x, y, 너비, 높이). 모든 길은 가로·세로 2칸 이상이어야 모서리 타일이 맞는다.</summary>
@@ -33,11 +33,22 @@ namespace MoonlightPost
             new RectInt(42, -8, 2, 16),    // 동쪽 세로길
             new RectInt(44, -8, 5, 2),     // 오두막 앞
             new RectInt(44, 6, 6, 2),      // 우체통 앞
+            // 북쪽 띠
+            new RectInt(11, -1, 2, 21),    // 마을 → 폐역
+            new RectInt(17, 20, 30, 3),    // 북쪽 숲 철길
+            new RectInt(38, 6, 2, 15),     // 숲 북쪽 길 ↔ 철길 샛길
+            new RectInt(27, 23, 2, 4),     // 신호소 가는 길
+            new RectInt(25, 26, 6, 3),     // 신호소 공터
         };
+
+        /// <summary>폐역 마당의 자갈 바닥(셀 단위).</summary>
+        static readonly RectInt StationGravel = new RectInt(-15, 12, 31, 19);
+        /// <summary>북쪽 갯바위의 물웅덩이(셀 단위). 충돌은 GameBootstrap.North 의 TidePools.</summary>
+        static readonly RectInt[] TidePoolCells = { new RectInt(-40, 17, 4, 3), new RectInt(-27, 26, 5, 3) };
 
         static readonly RectInt SeaCells = new RectInt(-16, -11, 24, 3);
         static readonly RectInt CoastSeaSouth = new RectInt(-50, -11, 33, 5);
-        static readonly RectInt CoastSeaWest = new RectInt(-50, -11, 4, 22);
+        static readonly RectInt CoastSeaWest = new RectInt(-50, -11, 4, 44);
 
         // ------------------------------------------------------------------ 바닥
 
@@ -49,13 +60,18 @@ namespace MoonlightPost
             int w = GroundX1 - GroundX0, h = GroundY1 - GroundY0;
             var path = new bool[w, h];
             var sea = new bool[w, h];
+            var gravel = new bool[w, h];
             foreach (var r in PathCells) Mark(path, r);
+            Mark(gravel, StationGravel);
+            foreach (var r in TidePoolCells) Mark(sea, r);
             Mark(sea, SeaCells);
             Mark(sea, CoastSeaSouth);
             Mark(sea, CoastSeaWest);
 
             System.Func<int, int, bool> Path = (x, y) =>
                 x >= GroundX0 && x < GroundX1 && y >= GroundY0 && y < GroundY1 && path[x - GroundX0, y - GroundY0];
+            System.Func<int, int, bool> Gravel = (x, y) =>
+                x >= GroundX0 && x < GroundX1 && y >= GroundY0 && y < GroundY1 && gravel[x - GroundX0, y - GroundY0];
             // 바다는 왼쪽·아래쪽 화면 밖으로 이어진다고 본다.
             System.Func<int, int, bool> Sea = (x, y) =>
                 x < GroundX0 || y < GroundY0 || (x < GroundX1 && y < GroundY1 && sea[x - GroundX0, y - GroundY0]);
@@ -79,6 +95,8 @@ namespace MoonlightPost
                         continue;
                     }
                     Spawner.GroundTile(root, x, y, GrassTile(x, y, forest), -1000);
+                    if (Gravel(x, y) && !Path(x, y))
+                        Spawner.GroundTile(root, x, y, BlobTile(Floor, 11, 14, Gravel, x, y, true), -995);
                     if (Path(x, y))
                         Spawner.GroundTile(root, x, y, BlobTile(Floor, forest ? 11 : 0, 7, Path, x, y, true), -990);
                     else if (PixelCanvas.Hash(x, y, 31) > 0.94f)
@@ -169,21 +187,31 @@ namespace MoonlightPost
                 for (float x = 21.2f; x < 41.5f; x += 2.5f, i++)
                     Spawner.Prop("Thicket", new Vector2(x + (i % 2) * 0.6f, y), cluster);
 
-            // 위쪽 가장자리: 침엽수 줄
+            // 옛 섬과 북쪽 띠 사이: 침엽수 줄(능선의 세 틈은 비운다). 맨 위 가장자리도 침엽수 줄.
             i = 0;
             for (float x = -45.5f; x <= 52f; x += 1.7f, i++)
-                Spawner.Prop("Border", new Vector2(x, 10.6f + (i % 3) * 0.3f), i % 2 == 0 ? conifer : hedge);
+            {
+                if (!InRidgeGap(x)) Spawner.Prop("Border", new Vector2(x, 10.6f + (i % 3) * 0.3f), i % 2 == 0 ? conifer : hedge);
+                if (x > -17f) Spawner.Prop("Border", new Vector2(x, 32.6f + (i % 3) * 0.3f), i % 2 == 0 ? conifer : hedge);
+            }
+            // 폐역과 북쪽 숲 사이 생울타리(철길 자리는 비운다)
+            for (float y = 11.4f; y < 33f; y += 1.3f)
+                if (y < FenceSouthY - 0.4f || y > FenceNorthY + 0.2f)
+                    Spawner.Prop("Hedge", new Vector2(17f, y), Mathf.Repeat(y, 2.6f) < 1.3f ? hedge : conifer);
             // 숲 아래쪽, 양옆 가장자리
             var bush = GameAssets.Tile(Nature, 0, 10);
             var bush2 = GameAssets.Tile(Nature, 1, 10);
             for (int x = 18; x < 52; x++) Spawner.Prop("Border", new Vector2(x + 0.5f, -11.4f), x % 2 == 0 ? bush : bush2);
-            for (float y = -11f; y < 11f; y += 1.5f)
+            for (float y = -11f; y < 33f; y += 1.5f)
             {
                 Spawner.Prop("Border", new Vector2(53f, y), conifer);
                 // 마을과 해안 사이 나무 울타리(가운데 길은 비운다)
                 if (y > -8f && (y < -2.6f || y > 1.6f)) Spawner.Prop("Border", new Vector2(-17f, y), conifer);
             }
         }
+
+        /// <summary>능선(y 11)에서 걸어 지나갈 수 있는 틈: 해안 절벽 틈, 마을 북동쪽, 숲 샛길.</summary>
+        static bool InRidgeGap(float x) => (x > -32f && x < -27.5f) || (x > 10f && x < 14f) || (x > 36.6f && x < 41.4f);
 
         static Sprite VillageTreeSprite(int v)
         {

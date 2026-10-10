@@ -616,6 +616,78 @@ namespace MoonlightPost
             return c.ToSprite(0.5f, 0.3f);
         });
 
+        // ================================================================ 폐역
+
+        /// <summary>철길 한 칸(가로). 녹슨 레일 두 줄과 침목.</summary>
+        public static Sprite Rail => Cached("rail", () =>
+        {
+            var c = new PixelCanvas(16, 16);
+            for (int x = 1; x < 16; x += 5) c.Rect(x, 2, 3, 12, H("#4a3a2e"));
+            c.HLine(0, 4, 16, H("#7a6a60"));
+            c.HLine(0, 11, 16, H("#7a6a60"));
+            c.HLine(0, 5, 16, H("#4a4048"));
+            c.HLine(0, 12, 16, H("#4a4048"));
+            for (int x = 0; x < 16; x += 6) c.Set(x + 2, 11, H("#a0522d"));
+            return c.ToSprite(0f, 0f);
+        });
+
+        /// <summary>낡은 열차 한 칸. mail 이면 빨간 우편차(봉투 표시), 아니면 녹슨 화물차.</summary>
+        public static Sprite RailCar(bool mail) => Cached("railcar" + mail, () =>
+        {
+            var c = new PixelCanvas(64, 34);
+            Color32 body = H(mail ? "#8a2f2a" : "#5a5048"), dark = PixelCanvas.Shade(body, 0.7f), roof = H(mail ? "#4a2a2e" : "#3a3634");
+            c.Rect(2, 6, 60, 22, body);
+            c.Rect(2, 6, 60, 4, dark);
+            c.Rect(0, 26, 64, 5, roof);
+            for (int i = 0; i < 4; i++)
+            {
+                c.Ellipse(10 + i * 14.5f, 5, 4, 4, H("#22201e"));
+                c.Set(10 + i * 14, 5, H("#6a6460"));
+            }
+            if (mail)
+            {
+                // 봉투 표시와 투입구
+                c.Rect(24, 14, 16, 10, H("#e8dcc0"));
+                for (int i = 0; i < 8; i++) { c.Set(24 + i, 23 - i / 2, H("#b8342f")); c.Set(39 - i, 23 - i / 2, H("#b8342f")); }
+                c.Rect(46, 16, 10, 2, H("#1a1414"));
+                c.Rect(6, 14, 10, 8, H("#2a2430"));
+            }
+            else
+            {
+                for (int x = 8; x < 60; x += 8) c.VLine(x, 10, 16, dark);
+                c.Rect(20, 12, 7, 5, H("#8a4a2a"));
+            }
+            c.Outline(Ink);
+            return c.ToSprite();
+        });
+
+        /// <summary>철길 울타리 한 칸(가로 1타일).</summary>
+        public static Sprite RailFence => Cached("railfence", () =>
+        {
+            var c = new PixelCanvas(16, 14);
+            c.Rect(1, 0, 3, 13, H("#6a5040"));
+            c.Rect(12, 0, 3, 13, H("#6a5040"));
+            c.Rect(0, 8, 16, 2, H("#8a6a50"));
+            c.Rect(0, 3, 16, 2, H("#8a6a50"));
+            c.Outline(Ink);
+            return c.ToSprite();
+        });
+
+        /// <summary>건널목을 막은 잔해(부서진 나무 상자 더미).</summary>
+        public static Sprite Rubble => Cached("rubble", () =>
+        {
+            var c = new PixelCanvas(36, 30);
+            c.Rect(2, 0, 14, 12, H("#8a5a32"));
+            c.Rect(18, 0, 16, 14, H("#7a4e2c"));
+            c.Rect(8, 12, 16, 12, H("#9a6a3a"));
+            c.Rect(12, 24, 10, 5, H("#6a4428"));
+            foreach (var y in new[] { 5, 18 }) c.HLine(2, y, 32, H("#5a3a20"));
+            c.VLine(9, 0, 12, H("#5a3a20"));
+            c.VLine(26, 0, 14, H("#5a3a20"));
+            c.Outline(Ink);
+            return c.ToSprite();
+        });
+
         public static Sprite Chest(bool open) => Cached("chest" + open, () =>
         {
             var c = new PixelCanvas(16, 14);

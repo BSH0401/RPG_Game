@@ -239,7 +239,32 @@ namespace MoonlightPost
             }
         }
 
-        void FixedUpdate() => rb.SetVelocity(velocity);
+        void FixedUpdate()
+        {
+            // 땅속(물속)에서는 충돌체를 끄므로, 벽·절벽·바다 같은 고정된 지형을 직접 확인해 뚫고 지나가지 않게 한다.
+            if (IsBurrowed && velocity.sqrMagnitude > 0f)
+            {
+                Vector2 next = rb.position + velocity * Time.fixedDeltaTime;
+                if (TerrainBlocked(next))
+                {
+                    // 한 축이라도 열려 있으면 그쪽으로 미끄러진다.
+                    var vx = new Vector2(velocity.x, 0f);
+                    var vy = new Vector2(0f, velocity.y);
+                    if (!TerrainBlocked(rb.position + vx * Time.fixedDeltaTime)) velocity = vx;
+                    else if (!TerrainBlocked(rb.position + vy * Time.fixedDeltaTime)) velocity = vy;
+                    else velocity = Vector2.zero;
+                }
+            }
+            rb.SetVelocity(velocity);
+        }
+
+        /// <summary>p 에 고정된 지형(리지드바디가 없는 충돌체)이 있는가. 땅속 이동과 불러내기 자리 고르기에 쓴다.</summary>
+        public static bool TerrainBlocked(Vector2 p, float radius = 0.35f)
+        {
+            foreach (var c in Physics2D.OverlapCircleAll(p, radius))
+                if (!c.isTrigger && c.attachedRigidbody == null) return true;
+            return false;
+        }
 
         void EnterState(State next, float duration)
         {
@@ -368,8 +393,17 @@ namespace MoonlightPost
                     int n = Mathf.Min(summonCount, maxMinions - minions.Count);
                     for (int i = 0; i < n; i++)
                     {
-                        float a = (i / (float)Mathf.Max(1, n) + Random.value * 0.2f) * Mathf.PI * 2f;
-                        Vector2 p = (Vector2)transform.position + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 2.2f;
+                        // 벽·바위 속에 생기지 않도록 빈자리를 고른다(여덟 방향을 차례로 본다).
+                        Vector2 p = default;
+                        bool found = false;
+                        float start = Random.value * Mathf.PI * 2f + i * Mathf.PI;
+                        for (int k = 0; k < 8 && !found; k++)
+                        {
+                            float a = start + k * Mathf.PI * 0.25f;
+                            p = (Vector2)transform.position + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 2.2f;
+                            found = !TerrainBlocked(p, 0.45f);
+                        }
+                        if (!found) continue;
                         var kind = summonKinds[Random.Range(0, summonKinds.Length)];
                         minions.Add(Spawner.Enemy(p, kind));
                         if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, p, 16f, new Color(0.6f, 0.4f, 1f), 600, 1.2f);

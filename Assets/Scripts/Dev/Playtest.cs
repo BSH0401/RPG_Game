@@ -88,6 +88,7 @@ namespace MoonlightPost
 
             if (scenery) yield return Overviews("start");
             if (scenery) yield return MenuShots();
+            if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
             for (int n = 1; n <= 20; n++)
@@ -111,6 +112,7 @@ namespace MoonlightPost
                 yield return Drain(choice);
                 Log(n + ". 「" + letter.title + "」 → " + letter.recipientName + "  (밤 " + GameState.Night + ", " + NightDirector.MoodName(NightDirector.Mood) + ")");
                 CheckReach(letter.id);
+                CheckEnemies(letter.id + " 새 밤");
 
                 // 받는 사람 알아내기 → (막혀 있으면) 받는 사람에게 한 번 가 보기 → 배달 조건 풀기
                 yield return Solve(player, letter.id, letter.revealFlag, n);
@@ -217,12 +219,18 @@ namespace MoonlightPost
                     Problem(label + ": '" + term + "'을(를) 해결할 단서·물건·대화·적을 찾지 못함");
                     yield break;
                 }
-                yield return Visit(player, foes[0].transform.position + new Vector3(0f, -3f, 0f), false);
+                // 적 가까이의 걸어서 닿는 칸에 선다(예전에는 적 3칸 아래로 순간이동해 벽 밖에 서기도 했다).
+                if (!Flood(player.transform.position)) Flood(GameBootstrapSpawn());
+                var near = Stand(foes[0].transform.position, 4f);
+                if (near == null) Problem(label + ": 사건의 적(" + (Vector2)foes[0].transform.position + ") 근처에 걸어서 갈 수 없음");
+                yield return Visit(player, near ?? (Vector2)foes[0].transform.position, false);
+                CheckEnemies(label + " 전투");
                 yield return Seconds(1.2f);
                 if (scenery) yield return Shot(n.ToString("00") + "_fight_" + term.Replace(':', '-'));
                 foreach (var f in foes)
                     if (f != null) f.GetComponent<Health>().TakeDamage(999, player.transform.position);
                 yield return Seconds(2f);
+                CheckEnemies(label + " 전투 뒤");
             }
         }
 
@@ -337,7 +345,20 @@ namespace MoonlightPost
         bool[,] openCells;
         bool openDirty = true;
 
-        void MarkDirty() => openDirty = true;
+        void MarkDirty()
+        {
+            openDirty = true;
+            edgeChecked = false;
+        }
+
+        bool edgeChecked;
+        readonly HashSet<string> edgeLeaks = new HashSet<string>();
+
+        void EdgeLeak(Vector2 p)
+        {
+            string key = Mathf.RoundToInt(p.x / 4f) + "," + Mathf.RoundToInt(p.y / 4f);
+            if (edgeLeaks.Add(key)) Problem("월드 가장자리에 막히지 않은 칸 @ " + p);
+        }
 
         /// <summary>플레이어 위치에서 바닥 칸을 따라 퍼져 나가며 걸어서 닿는 칸을 구한다.</summary>
         bool Flood(Vector2 from)
@@ -358,6 +379,17 @@ namespace MoonlightPost
             var q = new Queue<Vector2Int>();
             var s = ToCell(from);
             if (!open[s.x, s.y]) return false;
+            // 월드 가장자리 칸이 열려 있으면 바깥 벽에 틈이 있다는 뜻이다(걸어서 월드 밖으로 나갈 수 있음).
+            if (!edgeChecked)
+            {
+                edgeChecked = true;
+                for (int x = 0; x < w; x++)
+                    foreach (int y in new[] { 0, h - 1 })
+                        if (open[x, y]) EdgeLeak(CellPos(x, y));
+                for (int y = 0; y < h; y++)
+                    foreach (int x in new[] { 0, w - 1 })
+                        if (open[x, y]) EdgeLeak(CellPos(x, y));
+            }
             reach[s.x, s.y] = true;
             q.Enqueue(s);
             while (q.Count > 0)
@@ -417,6 +449,43 @@ namespace MoonlightPost
             return best;
         }
 
+        /// <summary>
+        /// 땅속 이동이 벽을 뚫지 않는지: 마을과 숲 사이 생울타리(x 17) 건너편에 두더지를 두고, 플레이어는 마을 쪽에 세운다.
+        /// 두더지는 플레이어를 향해 땅속으로 파고들지만 울타리를 넘어오면 안 된다.
+        /// </summary>
+        IEnumerator BurrowWallTest(PlayerController player)
+        {
+            yield return Visit(player, new Vector2(15.4f, 5f), false);
+            var mole = Spawner.Enemy(new Vector2(19.6f, 5f), EnemyKind.Mole);
+            float minX = float.MaxValue;
+            float end = Time.time + 5f;
+            while (Time.time < end && mole != null)
+            {
+                minX = Mathf.Min(minX, mole.transform.position.x);
+                yield return null;
+            }
+            if (mole != null) Destroy(mole);
+            if (minX < 17.3f) Problem("두더지가 땅속으로 생울타리를 뚫고 지나감 (x " + minX.ToString("0.0") + ")");
+            else Log("   땅속 이동 벽 검사: 두더지가 생울타리 앞에서 멈춤 (가장 가까이 x " + minX.ToString("0.0") + ")");
+        }
+
+        readonly HashSet<string> enemyProblems = new HashSet<string>();
+
+        void CheckEnemies(string label)
+        {
+            var b = Bounds;
+            foreach (var e in new List<EnemyController>(EnemyController.Active))
+            {
+                if (e == null || e.IsBurrowed) continue;
+                Vector2 p = e.transform.position;
+                string where = !b.Contains(p) ? "월드 밖" : EnemyController.TerrainBlocked(p, 0.2f) ? "지형 속" : null;
+                if (where == null) continue;
+                // 같은 자리 문제는 한 번만 적는다.
+                string key = e.displayName + Mathf.RoundToInt(p.x) + "," + Mathf.RoundToInt(p.y);
+                if (enemyProblems.Add(key)) Problem("[" + label + "] " + e.displayName + "이(가) " + where + "에 있음 @ " + p);
+            }
+        }
+
         void CheckReach(string label)
         {
             var player = FindAnyObjectByType<PlayerController>();
@@ -462,6 +531,7 @@ namespace MoonlightPost
             yield return null;
             if (CameraFollow.I != null) CameraFollow.I.SnapToTarget();
             yield return Frames(3);
+            CheckEnemies("이동 중");
         }
 
         // ------------------------------------------------------------------ 스크린샷

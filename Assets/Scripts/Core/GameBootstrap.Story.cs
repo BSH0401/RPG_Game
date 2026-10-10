@@ -16,10 +16,9 @@ namespace MoonlightPost
             var visuals = WorldVisuals.I;
 
             // 도라: 처음엔 폐역 승강장, 편지를 받은 뒤엔 집 앞, 축제 날엔 우체국 앞
-            var doraTint = GameAssets.DoraTint;
-            visuals.Register(Spawner.Npc("dora", StationPos + new Vector2(-3.4f, -1.2f), Art.Dora, 1f, "Woman", doraTint).gameObject, "!dora_home");
-            visuals.Register(Spawner.Npc("dora", new Vector2(-8.6f, -6.2f), Art.Dora, 1f, "Woman", doraTint).gameObject, "dora_home,!festival");
-            visuals.Register(Spawner.Npc("dora", new Vector2(4.4f, 3.4f), Art.Dora, 1f, "Woman", doraTint).gameObject, "festival");
+            visuals.Register(Spawner.Npc("dora", StationPos + new Vector2(-3.4f, -1.2f), Art.Dora, 1f, "OldWoman").gameObject, "!dora_home");
+            visuals.Register(Spawner.Npc("dora", new Vector2(-8.6f, -6.2f), Art.Dora, 1f, "OldWoman").gameObject, "dora_home,!festival");
+            visuals.Register(Spawner.Npc("dora", new Vector2(4.4f, 3.4f), Art.Dora, 1f, "OldWoman").gameObject, "festival");
             visuals.Register(Group("DoraHouse_Lit", () =>
             {
                 Spawner.Glow(new Vector2(-11f, -4.6f), 3.5f, new Color(1f, 0.8f, 0.45f, 0.3f));
@@ -27,15 +26,14 @@ namespace MoonlightPost
             }), "dora_home");
 
             // 테오: 해안 입구 가까운 유목 곁의 모닥불(적이 나오는 곳과 떨어져 있다), 축제 날엔 마을로
-            var teoTint = GameAssets.TeoTint;
             visuals.Register(Group("Teo_Camp", () =>
             {
-                Spawner.Npc("teo", new Vector2(-19.2f, 7.3f), Art.Teo, 1f, "Hunter", teoTint);
+                Spawner.Npc("teo", new Vector2(-19.2f, 7.3f), Art.Teo, 1f, "OldMan");
                 Spawner.Glow(new Vector2(-20.2f, 7.5f), 4f, new Color(1f, 0.6f, 0.3f, 0.3f));
             }), "!festival,!carrying:hana_reply");
             // 바다 건너 답장(편지 11)이 오는 밤에는 배를 기다리러 북쪽 갯바위 선착장에 나가 있다.
-            visuals.Register(Spawner.Npc("teo", new Vector2(-42.4f, 26.6f), Art.Teo, 1f, "Hunter", teoTint).gameObject, "carrying:hana_reply");
-            visuals.Register(Spawner.Npc("teo", new Vector2(-8.4f, -2.4f), Art.Teo, 1f, "Hunter", teoTint).gameObject, "festival");
+            visuals.Register(Spawner.Npc("teo", new Vector2(-42.4f, 26.6f), Art.Teo, 1f, "OldMan").gameObject, "carrying:hana_reply");
+            visuals.Register(Spawner.Npc("teo", new Vector2(-8.4f, -2.4f), Art.Teo, 1f, "OldMan").gameObject, "festival");
 
             // 단서
             Sprite sign = useAssets ? GameAssets.Tile("TilesetNature", 5, 8) : Art.Signpost;

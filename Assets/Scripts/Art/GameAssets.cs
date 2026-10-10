@@ -134,10 +134,10 @@ namespace MoonlightPost
                 case "오웬": return Faceset("Hunter");
                 case "노아": return Faceset("Child");
                 case "세린": return Faceset("Princess");
-                case "도라": return Faceset("Woman");
-                case "테오": return Faceset("Hunter");
-                case "바우": return Faceset("Hunter");
-                case "유나": return Faceset("Princess");
+                case "도라": return Faceset("OldWoman");
+                case "테오": return Faceset("OldMan");
+                case "바우": return Faceset("OldMan2");
+                case "유나": return Faceset("SorcererBlack");
                 default: return null;
             }
         }
@@ -147,18 +147,10 @@ namespace MoonlightPost
         {
             switch (speaker)
             {
-                case "도라": return DoraTint;
-                case "테오": return TeoTint;
-                case "바우": return BauTint;
-                case "유나": return YunaTint;
                 default: return Color.white;
             }
         }
 
-        public static readonly Color DoraTint = new Color(0.78f, 0.72f, 1f);
-        public static readonly Color TeoTint = new Color(0.6f, 0.8f, 1f);
-        public static readonly Color BauTint = new Color(1f, 0.8f, 0.6f);
-        public static readonly Color YunaTint = new Color(0.7f, 1f, 0.82f);
 
         public static AudioClip Sfx(string name) => Resources.Load<AudioClip>(Root + "Audio/Sfx/" + name);
         public static AudioClip Music(string name) => Resources.Load<AudioClip>(Root + "Audio/Music/" + name);
@@ -179,6 +171,7 @@ namespace MoonlightPost
         public static Sprite[] SlashFrames => Strip("FX/Slash", 26, 32, 5);
         public static Sprite[] SmokeFrames => Strip("FX/Smoke", 30, 14, 8);
         public static Sprite[] BossFrames => Strip("Actors/GiantSpiritIdle", 50, 50, 5, 0.5f, 0f);
+        public static Sprite[] SlimeFrames => Strip("Actors/GiantSlimeIdle", 62, 52, 5, 0.5f, 0f);
         public static Sprite[] SquidIdleFrames => Strip("Actors/SquidIdle", 76, 79, 4, 0.5f, 0f);
         public static Sprite[] SquidShootFrames => Strip("Actors/SquidShoot", 76, 79, 5, 0.5f, 0f);
     }

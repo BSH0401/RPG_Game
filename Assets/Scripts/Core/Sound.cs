@@ -4,7 +4,7 @@ namespace MoonlightPost
 {
     /// <summary>
     /// 효과음과 배경음악. 에셋이 없으면 조용히 아무것도 하지 않는다.
-    /// 음악: 마을 / 숲 / 보스전을 플레이어 위치와 상황에 따라 서서히 바꾼다.
+    /// 음악: 지역(마을·숲·해안·폐역·별빛 고개·채석장)과 보스전에 따라 서서히 바꾼다. 첫 열차가 달린 뒤 마을은 엔딩 곡.
     /// </summary>
     public class Sound : MonoBehaviour
     {
@@ -17,7 +17,7 @@ namespace MoonlightPost
 
         AudioSource sfx;
         AudioSource musicA, musicB;
-        AudioClip village, forest, boss, current;
+        AudioClip village, forest, boss, coast, station, pass, quarry, ending, current;
 
         void Awake()
         {
@@ -31,6 +31,11 @@ namespace MoonlightPost
                 village = GameAssets.Music("Village");
                 forest = GameAssets.Music("Forest");
                 boss = GameAssets.Music("Boss");
+                coast = GameAssets.Music("Coast");
+                station = GameAssets.Music("Station");
+                pass = GameAssets.Music("Pass");
+                quarry = GameAssets.Music("Quarry");
+                ending = GameAssets.Music("Ending");
             }
         }
 
@@ -48,6 +53,19 @@ namespace MoonlightPost
             if (instance == this) instance = null;
         }
 
+        /// <summary>지역별 곡. 없는 곡은 마을/숲 곡으로 대신한다.</summary>
+        AudioClip RegionMusic(Vector2 p)
+        {
+            AudioClip clip;
+            if (p.x > 52.5f) clip = p.y > 11f ? pass : quarry;           // 2부: 별빛 고개 / 옛 채석장
+            else if (p.x < -16.5f) clip = coast;                         // 서쪽 해안·북쪽 갯바위
+            else if (p.x > forestStartX) clip = forest;                  // 동쪽 숲·북쪽 숲
+            else if (p.y > 11f) clip = station;                          // 폐역
+            else clip = GameState.HasFlag("train_runs") && ending != null ? ending : village;
+            if (clip != null) return clip;
+            return p.x > forestStartX ? forest : village;
+        }
+
         public static void Play(string name, float volume = 1f)
         {
             if (instance == null || !GameAssets.Available) return;
@@ -60,7 +78,7 @@ namespace MoonlightPost
             var player = PlayerController.I;
             if (player == null) return;
 
-            AudioClip wanted = player.transform.position.x > forestStartX ? forest : village;
+            AudioClip wanted = RegionMusic(player.transform.position);
             foreach (var e in EnemyController.Active)
                 if (e.isBoss && Vector2.Distance(e.transform.position, player.transform.position) < 12f) wanted = boss;
 

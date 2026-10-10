@@ -308,12 +308,12 @@ namespace MoonlightPost
                     enemy.spreadCount = 4;
                     enemy.summonKinds = new[] { EnemyKind.Rat, EnemyKind.Bat };
                     enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Spread, EnemyAttack.Summon, EnemyAttack.Lunge, EnemyAttack.Slam, EnemyAttack.Spread };
-                    var wraithFrames = GameAssets.Available ? GameAssets.BossFrames : null;
+                    var wraithFrames = GameAssets.Available ? GameAssets.SlimeFrames : null;
                     if (wraithFrames != null)
                     {
-                        body = Character(go, wraithFrames[0], 1.25f, 0.8f);
-                        // 오래된 편지지 빛깔: 누런 먹물
-                        body.color = new Color(0.95f, 0.78f, 0.5f);
+                        body = Character(go, wraithFrames[0], 1.1f, 0.6f);
+                        // 갱도에 고인 먹물 덩어리: 보랏빛 먹물
+                        body.color = new Color(0.72f, 0.55f, 1f);
                         Object.Destroy(go.GetComponent<CharacterAnimator>());
                         var anim = body.gameObject.AddComponent<FrameAnimator>();
                         anim.frames = wraithFrames;

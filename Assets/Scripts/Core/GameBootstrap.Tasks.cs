@@ -19,10 +19,10 @@ namespace MoonlightPost
             QuestItem("storm_warning", "lamp_oil", new Vector2(-41.6f, 29f), "FireflyJar", Art.Chest(false), "램프 기름통",
                 "옛 우편 선착장 창고 구석에 램프 기름통이 남아 있다.");
             // 편지 8: 바람에 날려 북쪽 숲 철길 끝까지 간 편지 뒷장
-            QuestItem("owen_old_letter", "letter_half", new Vector2(44f, 23.4f), "PaperLetter", Art.Signpost, "찢어진 편지 뒷장",
+            QuestItem("owen_old_letter", "letter_half", new Vector2(44f, 23.4f), "Letter3", Art.Signpost, "찢어진 편지 뒷장",
                 "무너진 터널 앞 철길 위에, 바닷물에 젖었다 마른 편지 뒷장이 걸려 있다.");
             // 편지 10: 우편차 자물쇠 열쇠(옛 신호소)
-            QuestItem("teo_letter", "signal_key", new Vector2(26.2f, 27.6f), "Key", Art.Chest(false), "우편차 열쇠꾸러미",
+            QuestItem("teo_letter", "signal_key", new Vector2(26.2f, 27.6f), "SilverKey", Art.Chest(false), "우편차 열쇠꾸러미",
                 "신호소 문고리에 녹슨 열쇠꾸러미가 걸려 있다. 꼬리표: '우편차'.");
 
             // 편지 3: 옛 우체국장의 집 문에 붙은 쪽지(어디에 있는지)
@@ -36,7 +36,7 @@ namespace MoonlightPost
             QuestItem("yuna_report", "ink_mailbag", new Vector2(74.2f, -7.2f), "Bag", Art.FlourSack, "먹물이 스민 우편 자루",
                 "바위 틈에 우편 자루가 끼어 있다. 자루에서 먹물이 배어 나와 바닥이 검게 젖어 있다. 소인 날짜는 삼 년 전 폭풍 밤.");
             // 편지 18: 첫 열차를 움직일 석탄(채석장 오두막 옆)
-            QuestItem("dora_last_letter", "coal_sack", new Vector2(60.6f, -7.4f), "Bag", Art.FlourSack, "석탄 자루",
+            QuestItem("dora_last_letter", "coal_sack", new Vector2(60.6f, -7.4f), "Coal", Art.FlourSack, "석탄 자루",
                 "오두막 옆에 석탄 자루가 쌓여 있다. 꼬리표: '고개 역 증기 기관차용'.");
             // 편지 18: 북쪽 숲 신호소의 선로 전환기
             var lever = Spawner.Prop("NPC_signal_lever", new Vector2(25.2f, 27.2f), Art.Signpost, new Vector2(0.4f, 0.3f), new Vector2(0f, 0.15f));
@@ -106,14 +106,14 @@ namespace MoonlightPost
             // 노아: 북쪽 숲 무너진 터널에서 난다는 기적 소리
             WorldVisuals.I.Register(Clue("tunnel_whistle", new Vector2(46.2f, 19.4f), RockSprite(false)).gameObject, "req:noah_whistle,!reqdone:noah_whistle");
             // 바우: 고개 역 시계의 태엽 열쇠(채석장 남동쪽 구석)
-            QuestItemWhen("req:bau_clock,!got:clock_key", "clock_key", new Vector2(84.2f, -9.6f), "Key", Art.Chest(false), "태엽 열쇠",
+            QuestItemWhen("req:bau_clock,!got:clock_key", "clock_key", new Vector2(84.2f, -9.6f), "GoldKey", Art.Chest(false), "태엽 열쇠",
                 "바위 아래 녹슨 태엽 열쇠가 반쯤 묻혀 있다. 손잡이에 '고개 역'.");
             // 유나: 바람에 흩어진 별지도 세 장(북쪽 갯바위, 폐역, 북쪽 숲)
-            QuestItemWhen("req:yuna_pages,!got:star_page_1", "star_page_1", new Vector2(-45.2f, 18.2f), "PaperLetter", Art.Signpost, "별지도 첫째 장",
+            QuestItemWhen("req:yuna_pages,!got:star_page_1", "star_page_1", new Vector2(-45.2f, 18.2f), "ScrollEmpty", Art.Signpost, "별지도 첫째 장",
                 "바닷바람에 날려 온 종이가 바위에 붙어 있다. 별자리 사이에 '1'이라고 적혀 있다.");
-            QuestItemWhen("req:yuna_pages,!got:star_page_2", "star_page_2", new Vector2(-6f, 30.6f), "PaperLetter", Art.Signpost, "별지도 둘째 장",
+            QuestItemWhen("req:yuna_pages,!got:star_page_2", "star_page_2", new Vector2(-6f, 30.6f), "ScrollEmpty", Art.Signpost, "별지도 둘째 장",
                 "승강장 뒤 마른 풀에 종이가 걸려 있다. 북쪽 하늘의 별이 빼곡하다. '2'.");
-            QuestItemWhen("req:yuna_pages,!got:star_page_3", "star_page_3", new Vector2(49.6f, 30.4f), "PaperLetter", Art.Signpost, "별지도 셋째 장",
+            QuestItemWhen("req:yuna_pages,!got:star_page_3", "star_page_3", new Vector2(49.6f, 30.4f), "ScrollEmpty", Art.Signpost, "별지도 셋째 장",
                 "나뭇가지 끝에 종이가 걸려 있다. 동쪽 하늘, 달이 지나는 길이 그려져 있다. '3'.");
         }
 

@@ -169,7 +169,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "PaperLetter",
+      "icon": "Letter3",
       "maxStack": 1
     },
     {
@@ -179,7 +179,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "Key",
+      "icon": "SilverKey",
       "maxStack": 1
     },
     {
@@ -219,7 +219,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "PaperLetter",
+      "icon": "Letter2",
       "maxStack": 1
     },
     {
@@ -269,7 +269,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "Key",
+      "icon": "Pickaxe",
       "maxStack": 1
     },
     {
@@ -289,7 +289,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "Key",
+      "icon": "SilverKey",
       "maxStack": 1
     },
     {
@@ -299,7 +299,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "Bag",
+      "icon": "Coal",
       "maxStack": 1
     },
     {
@@ -309,7 +309,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "Key",
+      "icon": "GoldKey",
       "maxStack": 1
     },
     {
@@ -319,7 +319,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "PaperLetter",
+      "icon": "ScrollEmpty",
       "maxStack": 1
     },
     {
@@ -329,7 +329,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "PaperLetter",
+      "icon": "ScrollEmpty",
       "maxStack": 1
     },
     {
@@ -339,7 +339,7 @@
       "kind": "key",
       "effect": "",
       "value": 0,
-      "icon": "PaperLetter",
+      "icon": "ScrollEmpty",
       "maxStack": 1
     },
     {
@@ -349,7 +349,7 @@
       "kind": "equipment",
       "effect": "maxHp",
       "value": 1,
-      "icon": "FireflyJar",
+      "icon": "Pouch",
       "maxStack": 1
     },
     {
@@ -369,7 +369,7 @@
       "kind": "equipment",
       "effect": "dodge",
       "value": 15,
-      "icon": "Stamp",
+      "icon": "GemYellow",
       "maxStack": 1
     },
     {
@@ -379,7 +379,7 @@
       "kind": "equipment",
       "effect": "tool",
       "value": 15,
-      "icon": "GoldenStamp",
+      "icon": "Hourglass",
       "maxStack": 1
     },
     {
@@ -389,7 +389,7 @@
       "kind": "equipment",
       "effect": "light",
       "value": 1,
-      "icon": "PaperLetter",
+      "icon": "Scroll",
       "maxStack": 1
     }
   ]

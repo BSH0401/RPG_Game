@@ -43,7 +43,8 @@ namespace MoonlightPost
 
         static GUIStyle Make(GUIStyle source, int size, Color color)
         {
-            var style = new GUIStyle(source) { fontSize = Px(size), richText = true };
+            // 한글 폰트(Noto Sans KR)는 줄 높이가 커서, 한 줄 상자에서 글자 아랫부분이 잘리지 않게 넘쳐 그리게 한다.
+            var style = new GUIStyle(source) { fontSize = Px(size), richText = true, clipping = TextClipping.Overflow };
             if (font != null) style.font = font;
             style.normal.textColor = color;
             style.hover.textColor = color;

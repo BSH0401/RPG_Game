@@ -89,9 +89,8 @@ namespace MoonlightPost
             Spawner.Lamp(new Vector2(65.6f, 24.2f), true);
 
             // 역장 바우: 처음엔 고개 역 승강장, 첫 열차가 다니게 되면(train_runs) 마을 쪽 폐역 승강장으로 내려온다.
-            var bauTint = GameAssets.BauTint;
-            visuals.Register(Spawner.Npc("bau", new Vector2(58.6f, 23.9f), Art.Owen, 1f, "Hunter", bauTint).gameObject, "!train_runs");
-            visuals.Register(Spawner.Npc("bau", StationPos + new Vector2(3.4f, -1.2f), Art.Owen, 1f, "Hunter", bauTint).gameObject, "train_runs");
+            visuals.Register(Spawner.Npc("bau", new Vector2(58.6f, 23.9f), Art.Owen, 1f, "OldMan2").gameObject, "!train_runs");
+            visuals.Register(Spawner.Npc("bau", StationPos + new Vector2(3.4f, -1.2f), Art.Owen, 1f, "OldMan2").gameObject, "train_runs");
 
             // 고개 마을의 집 두 채
             Spawner.Building("PassHouse_A", new Vector2(56f, 29.6f), new Vector2(3.8f, 2f),
@@ -127,8 +126,7 @@ namespace MoonlightPost
             telescope.AddComponent<NpcInteractable>().npcId = "telescope";
 
             // 별지기 유나: 천문대 앞. 노아의 생일 카드(편지 17)를 들고 있는 밤에는 노아도 여기 와 있다.
-            var yunaTint = GameAssets.YunaTint;
-            visuals.Register(Spawner.Npc("yuna", ObservatoryPos + new Vector2(-1.4f, -2.6f), Art.Mira, 1f, "Princess", yunaTint).gameObject, "");
+            visuals.Register(Spawner.Npc("yuna", ObservatoryPos + new Vector2(-1.4f, -2.6f), Art.Mira, 1f, "SorcererBlack").gameObject, "");
             visuals.Register(Spawner.Npc("noah", ObservatoryPos + new Vector2(1.4f, -2.8f), Art.Noah, 0.82f, "Child").gameObject, "carrying:noah_birthday");
 
             director.passSpawns = new[]

@@ -20,8 +20,8 @@
    - `GameBootstrap`이 자동으로 생성되어 마을·숲·주민·적을 만든다.
 3. 그림이 흐릿하거나 깨져 보이면 메뉴 **달빛 우체국 → 아트 다시 가져오기**를 누른다.
    (`Assets/Editor/PixelArtImporter.cs`가 픽셀 아트용 가져오기 설정을 자동으로 적용한다.)
-4. 한글이 □로 보이면 한글 폰트 파일(.ttf)을 `Assets/Resources/Fonts/UIFont.ttf` 이름으로 넣는다.
-   (예: 나눔고딕, Noto Sans KR. 보통 Windows·macOS에서는 없어도 보인다.)
+4. 한글 폰트로 **Noto Sans KR**(`Assets/Resources/Fonts/UIFont.ttf`, SIL Open Font License)이 들어 있다.
+   다른 폰트를 쓰려면 같은 이름으로 바꿔 넣으면 된다.
 
 ## 플레이 흐름 (프로토타입)
 
@@ -305,7 +305,11 @@ Docs/GameDesign.md       기획서
 
 - 사용 에셋: **Ninja Adventure Asset Pack** — Pixel-boy & AAA, CC0 ([itch.io](https://pixel-boy.itch.io/ninja-adventure-asset-pack)).
   라이선스 전문은 `Assets/Resources/Art/NinjaAdventure/LICENSE.txt`.
-- 게임에서 실제로 쓰는 파일만 `Assets/Resources/Art/NinjaAdventure/`에 넣었다(약 5MB). 원본 압축 파일은 저장소에 넣지 않는다.
+- 게임에서 실제로 쓰는 파일만 `Assets/Resources/Art/NinjaAdventure/`에 넣었다(약 12MB). 원본 압축 파일은 저장소에 넣지 않는다.
+- 주민 그림: 미라 Woman, 노아 Child, 오웬 Hunter, 세린 Princess, 도라 OldWoman, 테오 OldMan, 바우 OldMan2, 유나 SorcererBlack.
+  보스: 먹물 그림자 GiantSpirit, 심해 먹물 문어 Squid, 부치지 못한 편지의 그림자 GiantSlime(보랏빛으로 물들임).
+- 지역별 음악(`Audio/Music`): 마을 Village, 숲 Forest, 해안·북쪽 갯바위 Coast(18 - Aquatic), 폐역 Station(30 - Ruins),
+  별빛 고개 Pass(22 - Dream), 옛 채석장 Quarry(2 - The Cave), 보스 Boss, 첫 열차 뒤의 마을 Ending(8 - End Theme). `Sound.cs`의 `RegionMusic`.
 - 어떤 그림을 쓰는지는 타일 좌표로 정해져 있다(`GameBootstrap.Assets.cs`, `GameAssets.cs`).
   예: `GameAssets.Tile("TilesetHouse", 25, 7, 4, 7)` = 집 타일셋의 (25, 7) 칸부터 가로 4칸·세로 7칸(우체국).
 - 다른 캐릭터로 바꾸려면 원본 팩의 `Actor/Character/이름/SpriteSheet.png`를 `Actors/이름.png`로 복사하고,

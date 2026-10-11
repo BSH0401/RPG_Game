@@ -367,6 +367,47 @@ namespace MoonlightPost
             if (!Upgrade.IsMax(bag)) Problem("강화 검사: 40번 안에 +5에 닿지 못함");
             else if (gained != 20) Problem("강화 검사: 우편가방 +5인데 최대 체력이 " + gained + " 늘어남(20 기대)");
             else Log("   강화 검사: 우편가방 +5 (" + tries + "번 시도, 실패 " + fails + "번), 최대 체력 +" + gained);
+
+            // 주운 장비 강화: 낀 무기를 +10까지. 공격력이 올라야 하고, +6 부터는 실패하면 한 단계 떨어질 수 있다.
+            var weapon = GameState.EquippedIn(GearSlot.Weapon);
+            if (weapon == null)
+            {
+                weapon = Gear.Roll(Stats.Level, Gear.Rare, GearSlot.Weapon);
+                Gear.Pickup(weapon);
+                GameState.Equip(weapon);
+            }
+            GameState.AddSilver(200000);
+            GameState.AddItem(Upgrade.Crystal, 999, 999);
+            GameState.AddItem(Upgrade.Shard, 99, 99);
+            int atk0 = Stats.Attack, plus0 = weapon.plus, gTries = 0, gFails = 0, drops = 0;
+            while (!Upgrade.IsMax(weapon) && gTries < 120)
+            {
+                gTries++;
+                if (GameState.ItemCount(Upgrade.Crystal) < 100) GameState.AddItem(Upgrade.Crystal, 500, 999);
+                if (GameState.ItemCount(Upgrade.Shard) < 20) GameState.AddItem(Upgrade.Shard, 60, 99);
+                int before = weapon.plus;
+                if (!Upgrade.Try(weapon, out bool ok, out bool dropped))
+                {
+                    Problem("장비 강화: 재료가 있는데 시도하지 못함 (+" + weapon.plus + ", 은화 " + GameState.Silver + ")");
+                    break;
+                }
+                if (ok && weapon.plus != before + 1) Problem("장비 강화: 성공했는데 단계가 오르지 않음");
+                if (!ok) gFails++;
+                if (dropped) drops++;
+                if (dropped && before < 6) Problem("장비 강화: +" + before + " 에서 실패했는데 단계가 떨어짐");
+            }
+            if (!Upgrade.IsMax(weapon)) Problem("장비 강화: 120번 안에 +10에 닿지 못함 (+" + weapon.plus + ")");
+            if (Stats.Attack <= atk0) Problem("장비 강화: 무기를 강화했는데 공격력이 그대로 (" + atk0 + " → " + Stats.Attack + ")");
+            if (bench != null)
+            {
+                bench.Interact(player);
+                UpgradeMenu.ShowTab(0);
+                yield return Frames(3);
+                yield return Shot("upgrade_gear");
+                UpgradeMenu.Close();
+                yield return Frames(2);
+            }
+            Log("   장비 강화 검사: " + weapon.Name + " +" + plus0 + " → +" + weapon.plus + " (" + gTries + "번 시도, 실패 " + gFails + "번, 떨어짐 " + drops + "번), 공격력 " + atk0 + " → " + Stats.Attack);
         }
 
         static void Teleport(PlayerController player, Vector2 p)

@@ -25,17 +25,26 @@ namespace MoonlightPost
         public string prefix = "";
         public List<int> stats = new List<int>();
         public List<float> values = new List<float>();
+        /// <summary>강화 단계(+0 ~ +10)와 연속 실패 횟수(실패 보정).</summary>
+        public int plus;
+        public int fails;
+
+        /// <summary>강화가 반영된 i 번째 능력 값: 주 능력은 단계마다 +10%, 옵션은 +5%.</summary>
+        public float Value(int i) => ValueAt(i, plus);
+
+        public float ValueAt(int i, int level) =>
+            Gear.RoundStat((GearStat)stats[i], values[i] * (1f + (i == 0 ? 0.1f : 0.05f) * level));
 
         public GearSlot Slot => (GearSlot)slot;
         public GearBase Base => Gear.Bases(Slot)[Mathf.Clamp(baseIndex, 0, Gear.Bases(Slot).Length - 1)];
-        public string Name => (rarity >= Gear.Legendary ? "★ " : "") + (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + Base.name;
+        public string Name => (rarity >= Gear.Legendary ? "★ " : "") + (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + Base.name + (plus > 0 ? " +" + plus : "");
         public string RichName => "<color=" + Gear.RarityColor(rarity) + ">" + Name + "</color>";
 
         public float Sum(GearStat s)
         {
             float v = 0f;
             for (int i = 0; i < stats.Count; i++)
-                if (stats[i] == (int)s) v += values[i];
+                if (stats[i] == (int)s) v += Value(i);
             return v;
         }
 
@@ -45,7 +54,7 @@ namespace MoonlightPost
             get
             {
                 float score = 0f;
-                for (int i = 0; i < stats.Count; i++) score += values[i] * Gear.Weight((GearStat)stats[i]);
+                for (int i = 0; i < stats.Count; i++) score += Value(i) * Gear.Weight((GearStat)stats[i]);
                 return score;
             }
         }
@@ -160,6 +169,8 @@ namespace MoonlightPost
 
         /// <summary>정수로 보이는 능력(공격력·체력·방어·처치 회복)은 반올림, 나머지는 소수 첫째 자리.</summary>
         static bool IsFlat(GearStat s) => s == GearStat.Attack || s == GearStat.MaxHp || s == GearStat.Defense || s == GearStat.LifeOnKill;
+
+        public static float RoundStat(GearStat s, float v) => Round(s, v);
 
         static float Round(GearStat s, float v) => IsFlat(s) ? Mathf.Max(1f, Mathf.Round(v)) : Mathf.Round(v * 10f) / 10f;
 
@@ -281,7 +292,7 @@ namespace MoonlightPost
         }
 
         /// <summary>상점에 팔 때 받는 은화.</summary>
-        public static int SellPrice(GearItem g) => Mathf.RoundToInt((4 + g.ilvl * 2) * new[] { 1f, 2f, 4f, 9f, 20f }[g.rarity]);
+        public static int SellPrice(GearItem g) => Mathf.RoundToInt((4 + g.ilvl * 2) * new[] { 1f, 2f, 4f, 9f, 20f }[g.rarity] * (1f + 0.25f * g.plus));
 
         // ------------------------------------------------------------------ 끼운 장비의 능력 합계
 
@@ -294,7 +305,7 @@ namespace MoonlightPost
             {
                 Array.Clear(sums, 0, sums.Length);
                 foreach (var g in GameState.Equipped())
-                    for (int i = 0; i < g.stats.Count; i++) sums[g.stats[i]] += g.values[i];
+                    for (int i = 0; i < g.stats.Count; i++) sums[g.stats[i]] += g.Value(i);
                 sumsVersion = GameState.GearVersion;
             }
             return sums[(int)s];

@@ -41,11 +41,12 @@ namespace MoonlightPost
             var sb = new System.Text.StringBuilder();
             sb.Append("<size=").Append(Ui.Px(20)).Append("><b>").Append(g.RichName).Append("</b></size>\n");
             sb.Append("<color=").Append(Gear.RarityColor(g.rarity)).Append(">").Append(Gear.RarityNames[g.rarity]).Append("</color> ")
-              .Append(Gear.SlotNames[g.slot]).Append("  ·  아이템 레벨 ").Append(g.ilvl).Append('\n');
+              .Append(Gear.SlotNames[g.slot]).Append("  ·  아이템 레벨 ").Append(g.ilvl)
+              .Append(g.plus > 0 ? "  ·  <color=#ffd34a>강화 +" + g.plus + "</color>" : "").Append('\n');
             for (int i = 0; i < g.stats.Count; i++)
             {
                 if (i == 1) sb.Append("<color=#9aa0b0>────────</color>\n");
-                sb.Append(i == 0 ? "<b>" : "<color=#b8c8ff>").Append(Gear.StatLine((GearStat)g.stats[i], g.values[i])).Append(i == 0 ? "</b>" : "</color>").Append('\n');
+                sb.Append(i == 0 ? "<b>" : "<color=#b8c8ff>").Append(Gear.StatLine((GearStat)g.stats[i], g.Value(i))).Append(i == 0 ? "</b>" : "</color>").Append('\n');
             }
             var cur = GameState.EquippedIn(g.Slot);
             if (compare && cur != null && cur != g)

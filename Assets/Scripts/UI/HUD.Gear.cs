@@ -77,7 +77,7 @@ namespace MoonlightPost
                     g != null ? "<b>" + g.RichName + "</b>" : "<color=#6a7088>비어 있음</color>", Ui.Text);
                 if (g != null)
                     GUI.Label(new Rect(cell.xMax + 10 * s, row.y + 44 * s, row.width - cell.width - 14 * s, 22 * s),
-                        Gear.StatLine((GearStat)g.stats[0], g.values[0]), Ui.Small);
+                        Gear.StatLine((GearStat)g.stats[0], g.Value(0)), Ui.Small);
                 if (g != null && row.Contains(e.mousePosition))
                 {
                     hover = g;

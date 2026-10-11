@@ -87,6 +87,52 @@ namespace MoonlightPost
             return true;
         }
 
+        // ------------------------------------------------------------------ 주운 장비 강화 (+1 ~ +10)
+
+        public const int GearMax = 10;
+        static readonly int[] GearBaseChance = { 100, 95, 90, 80, 70, 60, 50, 40, 30, 25 };
+        static readonly float[] GearRarityCost = { 1f, 1.3f, 1.7f, 2.3f, 3f };
+
+        public static bool IsMax(GearItem g) => g.plus >= GearMax;
+        public static int Silver(GearItem g) => Mathf.RoundToInt((15 + g.ilvl * 4) * (1 + g.plus) * GearRarityCost[Mathf.Clamp(g.rarity, 0, 4)] / 5f) * 5;
+        public static int Crystals(GearItem g) => 3 + g.plus * 3;
+        public static int Shards(GearItem g) => g.plus >= 5 ? g.plus - 4 : 0;
+        public static int Chance(GearItem g) => IsMax(g) ? 0 : Mathf.Min(100, GearBaseChance[g.plus] + FailBonus * g.fails);
+        /// <summary>+6 부터는 실패하면 한 단계 떨어진다.</summary>
+        public static bool Risky(GearItem g) => g.plus >= 6;
+
+        public static bool Affordable(GearItem g) =>
+            GameState.Silver >= Silver(g) && GameState.ItemCount(Crystal) >= Crystals(g) && GameState.ItemCount(Shard) >= Shards(g);
+
+        /// <summary>장비 강화를 한 번 시도한다. 재료가 모자라거나 최대면 false. dropped = 실패해서 단계가 떨어졌다.</summary>
+        public static bool Try(GearItem g, out bool success, out bool dropped)
+        {
+            success = dropped = false;
+            if (g == null || IsMax(g) || !Affordable(g)) return false;
+            int chance = Chance(g);
+            GameState.SpendSilver(Silver(g));
+            GameState.RemoveItem(Crystal, Crystals(g));
+            if (Shards(g) > 0) GameState.RemoveItem(Shard, Shards(g));
+            success = Random.Range(0, 100) < chance;
+            if (success)
+            {
+                g.plus++;
+                g.fails = 0;
+            }
+            else
+            {
+                g.fails++;
+                if (Risky(g))
+                {
+                    g.plus--;
+                    dropped = true;
+                }
+            }
+            GameState.GearChanged();
+            GameState.Save();
+            return true;
+        }
+
         public static bool IsLegendary(ItemDef d) => d != null && d.rarity == "legendary";
 
         /// <summary>이름 색: 전설은 금색, 그 밖에는 강화 단계(+1~2 초록, +3~4 파랑, +5 주황).</summary>

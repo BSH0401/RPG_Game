@@ -79,7 +79,8 @@ namespace MoonlightPost
 
         public static int NextGearUid() => data.nextGearUid++;
 
-        static void GearChanged()
+        /// <summary>장비의 능력이 바뀌었다(강화). 능력 합계를 다시 센다.</summary>
+        public static void GearChanged()
         {
             GearVersion++;
             Changed?.Invoke();

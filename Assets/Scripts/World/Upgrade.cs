@@ -57,13 +57,13 @@ namespace MoonlightPost
         public static string Describe(ItemDef d, int level)
         {
             float v = d.value + Bonus(d, level);
-            if (d.IsPart) return level > 0 ? "끼웠을 때 편지 도구 위력 +" + Bonus(d, level) + "%" : "끼웠을 때 기본 위력";
+            if (d.IsPart) return level > 0 ? "끼웠을 때 스킬 위력 +" + Bonus(d, level) + "%" : "끼웠을 때 기본 스킬 위력";
             switch (d.effect)
             {
                 case "dodge": return "회피 시간 +" + v + "%";
-                case "tool": return "편지 도구 위력·재사용 대기 +" + v + "%";
+                case "tool": return "스킬 위력·재사용 대기 +" + v + "%";
                 case "light": return "밤 시야 +" + v.ToString("0.##");
-                case "maxHp": return "최대 체력 +" + v;
+                case "maxHp": return "최대 체력 +" + v * 10;
                 default: return d.description;
             }
         }

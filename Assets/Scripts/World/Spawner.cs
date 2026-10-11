@@ -220,7 +220,7 @@ namespace MoonlightPost
             switch (kind)
             {
                 case EnemyKind.Boss:
-                    health.SetMax(14, true);
+                    health.SetMax(140, true);
                     enemy.displayName = "먹물 그림자";
                     enemy.isBoss = true;
                     enemy.defeatFlag = "boss_forest_defeated";
@@ -251,7 +251,7 @@ namespace MoonlightPost
 
                 case EnemyKind.Squid:
                     // 두 번째 보스: 등대 앞 바다의 심해 먹물 문어
-                    health.SetMax(24, true);
+                    health.SetMax(240, true);
                     enemy.displayName = "심해 먹물 문어";
                     enemy.isBoss = true;
                     enemy.enrages = true;
@@ -291,7 +291,7 @@ namespace MoonlightPost
                 case EnemyKind.Wraith:
                     // 세 번째 보스: 옛 채석장 갱도 앞의 「부치지 못한 편지의 그림자」.
                     // 내려찍기·부채꼴 구슬·돌진에, 작은 그림자를 불러내는 틈(보라색 원)이 섞인다.
-                    health.SetMax(30, true);
+                    health.SetMax(300, true);
                     enemy.displayName = "부치지 못한 편지의 그림자";
                     enemy.isBoss = true;
                     enemy.enrages = true;
@@ -328,7 +328,7 @@ namespace MoonlightPost
                     break;
 
                 case EnemyKind.Bat:
-                    health.SetMax(2, true);
+                    health.SetMax(22, true);
                     enemy.displayName = "먹물 박쥐";
                     enemy.moveSpeed = 2.6f;
                     enemy.detectRange = 7.5f;
@@ -346,7 +346,7 @@ namespace MoonlightPost
                     break;
 
                 case EnemyKind.Mole:
-                    health.SetMax(4, true);
+                    health.SetMax(40, true);
                     enemy.displayName = "그림자 두더지";
                     enemy.moveSpeed = 0f;
                     enemy.detectRange = 7f;
@@ -362,22 +362,22 @@ namespace MoonlightPost
                     break;
 
                 default:
-                    health.SetMax(3, true);
+                    health.SetMax(30, true);
                     sheet = GameAssets.Available ? GameAssets.Sheet("MouseBlack") : null;
                     body = sheet != null ? Character(go, sheet, 0.4f) : Character(go, Art.ShadowRat, 1f, 0.35f);
                     if (sheet != null) body.color = new Color(0.75f, 0.7f, 0.95f);
                     Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
                     break;
             }
-            // 전리품: 먹물 결정 수와 달빛 조각 확률
+            // 전리품(먹물 결정 수와 달빛 조각 확률)과 경험치
             switch (kind)
             {
-                case EnemyKind.Rat: enemy.lootCrystals = 2; enemy.shardChance = 0.05f; break;
-                case EnemyKind.Bat: enemy.lootCrystals = 2; enemy.shardChance = 0.06f; break;
-                case EnemyKind.Mole: enemy.lootCrystals = 3; enemy.shardChance = 0.1f; break;
-                case EnemyKind.Boss: enemy.lootCrystals = 15; break;
-                case EnemyKind.Squid: enemy.lootCrystals = 20; break;
-                case EnemyKind.Wraith: enemy.lootCrystals = 25; break;
+                case EnemyKind.Rat: enemy.lootCrystals = 2; enemy.shardChance = 0.05f; enemy.expReward = 6; break;
+                case EnemyKind.Bat: enemy.lootCrystals = 2; enemy.shardChance = 0.06f; enemy.expReward = 7; break;
+                case EnemyKind.Mole: enemy.lootCrystals = 3; enemy.shardChance = 0.1f; enemy.expReward = 10; break;
+                case EnemyKind.Boss: enemy.lootCrystals = 15; enemy.expReward = 120; break;
+                case EnemyKind.Squid: enemy.lootCrystals = 20; enemy.expReward = 220; break;
+                case EnemyKind.Wraith: enemy.lootCrystals = 25; enemy.expReward = 350; break;
             }
             enemy.Init(body);
             return go;

@@ -88,6 +88,7 @@ namespace MoonlightPost
 
             if (scenery) yield return Overviews("start");
             if (scenery) yield return MenuShots();
+            if (scenery) yield return GrowthTest(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
@@ -162,7 +163,8 @@ namespace MoonlightPost
                 int trophies = GameState.ItemCount(Loot.Trophy), legends = 0;
                 foreach (var id in Loot.Legendaries)
                     if (GameState.ItemCount(id) > 0) legends++;
-                Log("황금 그림자 " + trophies + "마리, 전설 장비 " + legends + "개, 먹물 결정 " + GameState.ItemCount(Upgrade.Crystal) + ", 달빛 조각 " + GameState.ItemCount(Upgrade.Shard));
+                Log("황금 그림자 " + trophies + "마리, 전설 장비 " + legends + "개, 먹물 결정 " + GameState.ItemCount(Upgrade.Crystal) + ", 달빛 조각 " + GameState.ItemCount(Upgrade.Shard)
+                    + ", 레벨 " + Stats.Level + " (공격력 " + Stats.Attack + ", 최대 체력 " + GameState.MaxHp + ")");
                 if (trophies >= 4 && legends == 0) Problem("황금 그림자를 " + trophies + "마리 잡았는데 전설 장비가 하나도 없음(천장 동작 안 함)");
             }
             if (scenery) yield return Overviews("end");
@@ -343,8 +345,8 @@ namespace MoonlightPost
                 UpgradeMenu.Close();
                 yield return Frames(2);
             }
-            GameState.AddItem(Upgrade.Crystal, 400, 999);
-            GameState.AddItem(Upgrade.Shard, 20, 99);
+            GameState.AddItem(Upgrade.Crystal, 999, 999);
+            GameState.AddItem(Upgrade.Shard, 60, 99);
             int hpBefore = GameState.MaxHp, tries = 0, fails = 0;
             while (!Upgrade.IsMax(bag) && tries < 40)
             {
@@ -358,7 +360,7 @@ namespace MoonlightPost
             }
             int gained = GameState.MaxHp - hpBefore;
             if (!Upgrade.IsMax(bag)) Problem("강화 검사: 40번 안에 +5에 닿지 못함");
-            else if (gained != 2) Problem("강화 검사: 우편가방 +5인데 최대 체력이 " + gained + " 늘어남(2 기대)");
+            else if (gained != 20) Problem("강화 검사: 우편가방 +5인데 최대 체력이 " + gained + " 늘어남(20 기대)");
             else Log("   강화 검사: 우편가방 +5 (" + tries + "번 시도, 실패 " + fails + "번), 최대 체력 +" + gained);
         }
 
@@ -367,6 +369,52 @@ namespace MoonlightPost
             var rb = player.GetComponent<Rigidbody2D>();
             rb.position = p;
             player.transform.position = p;
+        }
+
+        /// <summary>
+        /// 성장: 쥐를 불러 피해 숫자(치명타 포함)를 찍고, 쓰러뜨려 경험치가 오르는지, 레벨업과 스탯 분배가
+        /// 공격력·최대 체력에 그대로 반영되는지 본다. 캐릭터 창 스크린샷도 남긴다.
+        /// </summary>
+        IEnumerator GrowthTest(PlayerController player)
+        {
+            Vector2 p = player.transform.position;
+            int lv0 = Stats.Level, exp0 = Stats.Exp;
+            var rats = new List<EnemyController>();
+            for (int i = 0; i < 3; i++)
+                rats.Add(Spawner.Enemy(p + new Vector2(1.6f + i * 0.9f, 0.7f * (i - 1)), EnemyKind.Rat).GetComponent<EnemyController>());
+            yield return Frames(2);
+            foreach (var r in rats) r.TakeHit(Stats.RollDamage(1f, out bool crit), p, 0f, crit);
+            rats[1].TakeHit(Mathf.RoundToInt(Stats.Attack * Stats.CritMultiplier), p, 0f, true);
+            yield return Seconds(0.15f);
+            yield return Shot("growth_damage_numbers");
+            foreach (var r in rats)
+                if (r != null) r.Health.TakeDamage(999, p);
+            yield return Seconds(0.3f);
+            if (Stats.Level == lv0 && Stats.Exp <= exp0) Problem("성장: 그림자를 쓰러뜨렸는데 경험치가 오르지 않음");
+
+            int lv1 = Stats.Level, points = Stats.Points;
+            Stats.AddExp(Stats.ExpToNext() - Stats.Exp, p);
+            yield return Seconds(0.3f);
+            yield return Shot("growth_level_up");
+            if (Stats.Level != lv1 + 1) Problem("성장: 경험치를 채웠는데 레벨이 " + lv1 + " → " + Stats.Level);
+            if (Stats.Points != points + Stats.PointsPerLevel) Problem("성장: 레벨업 스탯 포인트가 " + (Stats.Points - points) + "개");
+            if (player.Health.Current != player.Health.Max) Problem("성장: 레벨업했는데 체력이 다 차지 않음");
+
+            int atk = Stats.Attack;
+            Stats.Spend(Stat.Str);
+            if (Stats.Attack != atk + 2) Problem("성장: 힘 1 → 공격력 " + atk + " → " + Stats.Attack + " (2 기대)");
+            int hp = player.Health.Max;
+            Stats.Spend(Stat.Vit);
+            yield return Frames(1);
+            if (player.Health.Max != hp + 8) Problem("성장: 체력 1 → 최대 체력 " + hp + " → " + player.Health.Max + " (8 기대)");
+
+            HUD.SetChar(true);
+            yield return Frames(3);
+            yield return Shot("growth_character");
+            HUD.SetChar(false);
+            yield return Frames(2);
+            if (Time.timeScale != 1f) Problem("캐릭터 창을 닫았는데 게임이 멈춰 있음");
+            Log("   성장 검사: 레벨 " + Stats.Level + ", 공격력 " + Stats.Attack + ", 최대 체력 " + player.Health.Max + ", 남은 포인트 " + Stats.Points);
         }
 
         /// <summary>타이틀·일시정지·설정 화면 스크린샷.</summary>

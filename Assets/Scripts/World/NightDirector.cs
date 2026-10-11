@@ -270,7 +270,8 @@ namespace MoonlightPost
             var e = go.GetComponent<EnemyController>();
             e.golden = true;
             e.displayName = "황금 " + e.displayName;
-            e.Health.SetMax(e.Health.Max * 4 + 2, true);
+            e.Health.SetMax(e.Health.Max * 4 + 20, true);
+            e.expReward *= 8;
             e.moveSpeed *= 1.15f;
             e.windupTime *= 0.9f;
             e.SetBaseColor(new Color(1f, 0.84f, 0.32f));

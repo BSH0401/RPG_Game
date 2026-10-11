@@ -56,6 +56,8 @@ namespace MoonlightPost
         public bool golden;
         /// <summary>보스가 불러낸 그림자처럼 전리품이 없는 적.</summary>
         public bool noLoot;
+        /// <summary>쓰러뜨리면 주는 경험치(불러낸 그림자는 1).</summary>
+        public int expReward = 5;
 
         [Header("원거리형: 플레이어와 이 거리를 유지하며 쏜다 (0 이면 사용 안 함)")]
         public float keepDistance;
@@ -437,13 +439,15 @@ namespace MoonlightPost
             }
         }
 
-        /// <summary>플레이어의 공격에 맞음. knock = 밀려나는 세기.</summary>
-        public void TakeHit(int damage, Vector2 from, float knock = 6f)
+        /// <summary>플레이어의 공격에 맞음. knock = 밀려나는 세기, crit = 치명타(숫자가 크고 노랗게).</summary>
+        public void TakeHit(int damage, Vector2 from, float knock = 6f, bool crit = false)
         {
             if (IsBurrowed) return;
             pendingKnock = knock;
-            if (Health.TakeDamage(damage, from))
-                HUD.Popup((Vector2)transform.position + Vector2.up * (isBoss ? 2.2f : 1f), "-" + damage, damage >= 2 ? new Color(1f, 0.85f, 0.3f) : Color.white);
+            if (!Health.TakeDamage(damage, from)) return;
+            Vector2 at = (Vector2)transform.position + Vector2.up * (isBoss ? 2.2f : 1f) + Random.insideUnitCircle * 0.25f;
+            if (crit) HUD.Popup(at, damage + "!", new Color(1f, 0.82f, 0.2f), 1.45f);
+            else HUD.Popup(at, damage.ToString(), Color.white);
         }
 
         /// <summary>공격이 막혔을 때 튕겨 나간다.</summary>
@@ -494,6 +498,7 @@ namespace MoonlightPost
 
         void OnDied()
         {
+            Stats.AddExp(noLoot ? 1 : expReward, transform.position);
             Loot.FromEnemy(this);
             if (!string.IsNullOrEmpty(defeatFlag))
             {

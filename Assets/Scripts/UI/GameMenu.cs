@@ -73,7 +73,7 @@ namespace MoonlightPost
             page = Page.None;
             LastClosedFrame = Time.frameCount;
             Settings.Save();
-            Time.timeScale = HUD.MapOpen || HUD.BagOpen ? 0f : 1f;
+            Time.timeScale = HUD.AnyOverlay ? 0f : 1f;
         }
 
         static bool HasProgress => GameState.Night > 0;
@@ -174,7 +174,7 @@ namespace MoonlightPost
             {
                 if (!GameInput.PausePressed) return;
                 // Esc: 지도·가방이 열려 있으면 그것부터 닫고, 아니면 일시정지 메뉴.
-                if (HUD.MapOpen || HUD.BagOpen) HUD.CloseOverlays();
+                if (HUD.AnyOverlay) HUD.CloseOverlays();
                 else Open(Page.Pause);
                 return;
             }

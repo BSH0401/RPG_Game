@@ -7,12 +7,16 @@ namespace MoonlightPost
     public enum AttackResult { Hit, Blocked, Parried, Ignored }
 
     /// <summary>
-    /// 배달부: 이동, 3연타 공격, 회피, 우편가방 막기·받아치기, 편지 도구(Q, 부품에 따라 효과가 바뀜), 조사·대화.
+    /// 배달부: 이동, 마우스 커서 쪽으로 3연타 공격(누르고 있으면 계속), 회피, 스킬(우클릭·Q), 조사·대화.
+    /// 공격력·속도·치명타는 레벨과 스탯(Stats)에서 나온다. 스킬은 끼운 편지 도구 부품에 따라 바뀐다.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D), typeof(Health))]
     public class PlayerController : MonoBehaviour
     {
         public static PlayerController I { get; private set; }
+
+        /// <summary>적의 공격 수치(1, 2 …)에 곱해 실제 피해로 만든다. 체력이 10배 단위가 되면서 생겼다.</summary>
+        public const int EnemyDamageScale = 10;
 
         [Header("이동")]
         public float moveSpeed = 5f;
@@ -21,20 +25,13 @@ namespace MoonlightPost
         public float dodgeCooldown = 0.5f;
 
         [Header("공격 (3연타: 마지막 타가 강타)")]
-        public float attackCooldown = 0.28f;
-        public float comboWindow = 0.55f;
+        public float attackCooldown = 0.3f;
+        public float comboWindow = 0.6f;
         public float attackReach = 0.85f;
-        public float attackRadius = 0.75f;
-        public int attackDamage = 1;
-        public int finisherDamage = 2;
+        public float attackRadius = 0.8f;
+        public float finisherMul = 1.8f;
 
-        [Header("우편가방 막기")]
-        public float guardMoveFactor = 0.4f;
-        /// <summary>막기를 누른 직후 이 시간 안에 맞으면 받아치기.</summary>
-        public float parryWindow = 0.2f;
-        public float parryStun = 1.6f;
-
-        [Header("편지 도구")]
+        [Header("스킬 (편지 도구 부품에 따라)")]
         public float bindRadius = 3f;
         public float bindStunTime = 2.2f;
         public float dashDistance = 5f;
@@ -46,8 +43,8 @@ namespace MoonlightPost
         public Health Health { get; private set; }
         public Vector2 Facing { get; private set; } = Vector2.down;
         public Interactable CurrentTarget { get; private set; }
-        public float ToolCooldownRemaining => Mathf.Max(0f, toolReadyTime - Time.time);
-        public bool IsGuarding { get; private set; }
+        public float SkillCooldownRemaining => Mathf.Max(0f, skillReadyTime - Time.time);
+        public float SkillCooldownTotal { get; private set; } = 1f;
         /// <summary>배달부 주변을 밝히는 손등불(반딧불이 병이 있으면 커진다).</summary>
         public SpriteRenderer lightGlow;
         public Vector3 RespawnPoint { get; set; }
@@ -55,7 +52,7 @@ namespace MoonlightPost
         // 장비 효과 (items.json 의 effect 값, 퍼센트)
         static float DodgeBonus => Inventory.EffectSum("dodge") / 100f;
         // 끼운 편지 도구 부품을 강화했으면 그만큼 더한다.
-        static float ToolBonus => (Inventory.EffectSum("tool") + Upgrade.Bonus(Inventory.CurrentToolPart, Upgrade.Level(Inventory.CurrentToolPart))) / 100f;
+        static float SkillBonus => (Inventory.EffectSum("tool") + Upgrade.Bonus(Inventory.CurrentToolPart, Upgrade.Level(Inventory.CurrentToolPart))) / 100f;
 
         readonly List<Collider2D> hits = new List<Collider2D>();
         readonly HashSet<EnemyController> dashHit = new HashSet<EnemyController>();
@@ -63,7 +60,6 @@ namespace MoonlightPost
         Collider2D ownCollider;
         SpriteRenderer body;
         SpriteRenderer slash;
-        SpriteRenderer guardIcon;
         SpriteAnimator animator;
         Sprite[] slashFrames;
         float slashAngleOffset = -90f;
@@ -73,7 +69,7 @@ namespace MoonlightPost
         Vector2 dodgeDir;
         Vector2 dashDir;
         Vector2 knockback;
-        float dodgeEnd, nextDodge, nextAttack, toolReadyTime, hurtUntil, safeUntil, knockUntil, slashUntil, dashEnd, guardStart, lastAttackTime;
+        float dodgeEnd, nextDodge, nextAttack, skillReadyTime, hurtUntil, safeUntil, knockUntil, slashUntil, dashEnd, lastAttackTime, faceLockUntil;
         int comboStep;
         bool IsDodging => Time.time < dodgeEnd;
         bool IsDashing => Time.time < dashEnd;
@@ -92,15 +88,6 @@ namespace MoonlightPost
                 slash.sprite = slashFrames[0];
                 slashAngleOffset = 90f;
             }
-
-            // 막을 때 앞에 드는 우편가방
-            var g = new GameObject("GuardBag");
-            g.transform.SetParent(transform, false);
-            guardIcon = g.AddComponent<SpriteRenderer>();
-            guardIcon.sprite = GameAssets.Available ? GameAssets.Region("Items/Bag", 0, 0, 16, 16, 0.5f, 0.5f) : null;
-            if (guardIcon.sprite == null) guardIcon.sprite = Art.Chest(false);
-            guardIcon.sortingOrder = 700;
-            guardIcon.enabled = false;
         }
 
         void Awake()
@@ -122,9 +109,14 @@ namespace MoonlightPost
             if (I == this) I = null;
         }
 
+        /// <summary>최대 체력이 늘면 늘어난 만큼 채우고, 줄면 넘치는 만큼만 깎는다.</summary>
         void SyncMaxHp()
         {
-            if (Health.Max != GameState.MaxHp) Health.SetMax(GameState.MaxHp, true);
+            int max = GameState.MaxHp;
+            if (Health.Max == max) return;
+            int gained = max - Health.Max;
+            Health.SetMax(max, false);
+            if (gained > 0) Health.Heal(gained);
         }
 
         void Update()
@@ -136,26 +128,20 @@ namespace MoonlightPost
             if (busy)
             {
                 moveInput = Vector2.zero;
-                IsGuarding = false;
                 return;
             }
 
             moveInput = GameInput.Move;
-            if (moveInput.sqrMagnitude > 0.01f && !IsGuarding) Facing = moveInput.normalized;
+            if (moveInput.sqrMagnitude > 0.01f && Time.time >= faceLockUntil) Facing = moveInput.normalized;
             if (animator != null) animator.SetFacing(Facing);
 
-            // 막기: 누르고 있는 동안 앞에서 오는 공격을 막는다. 누른 직후라면 받아치기.
-            bool wantGuard = GameInput.GuardHeld && !IsDodging && !IsDashing;
-            if (wantGuard && !IsGuarding) guardStart = Time.time;
-            IsGuarding = wantGuard;
-
-            if (!IsGuarding)
+            if (GameInput.DodgePressed && Time.time >= nextDodge && !IsDashing) StartDodge();
+            if ((GameInput.AttackPressed || GameInput.AttackHeld) && Time.time >= nextAttack && !IsDodging && !IsDashing) Attack();
+            if (GameInput.SkillPressed && !IsDashing)
             {
-                if (GameInput.DodgePressed && Time.time >= nextDodge && !IsDashing) StartDodge();
-                if (GameInput.AttackPressed && Time.time >= nextAttack && !IsDodging && !IsDashing) Attack();
-                if (GameInput.ToolPressed && Time.time >= toolReadyTime && !IsDashing) UseTool();
+                if (Time.time >= skillReadyTime) UseSkill();
+                else HUD.Popup((Vector2)transform.position + Vector2.up * 1.2f, SkillCooldownRemaining.ToString("0.0") + "초", new Color(0.7f, 0.75f, 0.9f));
             }
-            if (GameInput.SwitchToolPressed) Inventory.CycleToolPart();
             if (GameInput.UseItemPressed) Inventory.UseConsumable(this);
 
             CurrentTarget = FindTarget();
@@ -174,7 +160,7 @@ namespace MoonlightPost
                 DashHits();
             }
             else if (IsDodging) v = dodgeDir * dodgeSpeed;
-            else v = moveInput * moveSpeed * (IsGuarding ? guardMoveFactor : 1f);
+            else v = moveInput * moveSpeed * Stats.MoveSpeedMul * (Time.time < nextAttack ? 0.75f : 1f);
             rb.SetVelocity(v);
         }
 
@@ -195,6 +181,27 @@ namespace MoonlightPost
             return best;
         }
 
+        /// <summary>노리는 방향: 마우스로 공격하면 커서 쪽, 키보드(J·Q)면 바라보는 방향.</summary>
+        Vector2 Aim()
+        {
+            var cam = Camera.main;
+            if (cam != null && GameInput.AimWithMouse)
+            {
+                Vector2 mouse = cam.ScreenToWorldPoint(GameInput.MouseScreen);
+                Vector2 to = mouse - (Vector2)transform.position;
+                if (to.sqrMagnitude > 0.01f) return to.normalized;
+            }
+            return Facing;
+        }
+
+        /// <summary>공격하는 동안은 노린 쪽을 바라본다.</summary>
+        void FaceToward(Vector2 dir, float lockTime)
+        {
+            Facing = dir;
+            faceLockUntil = Time.time + lockTime;
+            if (animator != null) animator.SetFacing(Facing);
+        }
+
         void StartDodge()
         {
             dodgeDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : Facing;
@@ -209,31 +216,38 @@ namespace MoonlightPost
             comboStep = Time.time - lastAttackTime <= comboWindow ? comboStep % 3 + 1 : 1;
             lastAttackTime = Time.time;
             bool finisher = comboStep == 3;
-            nextAttack = Time.time + attackCooldown * (finisher ? 1.6f : 1f);
+            float cooldown = attackCooldown * (finisher ? 1.6f : 1f) / Stats.AttackSpeedMul;
+            nextAttack = Time.time + cooldown;
+
+            Vector2 aim = Aim();
+            FaceToward(aim, cooldown + 0.1f);
 
             float reach = finisher ? attackReach * 1.15f : attackReach;
-            float radius = finisher ? attackRadius * 1.3f : attackRadius;
-            Vector2 center = (Vector2)transform.position + Facing * reach;
+            float radius = finisher ? attackRadius * 1.35f : attackRadius;
+            Vector2 center = (Vector2)transform.position + aim * reach;
 
             hits.Clear();
             Physics2D.OverlapCircle(center, radius, new ContactFilter2D().NoFilter(), hits);
             var hitSet = new HashSet<EnemyController>();
+            bool anyCrit = false;
             foreach (var col in hits)
             {
                 var enemy = col.GetComponentInParent<EnemyController>();
-                if (enemy != null && hitSet.Add(enemy))
-                    enemy.TakeHit(finisher ? finisherDamage : attackDamage, transform.position, finisher ? 9f : 6f);
+                if (enemy == null || !hitSet.Add(enemy)) continue;
+                int dmg = Stats.RollDamage(finisher ? finisherMul : 1f, out bool crit);
+                anyCrit |= crit;
+                enemy.TakeHit(dmg, transform.position, finisher ? 9f : 6f, crit);
             }
-            if (hitSet.Count > 0 && finisher)
+            if (hitSet.Count > 0)
             {
-                Juice.HitStop(0.06f);
-                CameraFollow.Shake(0.12f, 0.12f);
+                Juice.HitStop(finisher || anyCrit ? 0.07f : 0.03f);
+                if (finisher || anyCrit) CameraFollow.Shake(0.12f, 0.12f);
             }
 
-            // 바라보는 방향으로 반달 모양 베기 효과 (강타는 크게)
-            slash.transform.position = (Vector2)transform.position + Facing * (slashFrames != null ? 0.6f : 0.15f);
-            slash.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(Facing.y, Facing.x) * Mathf.Rad2Deg + slashAngleOffset);
-            slash.transform.localScale = Vector3.one * (finisher ? 1.45f : 1f);
+            // 노린 방향으로 반달 모양 베기 효과 (강타는 크게)
+            slash.transform.position = (Vector2)transform.position + aim * (slashFrames != null ? 0.6f : 0.15f);
+            slash.transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(aim.y, aim.x) * Mathf.Rad2Deg + slashAngleOffset);
+            slash.transform.localScale = Vector3.one * (finisher ? 1.5f : 1.05f);
             slash.color = finisher ? new Color(1f, 0.92f, 0.6f) : Color.white;
             slash.enabled = true;
             slashUntil = Time.time + SlashDuration;
@@ -241,97 +255,89 @@ namespace MoonlightPost
             Sound.Play("Attack", finisher ? 1f : 0.7f);
         }
 
-        // ------------------------------------------------------------------ 맞을 때: 막기·받아치기
+        // ------------------------------------------------------------------ 맞을 때
 
         /// <summary>
-        /// 적의 공격이 닿았을 때 부른다. 앞을 보고 막는 중이면 막고,
-        /// 막기를 누른 직후(받아치기 시간)라면 적을 비틀거리게 한다. unblockable 공격은 받아치기로만 막힌다.
+        /// 적의 공격이 닿았을 때 부른다. damage 는 적 쪽 수치(1, 2 …)이고 EnemyDamageScale 을 곱해 깎는다.
+        /// 회피·무적 중이면 무시한다.
         /// </summary>
         public AttackResult ReceiveAttack(EnemyController source, int damage, Vector2 from, bool unblockable)
         {
             if (Health.IsDead || Health.Invulnerable) return AttackResult.Ignored;
-            Vector2 pos = transform.position;
-            Vector2 toAttacker = from - pos;
-            bool facingIt = toAttacker.sqrMagnitude < 0.0001f || Vector2.Dot(Facing, toAttacker.normalized) > 0.2f;
-
-            if (IsGuarding && facingIt)
-            {
-                bool parry = Time.time - guardStart <= parryWindow;
-                if (parry)
-                {
-                    if (source != null)
-                    {
-                        source.Stun(parryStun);
-                        source.TakeHit(1, pos, 7f);
-                    }
-                    Juice.HitStop(0.12f);
-                    CameraFollow.Shake(0.15f, 0.12f);
-                    RingFx.Spawn(pos + Facing * 0.5f, 1.2f, new Color(1f, 0.9f, 0.4f, 1f), 0.3f);
-                    HUD.Popup(pos + Vector2.up * 1.1f, "받아치기!", new Color(1f, 0.9f, 0.4f));
-                    Sound.Play("Tool", 0.9f);
-                    safeUntil = Time.time + 0.3f;
-                    return AttackResult.Parried;
-                }
-                if (!unblockable)
-                {
-                    if (source != null) source.Recoil(pos);
-                    knockback = -toAttacker.normalized * 4f;
-                    knockUntil = Time.time + 0.08f;
-                    Juice.HitStop(0.04f);
-                    HUD.Popup(pos + Vector2.up * 1.1f, "막기", new Color(0.75f, 0.85f, 1f));
-                    Sound.Play("EnemyHit", 0.5f);
-                    safeUntil = Time.time + 0.25f;
-                    return AttackResult.Blocked;
-                }
-            }
-            Health.TakeDamage(damage, from);
+            int dmg = damage * EnemyDamageScale;
+            if (Health.TakeDamage(dmg, from))
+                HUD.Popup((Vector2)transform.position + Vector2.up * 1.1f, "-" + dmg, new Color(1f, 0.4f, 0.4f));
             return AttackResult.Hit;
         }
 
-        // ------------------------------------------------------------------ 편지 도구 (Q)
+        // ------------------------------------------------------------------ 스킬 (우클릭 · Q)
 
-        void UseTool()
+        /// <summary>지금 끼운 부품으로 정해지는 스킬의 이름·설명(HUD·캐릭터 창).</summary>
+        public static string SkillName(ItemDef part)
+        {
+            switch (part != null ? part.effect : "bind")
+            {
+                case "throw": return "날아가는 편지";
+                case "dash": return "속달 돌진";
+                default: return "봉인끈";
+            }
+        }
+
+        public static string SkillDescription(ItemDef part)
+        {
+            switch (part != null ? part.effect : "bind")
+            {
+                case "throw": return "커서 쪽으로 편지를 날려 꿰뚫는다. 공격력 x2.6";
+                case "dash": return "커서 쪽으로 내달리며 지나간 적을 친다(무적). 공격력 x2.2";
+                default: return "주변 적을 묶고 피해를 준다. 공격력 x1.4 + 기절";
+            }
+        }
+
+        void UseSkill()
         {
             var part = Inventory.CurrentToolPart;
             string effect = part != null ? part.effect : "bind";
             float cooldown = part != null && part.value > 0f ? part.value : 6f;
-            toolReadyTime = Time.time + cooldown * Mathf.Max(0.4f, 1f - ToolBonus * 0.5f);
+            SkillCooldownTotal = cooldown * Mathf.Max(0.4f, 1f - SkillBonus * 0.5f);
+            skillReadyTime = Time.time + SkillCooldownTotal;
 
+            Vector2 aim = Aim();
+            FaceToward(aim, 0.3f);
             switch (effect)
             {
-                case "throw": ThrowLetter(); break;
-                case "dash": StartDash(); break;
+                case "throw": ThrowLetter(aim); break;
+                case "dash": StartDash(aim); break;
                 default: Bind(); break;
             }
         }
 
+        float SkillMul(float baseMul) => baseMul * (1f + SkillBonus);
+
         void Bind()
         {
             Vector2 pos = transform.position;
-            int count = 0;
             foreach (var enemy in EnemyController.Active.ToArray())
             {
-                if (Vector2.Distance(pos, enemy.transform.position) <= bindRadius)
-                {
-                    enemy.Stun(bindStunTime * (1f + ToolBonus));
-                    count++;
-                }
+                if (Vector2.Distance(pos, enemy.transform.position) > bindRadius) continue;
+                int dmg = Stats.RollDamage(SkillMul(1.4f), out bool crit);
+                enemy.TakeHit(dmg, pos, 3f, crit);
+                enemy.Stun(bindStunTime * (1f + SkillBonus));
             }
             RingFx.Spawn(pos, bindRadius, new Color(0.55f, 0.9f, 1f, 0.9f), 0.4f);
+            RingFx.Spawn(pos, bindRadius * 0.6f, new Color(0.8f, 0.95f, 1f, 0.9f), 0.3f);
+            CameraFollow.Shake(0.1f, 0.1f);
             Sound.Play("Tool");
-            if (count > 0) HUD.Toast("봉인끈이 " + count + "마리를 묶었다!");
         }
 
-        void ThrowLetter()
+        void ThrowLetter(Vector2 aim)
         {
-            LetterProjectile.Spawn((Vector2)transform.position + Facing * 0.5f, Facing, 2 + Mathf.RoundToInt(ToolBonus * 2f));
-            Sound.Play("Attack", 0.6f);
+            LetterProjectile.Spawn((Vector2)transform.position + aim * 0.5f, aim, SkillMul(2.6f));
+            Sound.Play("Attack", 0.8f);
         }
 
-        void StartDash()
+        void StartDash(Vector2 aim)
         {
-            dashDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : Facing;
-            Facing = dashDir;
+            dashDir = aim;
             dashEnd = Time.time + dashTime;
             dashHit.Clear();
             // 내달리는 동안은 적과 부딪히지 않고 통과한다.
@@ -360,9 +366,10 @@ namespace MoonlightPost
             Vector2 pos = transform.position;
             foreach (var e in EnemyController.Active.ToArray())
             {
-                if (dashHit.Contains(e) || Vector2.Distance(pos, e.transform.position) > 0.9f) continue;
+                if (dashHit.Contains(e) || Vector2.Distance(pos, e.transform.position) > 1f) continue;
                 dashHit.Add(e);
-                e.TakeHit(1 + Mathf.RoundToInt(ToolBonus), pos, 4f);
+                int dmg = Stats.RollDamage(SkillMul(2.2f), out bool crit);
+                e.TakeHit(dmg, pos, 4f, crit);
                 e.Stun(0.7f);
                 Juice.HitStop(0.04f);
             }
@@ -406,17 +413,6 @@ namespace MoonlightPost
                 float light = Inventory.EffectSum("light");
                 lightGlow.transform.localScale = Vector3.one * (4.5f + 3.5f * light);
                 lightGlow.color = new Color(1f, 0.92f, 0.7f, 0.12f + 0.08f * light);
-            }
-            if (guardIcon != null)
-            {
-                guardIcon.enabled = IsGuarding;
-                if (IsGuarding)
-                {
-                    guardIcon.transform.localPosition = (Vector3)(Facing * 0.5f) + new Vector3(0f, -0.1f, 0f);
-                    // 받아치기 시간에는 반짝인다
-                    bool parryTime = Time.time - guardStart <= parryWindow;
-                    guardIcon.color = parryTime ? new Color(1f, 0.95f, 0.6f) : Color.white;
-                }
             }
             if (slash != null && slash.enabled)
             {

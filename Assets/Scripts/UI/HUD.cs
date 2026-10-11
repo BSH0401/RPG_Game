@@ -4,9 +4,9 @@ using UnityEngine;
 namespace MoonlightPost
 {
     /// <summary>
-    /// 체력, 도구 쿨타임, 들고 있는 편지, 조사 안내, 알림, 이름표, 보스 체력, 지도(Tab), 조작법(F1).
+    /// 체력·경험치·스킬(HUD.Character), 들고 있는 편지, 조사 안내, 알림, 이름표, 보스 체력, 지도(Tab), 조작법(F1).
     /// </summary>
-    public class HUD : MonoBehaviour
+    public partial class HUD : MonoBehaviour
     {
         public struct MapRegion
         {
@@ -27,6 +27,7 @@ namespace MoonlightPost
             public string text;
             public Color color;
             public float start;
+            public float scale;
         }
 
         readonly List<PopupMsg> popups = new List<PopupMsg>();
@@ -59,11 +60,12 @@ namespace MoonlightPost
             I.helpUntil = float.MaxValue;
         }
 
-        /// <summary>지도·가방을 닫는다(Esc).</summary>
+        /// <summary>지도·가방·캐릭터 창을 닫는다(Esc).</summary>
         public static void CloseOverlays()
         {
             SetMap(false);
             SetBag(false);
+            SetChar(false);
         }
 
         void OnDestroy()
@@ -73,15 +75,16 @@ namespace MoonlightPost
                 I = null;
                 SetMap(false);
                 SetBag(false);
+                SetChar(false);
             }
         }
 
-        /// <summary>월드 위에 잠깐 떠올랐다 사라지는 글자(피해 숫자, 막기, 받아치기).</summary>
-        public static void Popup(Vector2 world, string text, Color color)
+        /// <summary>월드 위에 잠깐 떠올랐다 사라지는 글자(피해 숫자, 경험치, 레벨업). scale 이 크면 크고 오래 남는다.</summary>
+        public static void Popup(Vector2 world, string text, Color color, float scale = 1f)
         {
             if (I == null) return;
-            I.popups.Add(new PopupMsg { world = world, text = text, color = color, start = Time.unscaledTime });
-            if (I.popups.Count > 20) I.popups.RemoveAt(0);
+            I.popups.Add(new PopupMsg { world = world, text = text, color = color, start = Time.unscaledTime, scale = scale });
+            if (I.popups.Count > 40) I.popups.RemoveAt(0);
         }
 
         public static void Toast(string text)
@@ -94,13 +97,14 @@ namespace MoonlightPost
         void Update()
         {
             if (GameMenu.IsOpen || UpgradeMenu.IsOpen) return;
+            UpdateCharacterKeys();
             if (BagOpen)
             {
                 if (GameInput.MenuUp) bagScroll--;
                 if (GameInput.MenuDown) bagScroll++;
             }
-            if (GameInput.MapTogglePressed && !BagOpen && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
-            if (GameInput.InventoryPressed && !MapOpen && (BagOpen || !DialogueSystem.IsOpen)) SetBag(!BagOpen);
+            if (GameInput.MapTogglePressed && !BagOpen && !CharOpen && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
+            if (GameInput.InventoryPressed && !MapOpen && !CharOpen && (BagOpen || !DialogueSystem.IsOpen)) SetBag(!BagOpen);
             if (GameInput.HelpPressed)
             {
                 showHelp = !showHelp;
@@ -108,13 +112,12 @@ namespace MoonlightPost
             }
             // 개발용 키(F11 건너뛰기, F12 저장 삭제)는 에디터와 개발 빌드에서만 동작한다. 배포용 빌드에서는 꺼진다.
             if (!Debug.isDebugBuild) return;
-            if (GameInput.SkipPressed && !DialogueSystem.IsOpen && !MapOpen && !BagOpen)
+            if (GameInput.SkipPressed && !DialogueSystem.IsOpen && !AnyOverlay)
                 LetterManager.DevSkip(); // 개발용: 다음 편지로 건너뛰기
             if (GameInput.ResetPressed)
             {
                 // 개발용: 저장을 지우고 처음부터.
-                SetMap(false);
-                SetBag(false);
+                CloseOverlays();
                 GameBootstrap.RestartNewGame();
             }
         }
@@ -122,13 +125,13 @@ namespace MoonlightPost
         static void SetMap(bool openMap)
         {
             MapOpen = openMap;
-            Time.timeScale = MapOpen || BagOpen ? 0f : 1f;
+            Time.timeScale = AnyOverlay ? 0f : 1f;
         }
 
         static void SetBag(bool openBag)
         {
             BagOpen = openBag;
-            Time.timeScale = MapOpen || BagOpen ? 0f : 1f;
+            Time.timeScale = AnyOverlay ? 0f : 1f;
         }
 
         void OnGUI()
@@ -141,58 +144,37 @@ namespace MoonlightPost
             DrawLetterPanel();
             DrawNameLabels(player);
             DrawBossBar(player);
-            if (!DialogueSystem.IsOpen && !MapOpen && !BagOpen) DrawPrompt(player);
+            if (!DialogueSystem.IsOpen && !AnyOverlay) DrawPrompt(player);
             DrawPopups();
             DrawToasts();
-            if (showHelp && Time.unscaledTime < helpUntil && !MapOpen && !BagOpen) DrawHelp();
+            DrawLevelBanner();
+            if (showHelp && Time.unscaledTime < helpUntil && !AnyOverlay) DrawHelp();
             if (MapOpen) DrawMap(player);
             if (BagOpen) DrawBag();
+            if (CharOpen) DrawCharacter(player);
         }
 
         void DrawStatus(PlayerController player)
         {
-            float s = Ui.S;
-            var hp = player.Health;
-            for (int i = 0; i < hp.Max; i++)
-            {
-                var r = new Rect((16 + i * 32) * s, 16 * s, 27 * s, 24 * s);
-                Ui.Icon(r, i < hp.Current ? Art.HeartFull : Art.HeartEmpty);
-            }
-
-            // 지금 끼운 편지 도구 (아이콘 + 이름 + 재사용 대기)
-            var part = Inventory.CurrentToolPart;
-            string partName = part != null ? part.name : "봉인끈";
-            float cd = player.ToolCooldownRemaining;
-            var iconRect = Ui.R(16, 46, 22, 22);
-            Ui.Fill(iconRect, new Color(0f, 0f, 0f, 0.45f));
-            if (part != null) DrawIconFit(new Rect(iconRect.x + 2, iconRect.y + 2, iconRect.width - 4, iconRect.height - 4), GameAssets.ItemIcon(part.icon));
-            if (cd > 0f)
-            {
-                float maxCd = part != null && part.value > 0f ? part.value : 6f;
-                float k = Mathf.Clamp01(cd / maxCd);
-                Ui.Fill(new Rect(iconRect.x, iconRect.y, iconRect.width, iconRect.height * k), new Color(0f, 0f, 0.1f, 0.6f));
-            }
-            string tool = "[Q] " + partName + (cd > 0f ? "  " + cd.ToString("0.0") + "초" : "  준비됨");
-            if (Inventory.OwnedPartCount() > 1) tool += "   <color=#9fb3ff>[C] 바꾸기</color>";
-            Ui.Shadow(Ui.R(44, 46, 400, 26), tool, Ui.Small);
+            float top = DrawVitals(player);
             string nightText = GameState.Night > 0 ? GameState.Night + "번째 밤 · " + NightDirector.MoodName(NightDirector.Mood) : "첫 밤 전";
             int stamps = GameState.ItemCount("lost_stamp");
             if (stamps > 0) nightText += "    잃어버린 우표 " + stamps + "/8";
-            Ui.Shadow(Ui.R(16, 74, 420, 26), nightText, Ui.Small);
+            Ui.Shadow(Ui.R(16, top, 420, 26), nightText, Ui.Small);
 
             // 먹을 것 개수
             int food = Inventory.ConsumableCount();
             if (food > 0)
             {
-                Ui.Icon(Ui.R(16, 102, 22, 22), GameAssets.ItemIcon("Croissant"));
-                Ui.Shadow(Ui.R(44, 100, 260, 26), "x" + food + "  [R] 먹기", Ui.Small);
+                Ui.Icon(Ui.R(16, top + 28, 22, 22), GameAssets.ItemIcon("Croissant"));
+                Ui.Shadow(Ui.R(44, top + 26, 260, 26), "x" + food + "  [R] 먹기", Ui.Small);
             }
 
             // 강화 재료
             int crystals = GameState.ItemCount(Upgrade.Crystal), shards = GameState.ItemCount(Upgrade.Shard);
             if (crystals > 0 || shards > 0)
             {
-                float y = food > 0 ? 128 : 102;
+                float y = top + (food > 0 ? 54 : 28);
                 DrawIconFit(Ui.R(16, y + 2, 22, 22), GameAssets.ItemIcon("InkCrystal"));
                 Ui.Shadow(Ui.R(44, y, 80, 26), crystals.ToString(), Ui.Small);
                 DrawIconFit(Ui.R(100, y + 2, 22, 22), GameAssets.ItemIcon("MoonShard"));
@@ -259,7 +241,7 @@ namespace MoonlightPost
                     : def.IsConsumable ? "<color=#ffd98a>소모품</color>"
                     : def.IsMaterial ? "<color=#c9a0ff>강화 재료</color>"
                     : def.kind == "collectible" ? "<color=#ffe08a>수집품</color>"
-                    : def.IsPart ? (Inventory.CurrentToolPart == def ? "<color=#ffb070>편지 도구 · 사용 중</color>" : "<color=#ffb070>편지 도구</color>")
+                    : def.IsPart ? (Inventory.CurrentToolPart == def ? "<color=#ffb070>스킬 · 사용 중</color>" : "<color=#ffb070>스킬 [C]</color>")
                     : "<color=#b8c4ff>열쇠</color>";
                 string count = items[i].count > 1 ? "  x" + items[i].count : "";
                 string name = Upgrade.CanUpgrade(def) ? Upgrade.RichName(def) : def.name;
@@ -423,17 +405,18 @@ namespace MoonlightPost
         {
             var cam = Camera.main;
             if (cam == null) return;
-            if (popupStyle == null || popupStyle.fontSize != Ui.Px(20))
-            {
-                popupStyle = new GUIStyle(Ui.Center) { fontSize = Ui.Px(20), fontStyle = FontStyle.Bold };
-            }
-            const float life = 0.8f;
-            popups.RemoveAll(p => Time.unscaledTime - p.start > life);
+            if (popupStyle == null)
+                popupStyle = new GUIStyle(Ui.Center) { fontStyle = FontStyle.Bold, wordWrap = false };
+            popups.RemoveAll(p => Time.unscaledTime - p.start > PopupLife(p));
             foreach (var p in popups)
             {
+                float life = PopupLife(p);
                 float t = (Time.unscaledTime - p.start) / life;
+                // 처음에 살짝 커졌다가 제자리로(치명타·레벨업은 더 크게)
+                float punch = 1f + 0.35f * Mathf.Max(0f, 1f - t * 6f);
+                popupStyle.fontSize = Mathf.RoundToInt(Ui.Px(20) * (p.scale <= 0f ? 1f : p.scale) * punch);
                 Vector3 sp = cam.WorldToScreenPoint(p.world + Vector2.up * (t * 0.8f));
-                var r = new Rect(sp.x - 80 * Ui.S, Screen.height - sp.y - 16 * Ui.S, 160 * Ui.S, 32 * Ui.S);
+                var r = new Rect(sp.x - 120 * Ui.S, Screen.height - sp.y - 20 * Ui.S, 240 * Ui.S, 40 * Ui.S);
                 var c = p.color;
                 c.a = 1f - t * t;
                 var old = popupStyle.normal.textColor;
@@ -444,6 +427,8 @@ namespace MoonlightPost
                 popupStyle.normal.textColor = old;
             }
         }
+
+        static float PopupLife(PopupMsg p) => p.scale > 1.2f ? 1.3f : 0.8f;
 
         static void DrawIconFit(Rect box, Texture2D icon)
         {
@@ -461,12 +446,11 @@ namespace MoonlightPost
             GUI.Label(new Rect(r.x + 12 * s, r.y + 8 * s, r.width - 24 * s, r.height - 16 * s),
                 "<b>조작법</b>  (F1로 숨기기)\n" +
                 "WASD / 방향키  이동\n" +
-                "마우스 왼쪽 / J  공격\n" +
+                "마우스 왼쪽 (누르고 있기)  커서 쪽 공격\n" +
+                "마우스 오른쪽 / Q  스킬\n" +
                 "Space / Shift  회피 (무적)\n" +
-                "우클릭 / K (누르기)  우편가방 막기\n" +
-                "  └ 맞기 직전에 누르면 받아치기!\n" +
                 "E  조사 · 대화 · 배달\n" +
-                "Q  편지 도구   C  도구 바꾸기\n" +
+                "C  캐릭터 (스탯 · 스킬)\n" +
                 "R  먹기 (체력 회복)\n" +
                 "I  가방   Tab / M  지도\n" +
                 "Esc  메뉴 · 설정", Ui.Small);

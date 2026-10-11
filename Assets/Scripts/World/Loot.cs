@@ -25,7 +25,7 @@ namespace MoonlightPost
                 return;
             }
             if (e.lootCrystals <= 0) return;
-            int crystals = Random.Range(Mathf.Max(1, e.lootCrystals - 1), e.lootCrystals + 1);
+            int crystals = Mathf.RoundToInt(Random.Range(Mathf.Max(1, e.lootCrystals - 1), e.lootCrystals + 1) * Stats.LootMul);
             int shards = e.isBoss ? Random.Range(2, 4) : (Random.value < e.shardChance ? 1 : 0);
             Drop(p, crystals, shards);
         }

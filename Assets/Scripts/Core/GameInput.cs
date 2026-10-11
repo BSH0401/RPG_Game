@@ -16,8 +16,6 @@ namespace MoonlightPost
         static bool Held(Key key) => Kb != null && Kb[key].isPressed;
         static bool Down(Key key) => Kb != null && Kb[key].wasPressedThisFrame;
         static bool MouseLeftDown => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
-        static bool MouseRightHeld => Mouse.current != null && Mouse.current.rightButton.isPressed;
-
         public static Vector2 Move
         {
             get
@@ -29,9 +27,16 @@ namespace MoonlightPost
         }
 
         public static bool AttackPressed => MouseLeftDown || Down(Key.J);
+        /// <summary>누르고 있으면 계속 공격한다.</summary>
+        public static bool AttackHeld => (Mouse.current != null && Mouse.current.leftButton.isPressed) || Held(Key.J);
+        /// <summary>마우스로 공격 중인가(그러면 커서 쪽을 노린다. J 키는 바라보는 방향).</summary>
+        public static bool AimWithMouse => Mouse.current != null && (Mouse.current.leftButton.isPressed || Mouse.current.rightButton.isPressed);
+        public static Vector2 MouseScreen => Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
         public static bool DodgePressed => Down(Key.Space) || Down(Key.LeftShift);
         public static bool InteractPressed => Down(Key.E);
-        public static bool ToolPressed => Down(Key.Q);
+        /// <summary>스킬: 마우스 오른쪽 또는 Q.</summary>
+        public static bool SkillPressed => (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame) || Down(Key.Q);
+        public static bool CharacterPressed => Down(Key.C);
         public static bool MapTogglePressed => Down(Key.Tab) || Down(Key.M);
         public static bool AdvancePressed => Down(Key.E) || Down(Key.Space) || Down(Key.Enter) || MouseLeftDown;
         public static bool HelpPressed => Down(Key.F1);
@@ -39,9 +44,6 @@ namespace MoonlightPost
         public static bool SkipPressed => Down(Key.F11);
         public static bool InventoryPressed => Down(Key.I);
         public static bool UseItemPressed => Down(Key.R);
-        /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
-        public static bool GuardHeld => MouseRightHeld || Held(Key.K);
-        public static bool SwitchToolPressed => Down(Key.C);
         public static bool PausePressed => Down(Key.Escape);
         public static bool MenuUp => Down(Key.W) || Down(Key.UpArrow);
         public static bool MenuDown => Down(Key.S) || Down(Key.DownArrow);
@@ -56,6 +58,7 @@ namespace MoonlightPost
                 case 0: return Down(Key.Digit1) || Down(Key.Numpad1);
                 case 1: return Down(Key.Digit2) || Down(Key.Numpad2);
                 case 2: return Down(Key.Digit3) || Down(Key.Numpad3);
+                case 3: return Down(Key.Digit4) || Down(Key.Numpad4);
                 default: return false;
             }
         }
@@ -73,9 +76,13 @@ namespace MoonlightPost
         }
 
         public static bool AttackPressed => Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.J);
+        public static bool AttackHeld => Input.GetMouseButton(0) || Input.GetKey(KeyCode.J);
+        public static bool AimWithMouse => Input.GetMouseButton(0) || Input.GetMouseButton(1);
+        public static Vector2 MouseScreen => Input.mousePosition;
         public static bool DodgePressed => Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.LeftShift);
         public static bool InteractPressed => Input.GetKeyDown(KeyCode.E);
-        public static bool ToolPressed => Input.GetKeyDown(KeyCode.Q);
+        public static bool SkillPressed => Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Q);
+        public static bool CharacterPressed => Input.GetKeyDown(KeyCode.C);
         public static bool MapTogglePressed => Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.M);
         public static bool AdvancePressed => Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space)
                                           || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0);
@@ -84,9 +91,6 @@ namespace MoonlightPost
         public static bool SkipPressed => Input.GetKeyDown(KeyCode.F11);
         public static bool InventoryPressed => Input.GetKeyDown(KeyCode.I);
         public static bool UseItemPressed => Input.GetKeyDown(KeyCode.R);
-        /// <summary>우편가방 막기: 마우스 오른쪽 또는 K 를 누르고 있는 동안.</summary>
-        public static bool GuardHeld => Input.GetMouseButton(1) || Input.GetKey(KeyCode.K);
-        public static bool SwitchToolPressed => Input.GetKeyDown(KeyCode.C);
         public static bool PausePressed => Input.GetKeyDown(KeyCode.Escape);
         public static bool MenuUp => Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
         public static bool MenuDown => Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow);
@@ -101,6 +105,7 @@ namespace MoonlightPost
                 case 0: return Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1);
                 case 1: return Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2);
                 case 2: return Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3);
+                case 3: return Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4);
                 default: return false;
             }
         }

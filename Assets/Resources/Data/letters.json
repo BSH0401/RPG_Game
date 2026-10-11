@@ -43,7 +43,7 @@
       "deliveredFlag": "bakery_open",
       "rewardMaxHp": 0,
       "rewardItem": "mail_bag",
-      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +2)  [I] 키로 가방을 열어 보자.",
+      "rewardText": "오웬의 낡은 우편가방을 받았다. (최대 체력 +20)  [I] 키로 가방을 열어 보자.",
       "objectives": [
         {
           "text": "받는 사람 단서 찾기 (동쪽 숲)",
@@ -98,7 +98,7 @@
       "deliveredFlag": "reply_delivered",
       "rewardMaxHp": 0,
       "rewardItem": "paper_letter",
-      "rewardText": "미라가 편지지로 단단히 접은 '날아가는 편지'를 쥐여주었다. [C] 키로 편지 도구를 바꿀 수 있다.",
+      "rewardText": "미라가 편지지로 단단히 접은 '날아가는 편지'를 쥐여주었다. [C] 캐릭터 창에서 스킬로 골라 쓸 수 있다.",
       "objectives": [
         {
           "text": "숲 입구에 둔 밀가루 자루 챙기기",
@@ -583,7 +583,7 @@
       ],
       "deliveredFlag": "hana_coming",
       "rewardMaxHp": 0,
-      "rewardText": "하나의 바다 유리를 받았다. (최대 체력 +1)",
+      "rewardText": "하나의 바다 유리를 받았다. (최대 체력 +10)",
       "rewardItem": "sea_glass",
       "objectives": [
         {
@@ -754,7 +754,7 @@
       "deliveredFlag": "yuna_met",
       "rewardMaxHp": 0,
       "rewardItem": "star_sand",
-      "rewardText": "유나에게서 별모래 주머니를 받았다. (최대 체력 +1)",
+      "rewardText": "유나에게서 별모래 주머니를 받았다. (최대 체력 +10)",
       "objectives": [
         {
           "text": "흔들다리를 건너 천문대의 유나 찾아가기",
@@ -871,7 +871,7 @@
       "deliveredFlag": "shadows_calm",
       "rewardMaxHp": 0,
       "rewardItem": "night_badge",
-      "rewardText": "섬의 그림자들이 한결 잠잠해졌다. 야간 우체부 배지를 받았다. (최대 체력 +1)",
+      "rewardText": "섬의 그림자들이 한결 잠잠해졌다. 야간 우체부 배지를 받았다. (최대 체력 +10)",
       "objectives": [
         {
           "text": "갱도 앞의 거대한 그림자 물리치기 (옛 채석장 동쪽 끝)",

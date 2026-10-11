@@ -25,6 +25,11 @@ namespace MoonlightPost
         /// <summary>장비 강화 단계(count = 단계)와 연속 실패 횟수(count = 횟수, 실패 보정).</summary>
         public List<ItemStack> upgrades = new List<ItemStack>();
         public List<ItemStack> upgradeFails = new List<ItemStack>();
+        /// <summary>레벨·경험치·남은 스탯 포인트와 나눠 준 스탯(Stats).</summary>
+        public int level = 1;
+        public int exp;
+        public int statPoints;
+        public int str, vit, agi, luk;
     }
 
     /// <summary>
@@ -50,8 +55,11 @@ namespace MoonlightPost
         static string SavePath => Path.Combine(Application.persistentDataPath, SaveFileName);
 
         public static int Night => data.night;
-        /// <summary>기본 체력 + 장비(maxHp 효과) 보너스.</summary>
-        public static int MaxHp => data.maxHp + Mathf.RoundToInt(Inventory.EffectSum("maxHp"));
+        /// <summary>레벨·체력 스탯·편지 보상·장비로 정해지는 최대 체력(Stats.MaxHp).</summary>
+        public static int MaxHp => Stats.MaxHp;
+        /// <summary>저장 데이터 그대로(레벨·스탯은 Stats 가 다룬다).</summary>
+        internal static SaveData Data => data;
+        public static void NotifyChanged() => Changed?.Invoke();
         public static IReadOnlyList<ItemStack> Items => data.items;
         public static string ToolPart => data.toolPart;
 
@@ -237,6 +245,7 @@ namespace MoonlightPost
             // 기본 편지 도구는 처음부터 가지고 있다.
             if (!data.items.Exists(s => s.id == "seal_string")) data.items.Insert(0, new ItemStack { id = "seal_string", count = 1 });
             if (data.maxHp <= 0) data.maxHp = BaseMaxHp;
+            if (data.level <= 0) data.level = 1;
             foreach (var f in data.flags) flags.Add(f);
 
             // 예전 저장 파일: 우편가방 보상이 최대 체력 숫자로만 저장돼 있으면 아이템으로 바꾼다.

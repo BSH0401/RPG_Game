@@ -59,7 +59,8 @@ namespace MoonlightPost
                     return false;
                 }
                 GameState.RemoveItem(def.id);
-                if (def.effect == "heal") player.Health.Heal(UnityEngine.Mathf.RoundToInt(def.value));
+                // value 는 예전 하트 단위라 PlayerController.EnemyDamageScale 을 곱한다.
+                if (def.effect == "heal") player.Health.Heal(UnityEngine.Mathf.RoundToInt(def.value * PlayerController.EnemyDamageScale));
                 HUD.Toast(Josa.Eul(def.name) + " 먹었다. 체력 회복!");
                 Sound.Play("Clue", 0.6f);
                 GameState.Save();
@@ -79,23 +80,21 @@ namespace MoonlightPost
             }
         }
 
-        /// <summary>가진 부품 중 다음 것으로 바꾼다(C 키).</summary>
-        public static void CycleToolPart()
+        /// <summary>가진 편지 도구 부품(= 고를 수 있는 스킬).</summary>
+        public static System.Collections.Generic.List<ItemDef> OwnedParts()
         {
             var owned = new System.Collections.Generic.List<ItemDef>();
             foreach (var def in GameData.Items)
                 if (def.IsPart && GameState.ItemCount(def.id) > 0) owned.Add(def);
-            if (owned.Count <= 1)
-            {
-                HUD.Toast("바꿔 끼울 편지 도구가 아직 없다.");
-                return;
-            }
-            var current = CurrentToolPart;
-            int i = current != null ? owned.FindIndex(d => d.id == current.id) : -1;
-            var next = owned[(i + 1) % owned.Count];
-            GameState.SetToolPart(next.id);
+            return owned;
+        }
+
+        /// <summary>스킬로 쓸 부품을 끼운다(캐릭터 창).</summary>
+        public static void EquipPart(ItemDef part)
+        {
+            if (part == null || !part.IsPart || GameState.ItemCount(part.id) == 0) return;
+            GameState.SetToolPart(part.id);
             GameState.Save();
-            HUD.Toast("편지 도구: " + next.name);
             Sound.Play("Talk", 0.6f);
         }
 

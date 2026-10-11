@@ -53,7 +53,7 @@ namespace MoonlightPost
             if (I == null || !I.open) return;
             I.open = false;
             LastClosedFrame = Time.frameCount;
-            Time.timeScale = HUD.MapOpen || HUD.BagOpen || GameMenu.IsOpen ? 0f : 1f;
+            Time.timeScale = HUD.AnyOverlay || GameMenu.IsOpen ? 0f : 1f;
         }
 
         void Refresh()

@@ -35,6 +35,10 @@ namespace MoonlightPost
         public List<int> equipped = new List<int>();
         public int nextGearUid = 1;
         public int silver;
+        /// <summary>사냥 의뢰(Bounties), 의뢰를 붙인 밤, 지금까지 끝낸 사냥 의뢰 수.</summary>
+        public List<BountyData> bounties = new List<BountyData>();
+        public int bountyNight = -1;
+        public int bountiesDone;
     }
 
     /// <summary>

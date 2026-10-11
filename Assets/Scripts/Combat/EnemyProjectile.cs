@@ -11,6 +11,8 @@ namespace MoonlightPost
         public float speed = 6.5f;
         public float life = 2.5f;
         public int damage = 1;
+        /// <summary>쏜 적의 공격 배율(레벨·정예).</summary>
+        public float power = 1f;
 
         Vector2 dir;
         bool reflected;
@@ -39,6 +41,7 @@ namespace MoonlightPost
             g.sortingOrder = 1001;
             p.dir = direction.normalized;
             p.damage = damage;
+            p.power = owner != null ? owner.power : 1f;
             p.dieAt = Time.time + p.life;
         }
 
@@ -53,7 +56,7 @@ namespace MoonlightPost
                 var player = PlayerController.I;
                 if (player != null && Vector2.Distance(pos, player.transform.position) < 0.45f)
                 {
-                    var result = player.ReceiveAttack(null, damage, pos - dir * 0.3f, false);
+                    var result = player.ReceiveAttack(null, damage, pos - dir * 0.3f, false, power);
                     if (result == AttackResult.Parried)
                     {
                         // 받아치기: 방향을 뒤집고 빨라져서 적을 노린다.

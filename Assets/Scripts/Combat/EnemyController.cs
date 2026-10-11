@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace MoonlightPost
 {
+    /// <summary>정예 그림자의 특성. 정예는 체력 x2.5 · 경험치 x4 · 장비를 반드시 떨어뜨린다.</summary>
+    public enum EliteAffix { None, Swift, Giant, Fierce, Splitting }
+
     public enum EnemyAttack
     {
         /// <summary>예고선 방향으로 돌진. 막을 수 있음.</summary>
@@ -32,7 +35,18 @@ namespace MoonlightPost
         public static readonly List<EnemyController> Active = new List<EnemyController>();
 
         public string displayName = "그림자 들쥐";
+        public EnemyKind kind;
         public bool isBoss;
+        /// <summary>몬스터 레벨(지역·밤이 깊을수록 높다). 체력·공격·경험치·떨어뜨리는 장비 레벨이 따라 오른다.</summary>
+        public int level = 1;
+        /// <summary>나타난 지역 이름(사냥 의뢰가 쓴다).</summary>
+        public string region;
+        /// <summary>공격 피해 배율(레벨·정예).</summary>
+        public float power = 1f;
+        public EliteAffix elite;
+        public bool IsElite => elite != EliteAffix.None;
+        /// <summary>밀려나는 정도(거대한 정예는 덜 밀린다).</summary>
+        public float knockTaken = 1f;
         public string defeatFlag;
         public float moveSpeed = 2.2f;
         public float detectRange = 6f;
@@ -212,7 +226,7 @@ namespace MoonlightPost
                     if (!lungeHit && dist < hitRadius)
                     {
                         lungeHit = true;
-                        player.ReceiveAttack(this, lungeDamage, pos, false);
+                        player.ReceiveAttack(this, lungeDamage, pos, false, power);
                     }
                     if (Time.time >= stateEnd) EnterState(State.Recover, recoverTime);
                     break;
@@ -389,7 +403,7 @@ namespace MoonlightPost
                     for (int i = 0; i < rainCount; i++)
                     {
                         Vector2 p = i == 0 ? target : target + Random.insideUnitCircle.normalized * Random.Range(1.4f, 2.8f);
-                        GroundHazard.Spawn(p, 1.1f, 0.9f + i * 0.15f, 1);
+                        GroundHazard.Spawn(p, 1.1f, 0.9f + i * 0.15f, 1, power);
                     }
                     EnterState(State.Recover, recoverTime * 0.6f);
                     break;
@@ -431,7 +445,7 @@ namespace MoonlightPost
 
                 default:
                     // 내려찍기는 막을 수 없다(받아치기나 회피만 통한다).
-                    if (dist <= slamRadius) player.ReceiveAttack(this, slamDamage, transform.position, true);
+                    if (dist <= slamRadius) player.ReceiveAttack(this, slamDamage, transform.position, true, power);
                     RingFx.Spawn(transform.position, slamRadius, new Color(1f, 0.4f, 0.4f, 0.9f));
                     CameraFollow.Shake(isBoss ? 0.2f : 0.1f);
                     Sound.Play("BossSlam", isBoss ? 1f : 0.6f);
@@ -477,7 +491,7 @@ namespace MoonlightPost
             if (isBoss && (state == State.Windup || state == State.Lunge)) return;
             if (state == State.Stunned || (burrows && state == State.Recover)) return;
             EnterState(State.Hurt, 0.2f);
-            velocity = ((Vector2)transform.position - from).normalized * (isBoss ? pendingKnock * 0.33f : pendingKnock);
+            velocity = ((Vector2)transform.position - from).normalized * (isBoss ? pendingKnock * 0.33f : pendingKnock) * knockTaken;
         }
 
         void Enrage()
@@ -498,10 +512,130 @@ namespace MoonlightPost
         /// <summary>몸 색을 바꾼다(황금 그림자).</summary>
         public void SetBaseColor(Color c) => baseColor = c;
 
+        // ------------------------------------------------------------------ 레벨 · 정예
+
+        /// <summary>
+        /// 레벨을 정한다(Spawner.Enemy 가 지역을 보고 부른다). 레벨 1 을 기준으로
+        /// 체력 +25%(보스 +18%) · 공격 +10% · 경험치 +12% 씩 오른다.
+        /// </summary>
+        public void SetLevel(int lv, string regionName)
+        {
+            lv = Mathf.Max(1, lv);
+            region = regionName;
+            float hp = Health.Max / (1f + (isBoss ? 0.18f : 0.25f) * (level - 1));
+            float exp = expReward / (1f + 0.12f * (level - 1));
+            level = lv;
+            Health.SetMax(Mathf.Max(1, Mathf.RoundToInt(hp * (1f + (isBoss ? 0.18f : 0.25f) * (lv - 1)))), true);
+            expReward = Mathf.Max(1, Mathf.RoundToInt(exp * (1f + 0.12f * (lv - 1))));
+            power = 1f + 0.1f * (lv - 1);
+        }
+
+        public static string AffixName(EliteAffix a)
+        {
+            switch (a)
+            {
+                case EliteAffix.Swift: return "날쌘";
+                case EliteAffix.Giant: return "거대한";
+                case EliteAffix.Fierce: return "사나운";
+                case EliteAffix.Splitting: return "갈라지는";
+                default: return "";
+            }
+        }
+
+        public static string AffixHint(EliteAffix a)
+        {
+            switch (a)
+            {
+                case EliteAffix.Swift: return "빠르게 움직이고 공격 예고가 짧다";
+                case EliteAffix.Giant: return "체력이 아주 많고 잘 밀리지 않는다";
+                case EliteAffix.Fierce: return "공격이 아프다";
+                case EliteAffix.Splitting: return "쓰러지면 작은 그림자 둘로 갈라진다";
+                default: return "";
+            }
+        }
+
+        public static Color AffixColor(EliteAffix a)
+        {
+            switch (a)
+            {
+                case EliteAffix.Swift: return new Color(0.45f, 0.95f, 1f);
+                case EliteAffix.Giant: return new Color(0.55f, 1f, 0.5f);
+                case EliteAffix.Fierce: return new Color(1f, 0.42f, 0.35f);
+                case EliteAffix.Splitting: return new Color(1f, 0.5f, 1f);
+                default: return Color.white;
+            }
+        }
+
+        /// <summary>이름표에 쓰는 이름: 정예면 특성이 앞에 붙는다.</summary>
+        public string FullName => IsElite ? AffixName(elite) + " " + displayName : displayName;
+
+        /// <summary>정예로 만든다: 체력 x2.5, 경험치 x4, 장비를 반드시 떨어뜨리고, 특성마다 하나가 더 세다.</summary>
+        public void MakeElite(EliteAffix a)
+        {
+            if (a == EliteAffix.None || isBoss || golden) return;
+            elite = a;
+            float hpMul = 2.5f;
+            float size = 1.25f;
+            switch (a)
+            {
+                case EliteAffix.Swift:
+                    moveSpeed *= 1.45f;
+                    burrowSpeed *= 1.35f;
+                    windupTime *= 0.72f;
+                    recoverTime *= 0.7f;
+                    break;
+                case EliteAffix.Giant:
+                    hpMul = 4f;
+                    size = 1.5f;
+                    knockTaken = 0.25f;
+                    slamRadius *= 1.2f;
+                    break;
+                case EliteAffix.Fierce:
+                    power *= 1.6f;
+                    break;
+            }
+            Health.SetMax(Mathf.RoundToInt(Health.Max * hpMul), true);
+            expReward *= 4;
+            gearChance = 1f;
+            lootCrystals = Mathf.Max(lootCrystals, 2) * 2;
+            var c = AffixColor(a);
+            baseColor = Color.Lerp(baseColor, c, 0.45f);
+            transform.localScale = Vector3.one * size;
+            Spawner.Glow((Vector2)transform.position + new Vector2(0f, 0.2f), 2.2f, new Color(c.r, c.g, c.b, 0.35f), transform);
+        }
+
+        /// <summary>쓰러뜨렸을 때 받는 경험치: 내 레벨보다 5 이상 낮은 적은 40%만.</summary>
+        int ExpGain()
+        {
+            if (noLoot) return 1;
+            int gain = expReward;
+            if (Stats.Level - level >= 5) gain = Mathf.Max(1, Mathf.RoundToInt(gain * 0.4f));
+            return gain;
+        }
+
+        void Split()
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                Vector2 p = (Vector2)transform.position + new Vector2(i == 0 ? -0.6f : 0.6f, 0.1f);
+                if (TerrainBlocked(p, 0.3f)) p = transform.position;
+                var go = Spawner.Enemy(p, kind == EnemyKind.Mole ? EnemyKind.Rat : kind);
+                var e = go.GetComponent<EnemyController>();
+                e.SetLevel(Mathf.Max(1, level - 1), region);
+                e.noLoot = true;
+                e.Health.SetMax(Mathf.Max(1, e.Health.Max / 2), true);
+                go.transform.localScale = Vector3.one * 0.75f;
+                e.SetBaseColor(Color.Lerp(e.baseColor, AffixColor(EliteAffix.Splitting), 0.4f));
+            }
+            RingFx.Spawn(transform.position, 1.4f, new Color(1f, 0.5f, 1f, 0.9f), 0.4f);
+        }
+
         void OnDied()
         {
-            Stats.AddExp(noLoot ? 1 : expReward, transform.position);
+            Stats.AddExp(ExpGain(), transform.position);
             Loot.FromEnemy(this);
+            Bounties.OnKill(this);
+            if (elite == EliteAffix.Splitting) Split();
             // 장비 옵션 「처치할 때 체력」
             int life = Mathf.RoundToInt(Gear.Total(GearStat.LifeOnKill));
             var player = PlayerController.I;

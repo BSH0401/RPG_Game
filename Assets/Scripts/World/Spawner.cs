@@ -217,6 +217,7 @@ namespace MoonlightPost
 
             var health = go.AddComponent<Health>();
             var enemy = go.AddComponent<EnemyController>();
+            enemy.kind = kind;
             SpriteRenderer body;
             CharacterSheet sheet;
             switch (kind)
@@ -399,7 +400,23 @@ namespace MoonlightPost
                 case EnemyKind.Wraith: enemy.lootCrystals = 25; enemy.expReward = 350; break;
             }
             enemy.Init(body);
+            // 레벨: 나타난 지역과 밤에 따라(NightDirector.LevelAt)
+            var (lv, region) = NightDirector.LevelAt(pos, kind);
+            enemy.SetLevel(lv, region);
             return go;
+        }
+
+        /// <summary>몬스터 종류의 이름(사냥 의뢰). 그림 팩이 있으면 그 이름.</summary>
+        public static string KindName(EnemyKind kind)
+        {
+            bool monsters = GameAssets.MonsterSheet("Goblin") != null;
+            switch (kind)
+            {
+                case EnemyKind.Bat: return monsters ? "먹물 모기" : "먹물 박쥐";
+                case EnemyKind.Mole: return monsters ? "땅굴 머리" : "그림자 두더지";
+                case EnemyKind.Rat: return monsters ? "그림자 고블린" : "그림자 들쥐";
+                default: return "보스";
+            }
         }
 
         static void AddYSort(GameObject go, int offset, bool isStatic)

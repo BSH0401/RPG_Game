@@ -91,6 +91,7 @@ namespace MoonlightPost
             if (scenery) yield return GrowthTest(player);
             if (scenery) yield return MonsterLineup(player);
             if (scenery) yield return GearTest(player);
+            if (scenery) yield return HuntTest(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
@@ -167,7 +168,8 @@ namespace MoonlightPost
                     if (GameState.ItemCount(id) > 0) legends++;
                 Log("황금 그림자 " + trophies + "마리, 전설 장비 " + legends + "개, 먹물 결정 " + GameState.ItemCount(Upgrade.Crystal) + ", 달빛 조각 " + GameState.ItemCount(Upgrade.Shard)
                     + ", 레벨 " + Stats.Level + " (공격력 " + Stats.Attack + ", 최대 체력 " + GameState.MaxHp + ", 방어 " + Stats.Defense + ")"
-                    + ", 장비 " + GameState.Gear.Count + "개(낀 것 " + new List<GearItem>(GameState.Equipped()).Count + "), 은화 " + GameState.Silver);
+                    + ", 장비 " + GameState.Gear.Count + "개(낀 것 " + new List<GearItem>(GameState.Equipped()).Count + "), 은화 " + GameState.Silver
+                    + ", 사냥 의뢰 " + GameState.Data.bountiesDone + "개");
                 if (trophies >= 4 && legends == 0) Problem("황금 그림자를 " + trophies + "마리 잡았는데 전설 장비가 하나도 없음(천장 동작 안 함)");
             }
             if (scenery) yield return Overviews("end");
@@ -490,6 +492,95 @@ namespace MoonlightPost
                 Log("   장비 검사: 공격력 " + atk0 + " → " + atkWeak + " → " + atkStrong + ", 방어 " + Stats.Defense + ", 가방 " + GameState.Gear.Count
                     + ", 상점 은화 " + silver + " → " + GameState.Silver + ", 판 장비 " + sold);
             }
+        }
+
+        /// <summary>
+        /// 사냥 3단계: 깊은 지역의 몬스터가 레벨·체력이 더 높은지, 정예가 더 튼튼한지,
+        /// 정예를 쓰러뜨리면 사냥 의뢰가 세어지는지, 게시판에서 보상(은화·경험치·장비)을 받는지 본다.
+        /// </summary>
+        IEnumerator HuntTest(PlayerController player)
+        {
+            var nd = NightDirector.I;
+            Vector2? lowP = null, highP = null;
+            foreach (var r in nd.Regions())
+            {
+                if (r.spots == null || r.spots.Length == 0) continue;
+                if (lowP == null) lowP = r.spots[0];
+                highP = r.spots[0];
+            }
+            var low = Spawner.Enemy(lowP.Value, EnemyKind.Rat).GetComponent<EnemyController>();
+            var high = Spawner.Enemy(highP.Value, EnemyKind.Rat).GetComponent<EnemyController>();
+            low.enabled = high.enabled = false;
+            if (high.level <= low.level) Problem("몬스터 레벨: 깊은 지역(" + high.region + " Lv." + high.level + ")이 안쪽(" + low.region + " Lv." + low.level + ")보다 높지 않음");
+            if (high.Health.Max <= low.Health.Max) Problem("몬스터 레벨: 높은 레벨인데 체력이 더 많지 않음");
+            string levels = low.region + " Lv." + low.level + "(체력 " + low.Health.Max + ") · " + high.region + " Lv." + high.level + "(체력 " + high.Health.Max + ")";
+            Destroy(low.gameObject);
+            Destroy(high.gameObject);
+
+            // 정예 넷을 세워 두고 찍는다
+            Bounties.Refresh();
+            Vector2 p = (Vector2)player.transform.position + new Vector2(0f, -3.6f);
+            var elites = new List<EnemyController>();
+            var kinds = new[] { EnemyKind.Rat, EnemyKind.Bat, EnemyKind.Rat, EnemyKind.Bat };
+            for (int i = 0; i < 4; i++)
+            {
+                var e = Spawner.Enemy(p + new Vector2(-3.3f + i * 2.2f, 0f), kinds[i]).GetComponent<EnemyController>();
+                int normalHp = e.Health.Max;
+                e.MakeElite((EliteAffix)(i + 1));
+                if (e.Health.Max <= normalHp) Problem("정예: 체력이 그대로 (" + e.FullName + ")");
+                // 이름표가 보이도록 켜 둔 채, 플레이어를 알아보지 못하게 한다
+                e.detectRange = 0f;
+                elites.Add(e);
+            }
+            yield return MoveCamera(p + new Vector2(0f, 0.4f), 3.6f);
+            HUD.ClearToasts();
+            yield return Frames(4);
+            yield return Shot("elites");
+            yield return CameraRestore();
+
+            var eliteBounty = Bounties.All.Find(b => b.type == 2 && !b.claimed && b.night == GameState.Night);
+            int before = eliteBounty != null ? eliteBounty.have : 0;
+            foreach (var e in elites)
+                if (e != null)
+                {
+                    e.Health.Invulnerable = false;
+                    e.Health.TakeDamage(999999, player.transform.position);
+                }
+            yield return Seconds(0.3f);
+            // 갈라진 작은 그림자는 치운다
+            foreach (var e in new List<EnemyController>(EnemyController.Active))
+                if (e != null && e.noLoot && Vector2.Distance(e.transform.position, p) < 6f) Destroy(e.gameObject);
+            if (eliteBounty == null) Problem("사냥 의뢰: 정예 사냥 의뢰가 없음");
+            else if (eliteBounty.have <= before) Problem("사냥 의뢰: 정예를 쓰러뜨렸는데 세어지지 않음 (" + before + " → " + eliteBounty.have + ")");
+
+            // 남은 의뢰도 채운 것으로 하고 게시판에서 보상을 받는다
+            foreach (var b in Bounties.All) b.have = Mathf.Max(b.have, b.need);
+            var board = FindAnyObjectByType<BountyBoard>();
+            if (board == null)
+            {
+                Problem("사냥 게시판이 월드에 없음");
+                yield break;
+            }
+            yield return Visit(player, board.transform.position);
+            HUD.ClearToasts();
+            yield return Frames(3);
+            yield return Shot("bounty_board_world");
+            int silver = GameState.Silver, exp = GameState.Data.exp, lv = Stats.Level, gear = GameState.Gear.Count;
+            board.Interact(player);
+            yield return Frames(3);
+            int claimed = 0;
+            for (int i = 0; i < Bounties.All.Count; i++)
+                if (BountyMenu.I.TryClaim(i)) claimed++;
+            yield return Frames(2);
+            yield return Shot("bounty_board");
+            BountyMenu.Close();
+            yield return Frames(2);
+            if (claimed == 0) Problem("사냥 의뢰: 보상을 하나도 받지 못함");
+            if (GameState.Silver <= silver) Problem("사냥 의뢰: 보상 은화가 들어오지 않음");
+            if (Stats.Level == lv && GameState.Data.exp <= exp) Problem("사냥 의뢰: 보상 경험치가 들어오지 않음");
+            if (Time.timeScale != 1f) Problem("게시판을 닫았는데 게임이 멈춰 있음");
+            Log("   사냥 검사: " + levels + ", 정예 의뢰 " + before + " → " + (eliteBounty != null ? eliteBounty.have : 0)
+                + ", 보상 " + claimed + "개 (은화 " + silver + " → " + GameState.Silver + ", 레벨 " + lv + " → " + Stats.Level + ", 장비 " + gear + " → " + GameState.Gear.Count + ")");
         }
 
         /// <summary>몬스터 그림 확인: 배달부 옆에 종류마다 하나씩 세워 두고 가까이서 찍는다.</summary>

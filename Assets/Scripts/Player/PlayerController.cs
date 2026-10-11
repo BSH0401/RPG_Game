@@ -127,7 +127,8 @@ namespace MoonlightPost
             UpdateVisual();
             bool busy = Time.timeScale == 0f || DialogueSystem.IsOpen || Health.IsDead
                         || Time.frameCount == DialogueSystem.LastClosedFrame || Time.frameCount == GameMenu.LastClosedFrame
-                        || Time.frameCount == UpgradeMenu.LastClosedFrame || Time.frameCount == ShopMenu.LastClosedFrame;
+                        || Time.frameCount == UpgradeMenu.LastClosedFrame || Time.frameCount == ShopMenu.LastClosedFrame
+                        || Time.frameCount == BountyMenu.LastClosedFrame;
             if (busy)
             {
                 moveInput = Vector2.zero;
@@ -270,14 +271,14 @@ namespace MoonlightPost
         // ------------------------------------------------------------------ 맞을 때
 
         /// <summary>
-        /// 적의 공격이 닿았을 때 부른다. damage 는 적 쪽 수치(1, 2 …)이고 EnemyDamageScale 을 곱해 깎는다.
-        /// 회피·무적 중이면 무시한다.
+        /// 적의 공격이 닿았을 때 부른다. damage 는 적 쪽 수치(1, 2 …)이고 EnemyDamageScale 과
+        /// 적의 공격 배율 power(레벨·정예)를 곱해 깎는다. 회피·무적 중이면 무시한다.
         /// </summary>
-        public AttackResult ReceiveAttack(EnemyController source, int damage, Vector2 from, bool unblockable)
+        public AttackResult ReceiveAttack(EnemyController source, int damage, Vector2 from, bool unblockable, float power = 1f)
         {
             if (Health.IsDead || Health.Invulnerable) return AttackResult.Ignored;
             // 방어가 피해를 줄인다(최소 1).
-            int dmg = Mathf.Max(1, Mathf.RoundToInt(damage * EnemyDamageScale * (1f - Stats.DamageReduction)));
+            int dmg = Mathf.Max(1, Mathf.RoundToInt(damage * power * EnemyDamageScale * (1f - Stats.DamageReduction)));
             if (Health.TakeDamage(dmg, from))
                 HUD.Popup((Vector2)transform.position + Vector2.up * 1.1f, "-" + dmg, new Color(1f, 0.4f, 0.4f));
             return AttackResult.Hit;

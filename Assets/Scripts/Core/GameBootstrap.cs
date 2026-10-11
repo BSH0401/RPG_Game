@@ -84,6 +84,7 @@ namespace MoonlightPost
             systems.AddComponent<GameMenu>();
             systems.AddComponent<UpgradeMenu>();
             systems.AddComponent<ShopMenu>();
+            systems.AddComponent<BountyMenu>();
 
             // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
             useAssets = GameAssets.Available;
@@ -271,6 +272,7 @@ namespace MoonlightPost
             anvil.AddComponent<Workbench>().rangeScale = 1.3f;
             Spawner.Glow(new Vector2(4.6f, 5.6f), 2.6f, new Color(1f, 0.6f, 0.3f, 0.3f));
             BuildMerchant(new Vector2(-6.6f, -2.9f));
+            BuildBountyBoard(new Vector2(-3.2f, 5.0f));
 
             Spawner.Lamp(new Vector2(-3.6f, 1.6f), true);
             Spawner.Lamp(new Vector2(5.6f, 1.6f), true);
@@ -563,6 +565,26 @@ namespace MoonlightPost
             var barrel = cainos ? GameAssets.Cainos("Props", 162, 153, 28, 36) : GameAssets.ChestClosed;
             if (crate != null) Spawner.Prop("MerchantCrate", pos + new Vector2(-1.1f, 0.1f), crate, new Vector2(0.9f, 0.5f), new Vector2(0f, 0.25f));
             if (barrel != null) Spawner.Prop("MerchantBarrel", pos + new Vector2(1.05f, 0.2f), barrel, new Vector2(0.8f, 0.5f), new Vector2(0f, 0.25f));
+        }
+
+        /// <summary>사냥 게시판: 우체국 왼쪽 앞. 돌 게시대 위에 두루마리가 떠 있다.</summary>
+        void BuildBountyBoard(Vector2 pos)
+        {
+            var stand = GameAssets.CainosAvailable ? GameAssets.Cainos("Props", 352, 174, 32, 77) : null;
+            var go = Spawner.Prop("BountyBoard", pos, stand ?? ItemOr("Scroll", Art.Chest(false)), new Vector2(0.8f, 0.4f), new Vector2(0f, 0.2f));
+            go.AddComponent<BountyBoard>().rangeScale = 1.3f;
+            var scroll = useAssets ? GameAssets.ItemSprite("Scroll") : null;
+            if (scroll != null)
+            {
+                var icon = new GameObject("BoardScroll");
+                icon.transform.SetParent(go.transform, false);
+                icon.transform.localPosition = new Vector3(0f, stand != null ? 2.7f : 1.2f, 0f);
+                var sr = icon.AddComponent<SpriteRenderer>();
+                sr.sprite = scroll;
+                sr.sortingOrder = 900;
+                icon.AddComponent<Bob>();
+            }
+            Spawner.Glow(pos + new Vector2(0f, 1.4f), 3f, new Color(1f, 0.85f, 0.5f, 0.25f));
         }
 
         // ------------------------------------------------------------------ 플레이어 / 카메라

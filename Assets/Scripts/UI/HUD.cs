@@ -94,9 +94,12 @@ namespace MoonlightPost
             if (I.toasts.Count > 4) I.toasts.RemoveAt(0);
         }
 
+        /// <summary>알림을 모두 지운다(자동 플레이테스트 스크린샷).</summary>
+        public static void ClearToasts() => I?.toasts.Clear();
+
         void Update()
         {
-            if (GameMenu.IsOpen || UpgradeMenu.IsOpen || ShopMenu.IsOpen) return;
+            if (GameMenu.IsOpen || UpgradeMenu.IsOpen || ShopMenu.IsOpen || BountyMenu.IsOpen) return;
             UpdateCharacterKeys();
             if (BagOpen)
             {
@@ -144,6 +147,7 @@ namespace MoonlightPost
             DrawStatus(player);
             DrawLetterPanel();
             DrawNameLabels(player);
+            if (!AnyOverlay) DrawEnemyTags(player);
             DrawBossBar(player);
             if (!DialogueSystem.IsOpen && !AnyOverlay) DrawPrompt(player);
             DrawPopups();
@@ -318,6 +322,12 @@ namespace MoonlightPost
             float w = 380 * s;
             float iw = w - 28 * s;
             var lines = new List<string>();
+            foreach (var b in Bounties.All)
+            {
+                if (b.claimed) continue;
+                lines.Add(b.Done ? "<b>사냥</b> " + Bounties.Title(b) + "\n  <color=#7fd68a>→ 마을 게시판에서 보상 받기</color>"
+                    : "<b>사냥</b> " + Bounties.Title(b) + "  <color=#9fb3ff>" + b.have + "/" + b.need + "</color>");
+            }
             foreach (var r in RequestManager.Active())
             {
                 string next = null;
@@ -357,6 +367,15 @@ namespace MoonlightPost
             var letter = LetterManager.Carrying;
             foreach (var it in Interactable.All)
             {
+                if (it is BountyBoard board)
+                {
+                    if (Vector2.Distance(player.transform.position, board.transform.position) > 7f) continue;
+                    Vector3 bsp = cam.WorldToScreenPoint(board.transform.position + Vector3.up * 2.9f);
+                    int ready = Bounties.ClaimableCount;
+                    Ui.Shadow(new Rect(bsp.x - 140 * s, Screen.height - bsp.y - 26 * s, 280 * s, 26 * s),
+                        "<color=#ffd98a>[사냥 게시판]</color>" + (ready > 0 ? "  <color=#7fd68a>보상 " + ready + "</color>" : ""), Ui.Center);
+                    continue;
+                }
                 if (it is Shop shop)
                 {
                     if (Vector2.Distance(player.transform.position, shop.transform.position) > 7f) continue;
@@ -389,8 +408,46 @@ namespace MoonlightPost
                 Ui.Fill(r, new Color(0f, 0f, 0f, 0.7f));
                 float t = (float)e.Health.Current / e.Health.Max;
                 Ui.Fill(new Rect(r.x + 2 * s, r.y + 2 * s, (w - 4 * s) * t, r.height - 4 * s), e.golden ? new Color(1f, 0.78f, 0.25f) : new Color(0.6f, 0.3f, 0.8f));
-                Ui.Shadow(new Rect(r.x, r.yMax + 2 * s, w, 26 * s), e.displayName, Ui.Center);
+                Ui.Shadow(new Rect(r.x, r.yMax + 2 * s, w, 26 * s), "Lv." + e.level + "  " + e.displayName, Ui.Center);
                 return;
+            }
+        }
+
+        /// <summary>몬스터 레벨 색: 내 레벨보다 많이 낮으면 회색, 비슷하면 흰색, 높으면 노랑 · 빨강.</summary>
+        static string LevelColor(int lv)
+        {
+            int d = lv - Stats.Level;
+            return d <= -5 ? "#8a90a8" : d <= 1 ? "#e8ecff" : d <= 3 ? "#ffd34a" : "#ff6a5a";
+        }
+
+        /// <summary>가까운 적 머리 위에 레벨, 정예는 이름과 작은 체력 막대.</summary>
+        void DrawEnemyTags(PlayerController player)
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+            float s = Ui.S;
+            Vector2 pp = player.transform.position;
+            foreach (var e in EnemyController.Active)
+            {
+                if (e.isBoss || e.IsBurrowed || e.Health.IsDead) continue;
+                if (Vector2.Distance(pp, e.transform.position) > 9f) continue;
+                float lift = (e.IsElite || e.golden ? 1.3f : 1f) * e.transform.localScale.y;
+                Vector3 sp = cam.WorldToScreenPoint(e.transform.position + Vector3.up * lift);
+                if (sp.z < 0) continue;
+                float y = Screen.height - sp.y;
+                string lv = "<color=" + LevelColor(e.level) + ">Lv." + e.level + "</color>";
+                if (!e.IsElite)
+                {
+                    Ui.Shadow(new Rect(sp.x - 60 * s, y - 22 * s, 120 * s, 22 * s), "<size=" + Ui.Px(13) + ">" + lv + "</size>", Ui.Center);
+                    continue;
+                }
+                var c = EnemyController.AffixColor(e.elite);
+                string hex = ColorUtility.ToHtmlStringRGB(c);
+                Ui.Shadow(new Rect(sp.x - 140 * s, y - 40 * s, 280 * s, 24 * s),
+                    "<size=" + Ui.Px(14) + ">" + lv + " <color=#" + hex + "><b>[정예] " + e.FullName + "</b></color></size>", Ui.Center);
+                var bar = new Rect(sp.x - 50 * s, y - 14 * s, 100 * s, 8 * s);
+                Ui.Fill(bar, new Color(0f, 0f, 0f, 0.7f));
+                Ui.Fill(new Rect(bar.x + 1 * s, bar.y + 1 * s, (bar.width - 2 * s) * e.Health.Current / e.Health.Max, bar.height - 2 * s), c);
             }
         }
 
@@ -524,6 +581,11 @@ namespace MoonlightPost
                     if (!c.Taken) Marker(map, c.transform.position, new Color(1f, 0.85f, 0.4f), "우표");
 
             if (NightDirector.Golden != null) Marker(map, NightDirector.Golden.transform.position, new Color(1f, 0.82f, 0.25f), "★ 황금 그림자");
+            if (NightDirector.I != null)
+                foreach (var el in NightDirector.I.Elites())
+                    Marker(map, el.transform.position, EnemyController.AffixColor(el.elite), "정예");
+            var boardObj = FindAnyObjectByType<BountyBoard>();
+            if (boardObj != null) Marker(map, boardObj.transform.position, new Color(1f, 0.85f, 0.55f), Bounties.ClaimableCount > 0 ? "게시판 (보상!)" : "게시판");
             Marker(map, player.transform.position, new Color(0.5f, 0.9f, 1f), "나");
 
             var infoBox = new Rect(map.x, map.yMax + 16 * s, map.width, 120 * s);

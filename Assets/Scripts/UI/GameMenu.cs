@@ -169,7 +169,8 @@ namespace MoonlightPost
 
         void Update()
         {
-            if (fading || UpgradeMenu.IsOpen || ShopMenu.IsOpen || Time.frameCount == ShopMenu.LastClosedFrame) return;
+            if (fading || UpgradeMenu.IsOpen || ShopMenu.IsOpen || Time.frameCount == ShopMenu.LastClosedFrame
+                || BountyMenu.IsOpen || Time.frameCount == BountyMenu.LastClosedFrame) return;
             if (page == Page.None)
             {
                 if (!GameInput.PausePressed) return;

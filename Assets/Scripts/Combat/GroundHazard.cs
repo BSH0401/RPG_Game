@@ -10,13 +10,15 @@ namespace MoonlightPost
     {
         float radius, fireAt, start;
         int damage;
+        float power = 1f;
         SpriteRenderer fill, ring;
 
-        public static void Spawn(Vector2 pos, float radius, float delay, int damage)
+        public static void Spawn(Vector2 pos, float radius, float delay, int damage, float power = 1f)
         {
             var go = new GameObject("Hazard");
             go.transform.position = pos;
             var h = go.AddComponent<GroundHazard>();
+            h.power = power;
             h.radius = radius;
             h.damage = damage;
             h.start = Time.time;
@@ -47,7 +49,7 @@ namespace MoonlightPost
 
             var player = PlayerController.I;
             if (player != null && Vector2.Distance(player.transform.position, transform.position) <= radius)
-                player.ReceiveAttack(null, damage, transform.position, true);
+                player.ReceiveAttack(null, damage, transform.position, true, power);
             RingFx.Spawn(transform.position, radius, new Color(0.7f, 0.4f, 1f, 0.9f), 0.3f);
             if (GameAssets.Available) FrameAnimator.PlayOnce(GameAssets.SmokeFrames, transform.position, 18f, new Color(0.6f, 0.4f, 0.9f), 600, 1.2f);
             CameraFollow.Shake(0.08f, 0.08f);

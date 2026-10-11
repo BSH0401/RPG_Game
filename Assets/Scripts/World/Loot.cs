@@ -21,14 +21,20 @@ namespace MoonlightPost
             Vector2 p = e.transform.position;
             if (e.golden)
             {
-                Golden(p);
+                Golden(p, e.level);
                 return;
             }
-            // 은화와 장비: 보스는 장비 3개(희귀 이상, 하나는 영웅), 일반 그림자는 gearChance 확률로 하나
-            int silver = Mathf.RoundToInt((e.isBoss ? Random.Range(40, 61) : Random.Range(1, 4)) * (1f + Stats.Level * 0.12f) * Stats.LootMul);
+            // 은화와 장비: 보스는 장비 3개(희귀 이상, 하나는 영웅), 정예는 고급 이상 하나(35%로 하나 더),
+            // 일반 그림자는 gearChance 확률로 하나. 장비 레벨은 쓰러뜨린 적의 레벨.
+            int silver = Mathf.RoundToInt((e.isBoss ? Random.Range(40, 61) : Random.Range(1, 4)) * (1f + e.level * 0.12f) * Stats.LootMul * (e.IsElite ? 3f : 1f));
             DropSilver(p, silver);
-            int ilvl = Gear.DropLevel(p);
-            if (e.isBoss)
+            int ilvl = e.level;
+            if (e.IsElite)
+            {
+                LootDrop.SpawnGear(p, Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Rare : Gear.Uncommon));
+                if (Random.value < 0.35f * Stats.LootMul) LootDrop.SpawnGear(p, Gear.Roll(ilvl));
+            }
+            else if (e.isBoss)
             {
                 LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Epic));
                 LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Rare));
@@ -62,13 +68,13 @@ namespace MoonlightPost
                 LootDrop.Spawn(p, Upgrade.Shard, 1);
         }
 
-        static void Golden(Vector2 p)
+        static void Golden(Vector2 p, int level)
         {
             GameState.SetFlag(NightDirector.GoldenFlag);
             Drop(p, Random.Range(12, 19), Random.Range(2, 5));
             LootDrop.Spawn(p, Trophy, 1);
-            DropSilver(p, Mathf.RoundToInt(Random.Range(20, 31) * (1f + Stats.Level * 0.12f) * Stats.LootMul));
-            int ilvl = Gear.DropLevel(p) + 1;
+            DropSilver(p, Mathf.RoundToInt(Random.Range(20, 31) * (1f + level * 0.12f) * Stats.LootMul));
+            int ilvl = level + 1;
             LootDrop.SpawnGear(p, Gear.Roll(ilvl, Gear.Rare));
             LootDrop.SpawnGear(p, Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Epic : Gear.Rare));
             var legend = RollLegendary();

@@ -103,6 +103,97 @@ namespace MoonlightPost
         public bool NorthBlocked { get; private set; }
         public bool StationWestBlocked { get; private set; }
 
+        // ------------------------------------------------------------------ 지역 레벨
+
+        /// <summary>지역 이름, 기본 레벨, 적이 나오는 자리. 안쪽(동쪽 숲)이 1, 옛 채석장이 11.</summary>
+        public IEnumerable<(string name, int level, Vector2[] spots)> Regions()
+        {
+            yield return ("동쪽 숲", 1, Concat(northSpawns, southSpawns));
+            yield return ("숲 끝 오두막 근처", 2, eastSpawns);
+            yield return ("폐역", 3, stationSpawns);
+            yield return ("북쪽 숲", 4, northForestSpawns);
+            yield return ("서쪽 해안", 6, coastSpawns);
+            yield return ("북쪽 갯바위", 7, coastNorthSpawns);
+            yield return ("별빛 고개", 9, passSpawns);
+            yield return ("옛 채석장", 11, quarrySpawns);
+        }
+
+        /// <summary>지금 갈 수 있는(적이 나오는) 지역 이름들. 사냥 의뢰가 고른다.</summary>
+        public List<string> OpenRegions()
+        {
+            var list = new List<string> { "동쪽 숲", "숲 끝 오두막 근처", "폐역", "북쪽 숲" };
+            if (GameState.HasFlag("lamp_lit")) { list.Add("서쪽 해안"); list.Add("북쪽 갯바위"); }
+            if (GameState.HasFlag("tunnel_open")) { list.Add("별빛 고개"); list.Add("옛 채석장"); }
+            return list;
+        }
+
+        static Vector2[] Concat(Vector2[] a, Vector2[] b)
+        {
+            var r = new List<Vector2>();
+            if (a != null) r.AddRange(a);
+            if (b != null) r.AddRange(b);
+            return r.ToArray();
+        }
+
+        /// <summary>밤이 깊어질수록 모든 지역의 레벨이 오른다(둘째 밤부터 두 밤마다 +1, 최대 +4).</summary>
+        public static int NightBonus => Mathf.Clamp((GameState.Night - 1) / 2, 0, 4);
+
+        /// <summary>
+        /// p 에 나타나는 적의 레벨과 지역 이름. 가장 가까운 지역의 기본 레벨 + 0~1 + 밤 보너스.
+        /// 너무 쉬워지지 않게 「내 레벨 - 3」 아래로는 내려가지 않는다. 보스는 정해진 레벨(내 레벨 - 1 이상).
+        /// </summary>
+        public static (int level, string region) LevelAt(Vector2 p, EnemyKind kind)
+        {
+            int player = Stats.Level;
+            switch (kind)
+            {
+                case EnemyKind.Boss: return (Mathf.Max(4, player - 1), "동쪽 숲");
+                case EnemyKind.Squid: return (Mathf.Max(8, player - 1), "서쪽 해안");
+                case EnemyKind.Wraith: return (Mathf.Max(12, player - 1), "옛 채석장");
+            }
+            string name = "마을";
+            int baseLevel = 1;
+            if (I != null)
+            {
+                float best = 16f;
+                foreach (var r in I.Regions())
+                {
+                    if (r.spots == null) continue;
+                    foreach (var s in r.spots)
+                    {
+                        float d = Vector2.Distance(s, p);
+                        if (d < best)
+                        {
+                            best = d;
+                            name = r.name;
+                            baseLevel = r.level;
+                        }
+                    }
+                }
+            }
+            int lv = baseLevel + (Random.value < 0.5f ? 0 : 1) + NightBonus;
+            return (Mathf.Max(lv, player - 3), name);
+        }
+
+        /// <summary>정예가 나올 확률: 10%, 안개 낀 밤 +5%, 밤마다 +1%(최대 20%).</summary>
+        static float EliteChance => Mathf.Min(0.2f, 0.1f + (Mood == NightMood.Fog ? 0.05f : 0f) + 0.01f * GameState.Night);
+
+        /// <summary>적 하나를 만들고, 확률로 정예로 만든다.</summary>
+        GameObject Spawn(Vector2 p, EnemyKind kind, System.Random rng)
+        {
+            var go = Spawner.Enemy(p, kind);
+            if (rng.NextDouble() < EliteChance)
+                go.GetComponent<EnemyController>().MakeElite((EliteAffix)(1 + rng.Next(4)));
+            return go;
+        }
+
+        /// <summary>지금 살아 있는 정예들(지도·자동 플레이테스트).</summary>
+        public IEnumerable<EnemyController> Elites()
+        {
+            foreach (var g in enemies)
+                if (g != null && g.TryGetComponent<EnemyController>(out var e) && e.IsElite) yield return e;
+        }
+
         /// <summary>지금 살아 있는 보스와 사건의 적(자동 플레이테스트가 쓴다).</summary>
         public IEnumerable<GameObject> EventEnemies()
         {
@@ -124,6 +215,7 @@ namespace MoonlightPost
             GameState.NightChanged += OnNewNight;
             GameState.Changed += RefreshBoss;
             Reroll();
+            Bounties.Refresh();
         }
 
         void OnDestroy()
@@ -136,6 +228,7 @@ namespace MoonlightPost
         void OnNewNight()
         {
             Reroll();
+            Bounties.Refresh();
             HUD.Toast(GameState.Night + "번째 밤 — " + MoodName(Mood) + ". " + MoodHint(Mood));
             if (Golden != null) HUD.Toast("<color=#ffd34a>★ 황금 그림자</color>가 " + GoldenRegion + "에 나타났다!  [Tab] 지도");
         }
@@ -194,28 +287,28 @@ namespace MoonlightPost
             {
                 double r = rng.NextDouble();
                 var kind = r < 0.4 && night >= 1 ? EnemyKind.Bat : (r > 0.8 && night >= 3 ? EnemyKind.Mole : EnemyKind.Rat);
-                enemies.Add(Spawner.Enemy(p, kind));
+                enemies.Add(Spawn(p, kind, rng));
             }
             // 숲 끝(오두막 근처)에는 둘째 밤부터 그림자 두더지가 숨어 있다.
             foreach (var p in Pick(eastSpawns, night >= 2 ? 2 : 1, rng))
-                enemies.Add(Spawner.Enemy(p, night >= 2 ? EnemyKind.Mole : EnemyKind.Rat));
+                enemies.Add(Spawn(p, night >= 2 ? EnemyKind.Mole : EnemyKind.Rat, rng));
 
             // 서쪽 해안: 박쥐와 두더지가 섞여 나온다.
             if (GameState.HasFlag("lamp_lit"))
             {
                 int i = 0;
                 foreach (var p in Pick(coastSpawns, Mood == NightMood.Fog ? 4 : 3, rng))
-                    enemies.Add(Spawner.Enemy(p, i++ % 2 == 0 ? EnemyKind.Bat : EnemyKind.Mole));
+                    enemies.Add(Spawn(p, i++ % 2 == 0 ? EnemyKind.Bat : EnemyKind.Mole, rng));
             }
 
             // 폐역과 북쪽 숲: 들쥐·박쥐, 밤이 깊으면 두더지도.
             foreach (var p in Pick(stationSpawns, Mood == NightMood.Fog ? 3 : 2, rng))
-                enemies.Add(Spawner.Enemy(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Rat));
+                enemies.Add(Spawn(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Rat, rng));
             foreach (var p in Pick(northForestSpawns, Mathf.Clamp(night, 2, 3) + (Mood == NightMood.Fog ? 1 : 0), rng))
-                enemies.Add(Spawner.Enemy(p, night >= 3 && rng.NextDouble() < 0.4 ? EnemyKind.Mole : (rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Rat)));
+                enemies.Add(Spawn(p, night >= 3 && rng.NextDouble() < 0.4 ? EnemyKind.Mole : (rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Rat), rng));
             if (GameState.HasFlag("lamp_lit"))
                 foreach (var p in Pick(coastNorthSpawns, 2, rng))
-                    enemies.Add(Spawner.Enemy(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Mole));
+                    enemies.Add(Spawn(p, rng.NextDouble() < 0.5 ? EnemyKind.Bat : EnemyKind.Mole, rng));
 
             // 별빛 고개와 옛 채석장: 셋이 섞여 나오고, 채석장은 그림자가 더 짙다.
             if (GameState.HasFlag("tunnel_open"))
@@ -223,12 +316,12 @@ namespace MoonlightPost
                 foreach (var p in Pick(passSpawns, 3 - calm + (Mood == NightMood.Fog ? 1 : 0), rng))
                 {
                     double r = rng.NextDouble();
-                    enemies.Add(Spawner.Enemy(p, r < 0.4 ? EnemyKind.Bat : r < 0.7 ? EnemyKind.Mole : EnemyKind.Rat));
+                    enemies.Add(Spawn(p, r < 0.4 ? EnemyKind.Bat : r < 0.7 ? EnemyKind.Mole : EnemyKind.Rat, rng));
                 }
                 foreach (var p in Pick(quarrySpawns, 4 - calm * 2 + (Mood == NightMood.Fog ? 1 : 0), rng))
                 {
                     double r = rng.NextDouble();
-                    enemies.Add(Spawner.Enemy(p, r < 0.45 ? EnemyKind.Mole : r < 0.75 ? EnemyKind.Bat : EnemyKind.Rat));
+                    enemies.Add(Spawn(p, r < 0.45 ? EnemyKind.Mole : r < 0.75 ? EnemyKind.Bat : EnemyKind.Rat, rng));
                 }
             }
 
@@ -280,6 +373,7 @@ namespace MoonlightPost
             enemies.Add(go);
             Golden = e;
             GoldenRegion = region.name;
+            e.region = region.name;
         }
 
         static void ClearEncounter(EncounterSpec e)

@@ -12,7 +12,8 @@ namespace MoonlightPost
     {
         public const int PointsPerLevel = 3;
         public const int MaxLevel = 60;
-        public const float CritMultiplier = 1.7f;
+        /// <summary>치명타 피해 배율: 기본 1.7 + 장비의 치명타 피해.</summary>
+        public static float CritMultiplier => 1.7f + Gear.Total(GearStat.CritDmg) / 100f;
 
         public static int Level => Mathf.Max(1, GameState.Data.level);
         public static int Exp => GameState.Data.exp;
@@ -59,19 +60,28 @@ namespace MoonlightPost
 
         // ------------------------------------------------------------------ 계산된 능력치
 
-        /// <summary>공격력: 기본 10 + 레벨 + 힘 x2 + 장비(attack 효과).</summary>
-        public static int Attack => 10 + (Level - 1) + 2 * Get(Stat.Str) + Mathf.RoundToInt(Inventory.EffectSum("attack"));
+        /// <summary>공격력: (기본 10 + 레벨 + 힘 x2 + 장비) x (1 + 장비의 공격력 %).</summary>
+        public static int Attack => Mathf.RoundToInt((10 + (Level - 1) + 2 * Get(Stat.Str) + Inventory.EffectSum("attack") + Gear.Total(GearStat.Attack))
+                                                     * (1f + Gear.Total(GearStat.AttackPct) / 100f));
+
+        /// <summary>방어: 장비에서만 나온다. 받는 피해를 방어/(방어+60) 만큼 줄인다(최대 60%).</summary>
+        public static int Defense => Mathf.RoundToInt(Gear.Total(GearStat.Defense));
+        public static float DamageReduction => Mathf.Min(0.6f, Defense / (Defense + 60f));
 
         /// <summary>최대 체력: 기본 60 + 레벨당 5 + 체력 x8 + 편지 보상·장비(1 = 10).</summary>
         public static int MaxHp =>
             60 + 5 * (Level - 1) + 8 * Get(Stat.Vit)
             + 10 * Mathf.Max(0, GameState.Data.maxHp - GameState.BaseMaxHp)
-            + Mathf.RoundToInt(10f * Inventory.EffectSum("maxHp"));
+            + Mathf.RoundToInt(10f * Inventory.EffectSum("maxHp") + Gear.Total(GearStat.MaxHp));
 
-        public static float MoveSpeedMul => 1f + Mathf.Min(0.45f, 0.015f * Get(Stat.Agi));
-        public static float AttackSpeedMul => 1f + Mathf.Min(0.8f, 0.02f * Get(Stat.Agi));
-        public static float CritChance => Mathf.Min(0.6f, 0.05f + 0.01f * Get(Stat.Luk));
-        public static float LootMul => 1f + 0.03f * Get(Stat.Luk);
+        public static float MoveSpeedMul => 1f + Mathf.Min(0.6f, 0.015f * Get(Stat.Agi) + Gear.Total(GearStat.MoveSpeed) / 100f);
+        public static float AttackSpeedMul => 1f + Mathf.Min(1f, 0.02f * Get(Stat.Agi) + Gear.Total(GearStat.AtkSpeed) / 100f);
+        public static float CritChance => Mathf.Min(0.75f, 0.05f + 0.01f * Get(Stat.Luk) + Gear.Total(GearStat.Crit) / 100f);
+        public static float LootMul => 1f + 0.03f * Get(Stat.Luk) + Gear.Total(GearStat.LootPct) / 100f;
+        public static float ExpMul => 1f + Gear.Total(GearStat.ExpPct) / 100f;
+        /// <summary>스킬 위력 % 와 재사용 대기 감소 %(장비).</summary>
+        public static float SkillPowerBonus => Gear.Total(GearStat.SkillPower) / 100f;
+        public static float CooldownMul => Mathf.Max(0.5f, 1f - Gear.Total(GearStat.Cooldown) / 100f);
 
         /// <summary>공격력 x mul 에 ±10% 흔들림과 치명타를 굴린다.</summary>
         public static int RollDamage(float mul, out bool crit)
@@ -87,6 +97,7 @@ namespace MoonlightPost
         public static void AddExp(int amount, Vector2 at)
         {
             if (amount <= 0 || Level >= MaxLevel) return;
+            amount = Mathf.RoundToInt(amount * ExpMul);
             var d = GameState.Data;
             d.exp += amount;
             HUD.Popup(at + Vector2.up * 0.4f, "+" + amount + " EXP", new Color(0.55f, 0.85f, 1f));
@@ -119,6 +130,20 @@ namespace MoonlightPost
             Sound.Play("Delivered", 0.9f);
             CameraFollow.Shake(0.15f, 0.1f);
             GameState.Save();
+        }
+
+        /// <summary>나눠 준 스탯 포인트 합계.</summary>
+        public static int Spent => GameState.Data.str + GameState.Data.vit + GameState.Data.agi + GameState.Data.luk;
+
+        /// <summary>나눠 준 포인트를 모두 돌려받는다(망각의 두루마리). 돌려받은 수.</summary>
+        public static int ResetPoints()
+        {
+            var d = GameState.Data;
+            int n = Spent;
+            d.statPoints += n;
+            d.str = d.vit = d.agi = d.luk = 0;
+            GameState.NotifyChanged();
+            return n;
         }
 
         /// <summary>스탯 포인트 하나를 쓴다.</summary>

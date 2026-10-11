@@ -83,6 +83,7 @@ namespace MoonlightPost
             systems.AddComponent<Juice>();
             systems.AddComponent<GameMenu>();
             systems.AddComponent<UpgradeMenu>();
+            systems.AddComponent<ShopMenu>();
 
             // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
             useAssets = GameAssets.Available;
@@ -269,6 +270,7 @@ namespace MoonlightPost
             anvil.transform.localScale = Vector3.one * 1.3f;
             anvil.AddComponent<Workbench>().rangeScale = 1.3f;
             Spawner.Glow(new Vector2(4.6f, 5.6f), 2.6f, new Color(1f, 0.6f, 0.3f, 0.3f));
+            BuildMerchant(new Vector2(-6.6f, -2.9f));
 
             Spawner.Lamp(new Vector2(-3.6f, 1.6f), true);
             Spawner.Lamp(new Vector2(5.6f, 1.6f), true);
@@ -541,6 +543,26 @@ namespace MoonlightPost
                 Firefly.Spawn(amb, new Vector2(x, y), new Color(0.75f, 0.85f, 1f), 0.25f, 0.8f);
             }
             Spawner.Glow(new Vector2(-4f, -9.6f), 16f, new Color(0.45f, 0.55f, 1f, 0.12f));
+        }
+
+        /// <summary>떠돌이 상인 루카: 마을 큰길 남쪽, 짐 상자 옆. 말을 걸면 상점(ShopMenu).</summary>
+        void BuildMerchant(Vector2 pos)
+        {
+            var go = new GameObject("Merchant");
+            go.transform.SetParent(worldRoot.transform, false);
+            go.transform.position = pos;
+            var sheet = useAssets ? GameAssets.Sheet("Merchant") ?? GameAssets.Sheet("Hunter") : null;
+            if (sheet != null) Spawner.Character(go, sheet);
+            else Spawner.Character(go, Art.Owen);
+            go.AddComponent<CircleCollider2D>().radius = 0.35f;
+            go.AddComponent<Shop>().rangeScale = 1.3f;
+            Spawner.Glow(pos + new Vector2(0f, 0.6f), 3.2f, new Color(1f, 0.8f, 0.45f, 0.25f));
+            // 짐: 나무 상자와 통
+            bool cainos = GameAssets.CainosAvailable;
+            var crate = cainos ? GameAssets.Cainos("Props", 160, 18, 32, 46) : GameAssets.ChestClosed;
+            var barrel = cainos ? GameAssets.Cainos("Props", 162, 153, 28, 36) : GameAssets.ChestClosed;
+            if (crate != null) Spawner.Prop("MerchantCrate", pos + new Vector2(-1.1f, 0.1f), crate, new Vector2(0.9f, 0.5f), new Vector2(0f, 0.25f));
+            if (barrel != null) Spawner.Prop("MerchantBarrel", pos + new Vector2(1.05f, 0.2f), barrel, new Vector2(0.8f, 0.5f), new Vector2(0f, 0.25f));
         }
 
         // ------------------------------------------------------------------ 플레이어 / 카메라

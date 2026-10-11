@@ -392,8 +392,8 @@ namespace MoonlightPost
             switch (kind)
             {
                 case EnemyKind.Rat: enemy.lootCrystals = 2; enemy.shardChance = 0.05f; enemy.expReward = 6; break;
-                case EnemyKind.Bat: enemy.lootCrystals = 2; enemy.shardChance = 0.06f; enemy.expReward = 7; break;
-                case EnemyKind.Mole: enemy.lootCrystals = 3; enemy.shardChance = 0.1f; enemy.expReward = 10; break;
+                case EnemyKind.Bat: enemy.lootCrystals = 2; enemy.shardChance = 0.06f; enemy.expReward = 7; enemy.gearChance = 0.12f; break;
+                case EnemyKind.Mole: enemy.lootCrystals = 3; enemy.shardChance = 0.1f; enemy.expReward = 10; enemy.gearChance = 0.16f; break;
                 case EnemyKind.Boss: enemy.lootCrystals = 15; enemy.expReward = 120; break;
                 case EnemyKind.Squid: enemy.lootCrystals = 20; enemy.expReward = 220; break;
                 case EnemyKind.Wraith: enemy.lootCrystals = 25; enemy.expReward = 350; break;

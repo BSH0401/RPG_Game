@@ -182,6 +182,7 @@ namespace MoonlightPost
                 "<b>능력치</b>\n" +
                 "공격력  <color=#ffd98a>" + Stats.Attack + "</color>\n" +
                 "최대 체력  <color=#ff8a8a>" + player.Health.Max + "</color>\n" +
+                "방어  " + Stats.Defense + "  (받는 피해 -" + Mathf.RoundToInt(Stats.DamageReduction * 100f) + "%)\n" +
                 "치명타  " + Mathf.RoundToInt(Stats.CritChance * 100f) + "%  (피해 x" + Stats.CritMultiplier.ToString("0.0") + ")\n" +
                 "공격 속도  +" + Mathf.RoundToInt((Stats.AttackSpeedMul - 1f) * 100f) + "%\n" +
                 "이동 속도  +" + Mathf.RoundToInt((Stats.MoveSpeedMul - 1f) * 100f) + "%\n" +

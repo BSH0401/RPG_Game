@@ -96,12 +96,13 @@ namespace MoonlightPost
 
         void Update()
         {
-            if (GameMenu.IsOpen || UpgradeMenu.IsOpen) return;
+            if (GameMenu.IsOpen || UpgradeMenu.IsOpen || ShopMenu.IsOpen) return;
             UpdateCharacterKeys();
             if (BagOpen)
             {
                 if (GameInput.MenuUp) bagScroll--;
                 if (GameInput.MenuDown) bagScroll++;
+                if (GameInput.MenuLeft || GameInput.MenuRight) bagTab = 1 - bagTab;
             }
             if (GameInput.MapTogglePressed && !BagOpen && !CharOpen && (MapOpen || !DialogueSystem.IsOpen)) SetMap(!MapOpen);
             if (GameInput.InventoryPressed && !MapOpen && !CharOpen && (BagOpen || !DialogueSystem.IsOpen)) SetBag(!BagOpen);
@@ -172,20 +173,22 @@ namespace MoonlightPost
 
             // 강화 재료
             int crystals = GameState.ItemCount(Upgrade.Crystal), shards = GameState.ItemCount(Upgrade.Shard);
-            if (crystals > 0 || shards > 0)
+            if (crystals > 0 || shards > 0 || GameState.Silver > 0)
             {
                 float y = top + (food > 0 ? 54 : 28);
                 DrawIconFit(Ui.R(16, y + 2, 22, 22), GameAssets.ItemIcon("InkCrystal"));
                 Ui.Shadow(Ui.R(44, y, 80, 26), crystals.ToString(), Ui.Small);
                 DrawIconFit(Ui.R(100, y + 2, 22, 22), GameAssets.ItemIcon("MoonShard"));
                 Ui.Shadow(Ui.R(128, y, 80, 26), shards.ToString(), Ui.Small);
+                DrawIconFit(Ui.R(184, y + 3, 20, 20), GameAssets.ItemIcon("Gear/MoneyBag"));
+                Ui.Shadow(Ui.R(208, y, 100, 26), GameState.Silver.ToString(), Ui.Small);
             }
         }
 
         /// <summary>가방(I): 가진 아이템의 그림·이름·설명.</summary>
         int bagScroll;
 
-        void DrawBag()
+        void DrawItems()
         {
             float s = Ui.S;
             Ui.Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0.02f, 0.03f, 0.08f, 0.75f));
@@ -195,7 +198,7 @@ namespace MoonlightPost
             items.Sort((a, b) => BagOrder(a.id) - BagOrder(b.id));
             float rowH = 74 * s;
             int cols = w > 900 * s ? 2 : 1;
-            int rowsFit = Mathf.Max(1, Mathf.FloorToInt((Screen.height - 140 * s) / rowH));
+            int rowsFit = Mathf.Max(1, Mathf.FloorToInt((Screen.height - 180 * s) / rowH));
             int rows = Mathf.CeilToInt(items.Count / (float)cols);
             int maxScroll = Mathf.Max(0, rows - rowsFit);
             var ev = Event.current;
@@ -207,7 +210,7 @@ namespace MoonlightPost
             bagScroll = Mathf.Clamp(bagScroll, 0, maxScroll);
             int shownRows = Mathf.Min(rows, rowsFit);
             float h = 90 * s + Mathf.Max(1, shownRows) * rowH;
-            var box = new Rect((Screen.width - w) * 0.5f, Mathf.Max(20 * s, (Screen.height - h) * 0.5f), w, h);
+            var box = new Rect((Screen.width - w) * 0.5f, Mathf.Max(60 * s, (Screen.height - h) * 0.5f), w, h);
             Ui.Panel(box);
             string scrollHint = maxScroll > 0 ? " · W/S 넘기기 (" + (bagScroll + 1) + "/" + (maxScroll + 1) + ")" : "";
             GUI.Label(new Rect(box.x + 20 * s, box.y + 14 * s, w - 40 * s, 32 * s), "가방   <size=" + Ui.Px(15) + "><color=#9fb3ff>(I 닫기 · R 먹기" + scrollHint + ")</color></size>", Ui.Title);
@@ -354,6 +357,13 @@ namespace MoonlightPost
             var letter = LetterManager.Carrying;
             foreach (var it in Interactable.All)
             {
+                if (it is Shop shop)
+                {
+                    if (Vector2.Distance(player.transform.position, shop.transform.position) > 7f) continue;
+                    Vector3 ssp = cam.WorldToScreenPoint(shop.transform.position + Vector3.up * 0.9f);
+                    Ui.Shadow(new Rect(ssp.x - 120 * s, Screen.height - ssp.y - 26 * s, 240 * s, 26 * s), "<color=#ffd98a>[상점]</color> 상인 루카", Ui.Center);
+                    continue;
+                }
                 if (!(it is NpcInteractable npc)) continue;
                 if (Vector2.Distance(player.transform.position, npc.transform.position) > 7f) continue;
                 Vector3 sp = cam.WorldToScreenPoint(npc.transform.position + Vector3.up * 0.9f);

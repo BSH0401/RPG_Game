@@ -52,7 +52,7 @@ namespace MoonlightPost
         // 장비 효과 (items.json 의 effect 값, 퍼센트)
         static float DodgeBonus => Inventory.EffectSum("dodge") / 100f;
         // 끼운 편지 도구 부품을 강화했으면 그만큼 더한다.
-        static float SkillBonus => (Inventory.EffectSum("tool") + Upgrade.Bonus(Inventory.CurrentToolPart, Upgrade.Level(Inventory.CurrentToolPart))) / 100f;
+        static float SkillBonus => (Inventory.EffectSum("tool") + Upgrade.Bonus(Inventory.CurrentToolPart, Upgrade.Level(Inventory.CurrentToolPart))) / 100f + Stats.SkillPowerBonus;
 
         readonly List<Collider2D> hits = new List<Collider2D>();
         readonly HashSet<EnemyController> dashHit = new HashSet<EnemyController>();
@@ -127,7 +127,7 @@ namespace MoonlightPost
             UpdateVisual();
             bool busy = Time.timeScale == 0f || DialogueSystem.IsOpen || Health.IsDead
                         || Time.frameCount == DialogueSystem.LastClosedFrame || Time.frameCount == GameMenu.LastClosedFrame
-                        || Time.frameCount == UpgradeMenu.LastClosedFrame;
+                        || Time.frameCount == UpgradeMenu.LastClosedFrame || Time.frameCount == ShopMenu.LastClosedFrame;
             if (busy)
             {
                 moveInput = Vector2.zero;
@@ -276,7 +276,8 @@ namespace MoonlightPost
         public AttackResult ReceiveAttack(EnemyController source, int damage, Vector2 from, bool unblockable)
         {
             if (Health.IsDead || Health.Invulnerable) return AttackResult.Ignored;
-            int dmg = damage * EnemyDamageScale;
+            // 방어가 피해를 줄인다(최소 1).
+            int dmg = Mathf.Max(1, Mathf.RoundToInt(damage * EnemyDamageScale * (1f - Stats.DamageReduction)));
             if (Health.TakeDamage(dmg, from))
                 HUD.Popup((Vector2)transform.position + Vector2.up * 1.1f, "-" + dmg, new Color(1f, 0.4f, 0.4f));
             return AttackResult.Hit;
@@ -310,7 +311,7 @@ namespace MoonlightPost
             var part = Inventory.CurrentToolPart;
             string effect = part != null ? part.effect : "bind";
             float cooldown = part != null && part.value > 0f ? part.value : 6f;
-            SkillCooldownTotal = cooldown * Mathf.Max(0.4f, 1f - SkillBonus * 0.5f);
+            SkillCooldownTotal = cooldown * Mathf.Max(0.4f, 1f - SkillBonus * 0.5f) * Stats.CooldownMul;
             skillReadyTime = Time.time + SkillCooldownTotal;
 
             Vector2 aim = Aim();

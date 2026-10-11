@@ -58,6 +58,8 @@ namespace MoonlightPost
         public bool noLoot;
         /// <summary>쓰러뜨리면 주는 경험치(불러낸 그림자는 1).</summary>
         public int expReward = 5;
+        /// <summary>장비를 떨어뜨릴 확률(행운·전리품 옵션이 곱해진다). 보스는 늘 3개.</summary>
+        public float gearChance = 0.1f;
 
         [Header("원거리형: 플레이어와 이 거리를 유지하며 쏜다 (0 이면 사용 안 함)")]
         public float keepDistance;
@@ -500,6 +502,14 @@ namespace MoonlightPost
         {
             Stats.AddExp(noLoot ? 1 : expReward, transform.position);
             Loot.FromEnemy(this);
+            // 장비 옵션 「처치할 때 체력」
+            int life = Mathf.RoundToInt(Gear.Total(GearStat.LifeOnKill));
+            var player = PlayerController.I;
+            if (life > 0 && player != null && !player.Health.IsDead && player.Health.Current < player.Health.Max)
+            {
+                player.Health.Heal(life);
+                HUD.Popup((Vector2)player.transform.position + Vector2.up * 1.3f, "+" + life, new Color(0.5f, 1f, 0.55f));
+            }
             if (!string.IsNullOrEmpty(defeatFlag))
             {
                 GameState.SetFlag(defeatFlag);

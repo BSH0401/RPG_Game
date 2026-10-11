@@ -30,6 +30,11 @@ namespace MoonlightPost
         public int exp;
         public int statPoints;
         public int str, vit, agi, luk;
+        /// <summary>장비 가방, 부위별로 낀 장비의 uid(0 = 없음), 은화.</summary>
+        public List<GearItem> gear = new List<GearItem>();
+        public List<int> equipped = new List<int>();
+        public int nextGearUid = 1;
+        public int silver;
     }
 
     /// <summary>
@@ -60,6 +65,80 @@ namespace MoonlightPost
         /// <summary>저장 데이터 그대로(레벨·스탯은 Stats 가 다룬다).</summary>
         internal static SaveData Data => data;
         public static void NotifyChanged() => Changed?.Invoke();
+
+        // ---------------------------------------------------------------- 장비 · 은화
+
+        /// <summary>장비가 바뀔 때마다 오른다(능력 합계를 다시 셀 때를 안다).</summary>
+        public static int GearVersion { get; private set; }
+        public static IReadOnlyList<GearItem> Gear => data.gear;
+        public static int Silver => data.silver;
+
+        public static int NextGearUid() => data.nextGearUid++;
+
+        static void GearChanged()
+        {
+            GearVersion++;
+            Changed?.Invoke();
+        }
+
+        public static void AddGear(GearItem g)
+        {
+            data.gear.Add(g);
+            GearChanged();
+        }
+
+        public static void RemoveGear(GearItem g)
+        {
+            for (int i = 0; i < data.equipped.Count; i++)
+                if (data.equipped[i] == g.uid) data.equipped[i] = 0;
+            data.gear.Remove(g);
+            GearChanged();
+        }
+
+        public static GearItem EquippedIn(GearSlot slot)
+        {
+            int i = (int)slot;
+            if (i >= data.equipped.Count || data.equipped[i] == 0) return null;
+            return data.gear.Find(g => g.uid == data.equipped[i]);
+        }
+
+        public static bool IsEquipped(GearItem g) => g != null && EquippedIn(g.Slot) == g;
+
+        public static void Equip(GearItem g)
+        {
+            while (data.equipped.Count < 6) data.equipped.Add(0);
+            data.equipped[g.slot] = g.uid;
+            GearChanged();
+        }
+
+        public static void Unequip(GearSlot slot)
+        {
+            if ((int)slot < data.equipped.Count) data.equipped[(int)slot] = 0;
+            GearChanged();
+        }
+
+        public static IEnumerable<GearItem> Equipped()
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                var g = EquippedIn((GearSlot)i);
+                if (g != null) yield return g;
+            }
+        }
+
+        public static void AddSilver(int amount)
+        {
+            data.silver = Mathf.Max(0, data.silver + amount);
+            Changed?.Invoke();
+        }
+
+        public static bool SpendSilver(int amount)
+        {
+            if (data.silver < amount) return false;
+            data.silver -= amount;
+            Changed?.Invoke();
+            return true;
+        }
         public static IReadOnlyList<ItemStack> Items => data.items;
         public static string ToolPart => data.toolPart;
 
@@ -246,6 +325,11 @@ namespace MoonlightPost
             if (!data.items.Exists(s => s.id == "seal_string")) data.items.Insert(0, new ItemStack { id = "seal_string", count = 1 });
             if (data.maxHp <= 0) data.maxHp = BaseMaxHp;
             if (data.level <= 0) data.level = 1;
+            if (data.gear == null) data.gear = new List<GearItem>();
+            if (data.equipped == null) data.equipped = new List<int>();
+            while (data.equipped.Count < 6) data.equipped.Add(0);
+            foreach (var g in data.gear) data.nextGearUid = Mathf.Max(data.nextGearUid, g.uid + 1);
+            GearVersion++;
             foreach (var f in data.flags) flags.Add(f);
 
             // 예전 저장 파일: 우편가방 보상이 최대 체력 숫자로만 저장돼 있으면 아이템으로 바꾼다.

@@ -123,6 +123,16 @@
       "maxStack": 5
     },
     {
+      "id": "life_potion",
+      "name": "회복 물약",
+      "description": "떠돌이 상인 루카가 파는 붉은 물약. [R] 키로 마시면 체력이 60 회복된다.",
+      "kind": "consumable",
+      "effect": "heal",
+      "value": 6,
+      "icon": "Gear/LifePot",
+      "maxStack": 10
+    },
+    {
       "id": "storm_lantern",
       "name": "오웬의 폭풍 등불",
       "description": "삼 년 전 폭풍 밤에도 꺼지지 않았던 등불. 밤길이 더 넓게 보인다.",

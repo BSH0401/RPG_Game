@@ -24,11 +24,33 @@ namespace MoonlightPost
                 Golden(p);
                 return;
             }
+            // 은화와 장비: 보스는 장비 3개(희귀 이상, 하나는 영웅), 일반 그림자는 gearChance 확률로 하나
+            int silver = Mathf.RoundToInt((e.isBoss ? Random.Range(40, 61) : Random.Range(1, 4)) * (1f + Stats.Level * 0.12f) * Stats.LootMul);
+            DropSilver(p, silver);
+            int ilvl = Gear.DropLevel(p);
+            if (e.isBoss)
+            {
+                LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Epic));
+                LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Rare));
+                LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Rare));
+            }
+            else if (Random.value < e.gearChance * Stats.LootMul) LootDrop.SpawnGear(p, Gear.Roll(ilvl));
             if (e.lootCrystals <= 0) return;
             int crystals = Mathf.RoundToInt(Random.Range(Mathf.Max(1, e.lootCrystals - 1), e.lootCrystals + 1) * Stats.LootMul);
             int shards = e.isBoss ? Random.Range(2, 4) : (Random.value < e.shardChance ? 1 : 0);
             Drop(p, crystals, shards);
         }
+
+        /// <summary>은화는 최대 세 닢으로 나눠 흩뿌린다.</summary>
+        public static void DropSilver(Vector2 p, int amount)
+        {
+            if (amount <= 0) return;
+            int pieces = Mathf.Clamp(amount / 4 + 1, 1, 3);
+            for (int i = 0; i < pieces; i++)
+                LootDrop.Spawn(p, Silver, amount / pieces + (i < amount % pieces ? 1 : 0));
+        }
+
+        public const string Silver = "silver";
 
         /// <summary>결정은 최대 다섯 덩이로 나눠 흩뿌리고, 조각은 하나씩.</summary>
         public static void Drop(Vector2 p, int crystals, int shards)
@@ -45,6 +67,10 @@ namespace MoonlightPost
             GameState.SetFlag(NightDirector.GoldenFlag);
             Drop(p, Random.Range(12, 19), Random.Range(2, 5));
             LootDrop.Spawn(p, Trophy, 1);
+            DropSilver(p, Mathf.RoundToInt(Random.Range(20, 31) * (1f + Stats.Level * 0.12f) * Stats.LootMul));
+            int ilvl = Gear.DropLevel(p) + 1;
+            LootDrop.SpawnGear(p, Gear.Roll(ilvl, Gear.Rare));
+            LootDrop.SpawnGear(p, Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Epic : Gear.Rare));
             var legend = RollLegendary();
             if (legend != null) LootDrop.Spawn(p, legend, 1, true);
             HUD.Toast("황금 그림자를 쓰러뜨렸다! 전리품이 쏟아진다." + (legend != null ? "  <color=#ffd34a>★ 무언가 눈부시게 빛난다!</color>" : ""));
@@ -77,6 +103,8 @@ namespace MoonlightPost
         public string itemId;
         public int amount;
         public bool legendary;
+        /// <summary>장비 전리품이면 그 장비(itemId 는 "gear").</summary>
+        public GearItem gear;
 
         Transform body;
         SpriteRenderer glow;
@@ -87,9 +115,21 @@ namespace MoonlightPost
 
         public static bool Pending(string id) => All.Exists(d => d != null && d.itemId == id);
 
-        public static LootDrop Spawn(Vector2 pos, string itemId, int amount, bool legendary = false)
+        /// <summary>장비 전리품: 등급 색으로 빛나고, 영웅·전설은 빛기둥이 선다.</summary>
+        public static LootDrop SpawnGear(Vector2 pos, GearItem g)
+        {
+            var d = Spawn(pos, "gear", 1, g.rarity >= Gear.Legendary, g.Base.icon, Gear.RarityTint(g.rarity), g.rarity >= Gear.Epic);
+            d.gear = g;
+            return d;
+        }
+
+        public static LootDrop Spawn(Vector2 pos, string itemId, int amount, bool legendary = false) =>
+            Spawn(pos, itemId, amount, legendary, null, null, false);
+
+        static LootDrop Spawn(Vector2 pos, string itemId, int amount, bool legendary, string iconOverride, Color? glowOverride, bool beamOverride)
         {
             var def = GameData.GetItem(itemId);
+            if (itemId == Loot.Silver) iconOverride = "Gear/SilverCoin";
             var go = new GameObject("Loot_" + itemId);
             go.transform.SetParent(Spawner.Root, false);
             go.transform.position = pos;
@@ -97,20 +137,22 @@ namespace MoonlightPost
             var bodyGo = new GameObject("Body");
             bodyGo.transform.SetParent(go.transform, false);
             var sr = bodyGo.AddComponent<SpriteRenderer>();
-            sr.sprite = (def != null ? GameAssets.ItemSprite(def.icon) : null) ?? Art.Chest(false);
+            sr.sprite = (iconOverride != null ? GameAssets.ItemSprite(iconOverride) : def != null ? GameAssets.ItemSprite(def.icon) : null) ?? Art.Chest(false);
             if (legendary) bodyGo.transform.localScale = Vector3.one * 1.4f;
             go.AddComponent<YSort>();
 
-            Color c = legendary ? new Color(1f, 0.82f, 0.3f, 0.6f)
+            Color c = glowOverride.HasValue ? new Color(glowOverride.Value.r, glowOverride.Value.g, glowOverride.Value.b, 0.55f)
+                : itemId == Loot.Silver ? new Color(0.85f, 0.88f, 1f, 0.35f)
+                : legendary ? new Color(1f, 0.82f, 0.3f, 0.6f)
                 : itemId == Upgrade.Crystal ? new Color(0.7f, 0.45f, 1f, 0.4f)
                 : itemId == Upgrade.Shard ? new Color(0.6f, 1f, 0.75f, 0.5f)
                 : new Color(1f, 0.85f, 0.4f, 0.5f);
-            var g = Spawner.Glow(pos, legendary ? 3f : 1.4f, c, go.transform);
-            if (legendary)
+            var g = Spawner.Glow(pos, legendary || beamOverride ? 3f : 1.4f, c, go.transform);
+            if (legendary || beamOverride)
             {
-                // 하늘로 솟는 빛기둥
-                var beam = Spawner.Glow(pos + new Vector2(0f, 3f), 1f, new Color(1f, 0.85f, 0.4f, 0.35f), go.transform);
-                beam.transform.localScale = new Vector3(1.2f, 9f, 1f);
+                // 하늘로 솟는 빛기둥(등급 색)
+                var beam = Spawner.Glow(pos + new Vector2(0f, 3f), 1f, new Color(c.r, c.g, c.b, 0.6f), go.transform);
+                beam.transform.localScale = new Vector3(1.5f, 10f, 1f);
             }
 
             var d = go.AddComponent<LootDrop>();
@@ -184,6 +226,37 @@ namespace MoonlightPost
         {
             var def = GameData.GetItem(itemId);
             Vector2 at = (Vector2)transform.position + Vector2.up * 1.1f;
+            if (gear != null)
+            {
+                bool kept = Gear.Pickup(gear);
+                HUD.Popup(at, gear.Name, Gear.RarityTint(gear.rarity), gear.rarity >= Gear.Epic ? 1.3f : 1f);
+                if (kept && gear.rarity >= Gear.Rare)
+                    HUD.Toast("획득: " + gear.RichName + "  <color=#9fb3ff>" + Gear.RarityNames[gear.rarity] + " " + Gear.SlotNames[gear.slot] + " · Lv " + gear.ilvl + "   [I] 장비</color>");
+                if (gear.rarity >= Gear.Epic)
+                {
+                    RingFx.Spawn(transform.position, 2.6f, Gear.RarityTint(gear.rarity), 0.6f);
+                    CameraFollow.Shake(0.2f, 0.12f);
+                    Juice.HitStop(0.08f);
+                    Sound.Play("Delivered", 0.8f);
+                }
+                else Sound.Play("LetterGet", 0.5f);
+                if (!GameState.HasFlag("hint:gear"))
+                {
+                    GameState.SetFlag("hint:gear");
+                    HUD.Toast("장비를 주웠다! <b>[I]</b> 가방의 <b>장비</b> 칸에서 끼우고 비교할 수 있다. 빈 부위는 바로 낀다.");
+                }
+                GameState.Save();
+                Destroy(gameObject);
+                return;
+            }
+            if (itemId == Loot.Silver)
+            {
+                GameState.AddSilver(amount);
+                HUD.Popup(at, "+" + amount + " 은화", new Color(0.85f, 0.9f, 1f));
+                Sound.Play("Clue", 0.25f);
+                Destroy(gameObject);
+                return;
+            }
             if (legendary)
             {
                 Inventory.Give(itemId, amount);

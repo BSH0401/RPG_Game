@@ -32,6 +32,7 @@ CHARS = {
     'OldMan':        ('v06', 'fstr_v03', 'dap1_v10', 'pfht_v03', False),  # 테오
     'OldMan2':       ('v03', 'pfpn_v01', 'dap1_v01', 'pfht_v02', False),  # 바우
     'SorcererBlack': ('v01', 'fstr_v04', 'bob1_v07', None, False),        # 유나
+    'Merchant':      ('v05', 'pfpn_v03', 'dap1_v13', 'pfht_v05', False),  # 떠돌이 상인 루카
 }
 
 

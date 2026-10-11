@@ -90,6 +90,7 @@ namespace MoonlightPost
             if (scenery) yield return MenuShots();
             if (scenery) yield return GrowthTest(player);
             if (scenery) yield return MonsterLineup(player);
+            if (scenery) yield return GearTest(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
@@ -165,7 +166,8 @@ namespace MoonlightPost
                 foreach (var id in Loot.Legendaries)
                     if (GameState.ItemCount(id) > 0) legends++;
                 Log("황금 그림자 " + trophies + "마리, 전설 장비 " + legends + "개, 먹물 결정 " + GameState.ItemCount(Upgrade.Crystal) + ", 달빛 조각 " + GameState.ItemCount(Upgrade.Shard)
-                    + ", 레벨 " + Stats.Level + " (공격력 " + Stats.Attack + ", 최대 체력 " + GameState.MaxHp + ")");
+                    + ", 레벨 " + Stats.Level + " (공격력 " + Stats.Attack + ", 최대 체력 " + GameState.MaxHp + ", 방어 " + Stats.Defense + ")"
+                    + ", 장비 " + GameState.Gear.Count + "개(낀 것 " + new List<GearItem>(GameState.Equipped()).Count + "), 은화 " + GameState.Silver);
                 if (trophies >= 4 && legends == 0) Problem("황금 그림자를 " + trophies + "마리 잡았는데 전설 장비가 하나도 없음(천장 동작 안 함)");
             }
             if (scenery) yield return Overviews("end");
@@ -416,6 +418,78 @@ namespace MoonlightPost
             yield return Frames(2);
             if (Time.timeScale != 1f) Problem("캐릭터 창을 닫았는데 게임이 멈춰 있음");
             Log("   성장 검사: 레벨 " + Stats.Level + ", 공격력 " + Stats.Attack + ", 최대 체력 " + player.Health.Max + ", 남은 포인트 " + Stats.Points);
+        }
+
+        /// <summary>
+        /// 장비 파밍: 등급마다 장비를 하나씩 주워 빈 부위가 바로 채워지는지, 더 센 무기를 끼면 공격력이 오르는지,
+        /// 갑옷이 방어를 주는지 본다. 영웅 장비가 빛기둥과 함께 떨어진 모습, 장비 가방, 상점(사기·팔기)도 찍는다.
+        /// </summary>
+        IEnumerator GearTest(PlayerController player)
+        {
+            int atk0 = Stats.Attack;
+            for (int r = Gear.Common; r <= Gear.Legendary; r++) Gear.Pickup(Gear.Roll(Stats.Level, r, GearSlot.Ring));
+            Gear.Pickup(Gear.Roll(Stats.Level, Gear.Rare, GearSlot.Body));
+            if (GameState.EquippedIn(GearSlot.Ring) == null) Problem("장비: 빈 반지 칸에 주운 반지가 끼워지지 않음");
+            if (Stats.Defense <= 0) Problem("장비: 옷을 꼈는데 방어가 0");
+            var weak = Gear.Roll(1, Gear.Common, GearSlot.Weapon);
+            var strong = Gear.Roll(Stats.Level + 10, Gear.Epic, GearSlot.Weapon);
+            Gear.Pickup(weak);
+            GameState.Equip(weak);
+            int atkWeak = Stats.Attack;
+            Gear.Pickup(strong);
+            GameState.Equip(strong);
+            int atkStrong = Stats.Attack;
+            if (atkWeak <= atk0) Problem("장비: 무기를 꼈는데 공격력이 그대로 (" + atk0 + " → " + atkWeak + ")");
+            if (atkStrong <= atkWeak) Problem("장비: 더 센 무기로 바꿨는데 공격력이 오르지 않음 (" + atkWeak + " → " + atkStrong + ")");
+
+            // 바닥에 떨어진 영웅·전설 장비(빛기둥)
+            Vector2 p = player.transform.position;
+            LootDrop.SpawnGear(p + new Vector2(4.5f, -1.5f), Gear.Roll(Stats.Level, Gear.Epic));
+            LootDrop.SpawnGear(p + new Vector2(-4.5f, -1.5f), Gear.Roll(Stats.Level, Gear.Legendary));
+            yield return Seconds(0.35f);
+            yield return Shot("gear_drop");
+            int before = GameState.Gear.Count;
+            for (int pass = 0; pass < 3 && LootDrop.All.Count > 0; pass++)
+                foreach (var drop in new List<LootDrop>(LootDrop.All))
+                {
+                    if (drop == null) continue;
+                    Teleport(player, drop.transform.position);
+                    yield return Seconds(0.25f);
+                }
+            if (GameState.Gear.Count < before + 2) Problem("장비: 떨어진 장비 2개를 줍지 못함 (" + before + " → " + GameState.Gear.Count + ")");
+
+            HUD.ShowBag(true, 0);
+            yield return Frames(3);
+            yield return Shot("gear_bag");
+            HUD.ShowBag(false);
+            yield return Frames(2);
+
+            // 상점: 은화를 넉넉히 주고 장비 상자 · 물약을 사고, 일반·고급을 판다
+            var shop = FindAnyObjectByType<Shop>();
+            if (shop == null) Problem("상점: 떠돌이 상인이 월드에 없음");
+            else
+            {
+                yield return Visit(player, shop.transform.position);
+                GameState.AddSilver(3000);
+                shop.Interact(player);
+                yield return Frames(3);
+                int silver = GameState.Silver, gear = GameState.Gear.Count;
+                if (!ShopMenu.I.TryBuy(3)) Problem("상점: 장비 상자를 사지 못함");
+                if (!ShopMenu.I.TryBuy(0)) Problem("상점: 회복 물약을 사지 못함");
+                if (GameState.Gear.Count != gear + 1) Problem("상점: 장비 상자를 샀는데 장비가 늘지 않음");
+                if (GameState.ItemCount("life_potion") < 1) Problem("상점: 회복 물약이 가방에 없음");
+                yield return Frames(2);
+                yield return Shot("shop_buy");
+                ShopMenu.ShowTab(1);
+                yield return Frames(2);
+                yield return Shot("shop_sell");
+                int sold = ShopMenu.I.SellUpTo(Gear.Uncommon);
+                ShopMenu.Close();
+                yield return Frames(2);
+                if (Time.timeScale != 1f) Problem("상점을 닫았는데 게임이 멈춰 있음");
+                Log("   장비 검사: 공격력 " + atk0 + " → " + atkWeak + " → " + atkStrong + ", 방어 " + Stats.Defense + ", 가방 " + GameState.Gear.Count
+                    + ", 상점 은화 " + silver + " → " + GameState.Silver + ", 판 장비 " + sold);
+            }
         }
 
         /// <summary>몬스터 그림 확인: 배달부 옆에 종류마다 하나씩 세워 두고 가까이서 찍는다.</summary>

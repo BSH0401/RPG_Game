@@ -113,9 +113,9 @@ namespace MoonlightPost
         SpriteRenderer sr;
         float time;
 
-        public static void PlayOnce(Sprite[] frames, Vector2 pos, float fps, Color color, int order = 600, float scale = 1f)
+        public static GameObject PlayOnce(Sprite[] frames, Vector2 pos, float fps, Color color, int order = 600, float scale = 1f)
         {
-            if (frames == null || frames.Length == 0) return;
+            if (frames == null || frames.Length == 0) return null;
             var go = new GameObject("Fx");
             go.transform.position = pos;
             go.transform.localScale = Vector3.one * scale;
@@ -128,6 +128,7 @@ namespace MoonlightPost
             anim.fps = fps;
             anim.loop = false;
             anim.destroyAtEnd = true;
+            return go;
         }
 
         void Awake() => sr = GetComponent<SpriteRenderer>();

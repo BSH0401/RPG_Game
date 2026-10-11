@@ -24,6 +24,23 @@ namespace MoonlightPost
                 GUI.Label(new Rect(r.x + 3 * s, r.y, 20 * s, 20 * s), "<b><color=#ffd34a>E</color></b>", Ui.Small);
             if (g.rarity >= Gear.Legendary && Mathf.Repeat(Time.unscaledTime * 1.5f, 1f) < 0.5f)
                 Ui.Fill(new Rect(r.x + b, r.y + b, r.width - 2 * b, r.height - 2 * b), new Color(1f, 0.7f, 0.3f, 0.12f));
+            if (g.plus > 0)
+            {
+                // 강화 단계: 오른쪽 아래 +N, 빛의 단계(+3 · +6 · +9)부터 그 색으로 안쪽 테두리가 숨 쉰다
+                int tier = WeaponVisual.TierOf(g.plus);
+                var tc = tier > 0 ? WeaponVisual.TierColor(tier) : new Color(0.9f, 0.9f, 0.9f);
+                if (tier > 0)
+                {
+                    float a = 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 3f);
+                    var inner = new Color(tc.r, tc.g, tc.b, a);
+                    Ui.Fill(new Rect(r.x + b, r.y + b, r.width - 2 * b, b), inner);
+                    Ui.Fill(new Rect(r.x + b, r.yMax - 2 * b, r.width - 2 * b, b), inner);
+                    Ui.Fill(new Rect(r.x + b, r.y + b, b, r.height - 2 * b), inner);
+                    Ui.Fill(new Rect(r.xMax - 2 * b, r.y + b, b, r.height - 2 * b), inner);
+                }
+                var style = new GUIStyle(Ui.Small) { alignment = TextAnchor.LowerRight, fontSize = Mathf.Max(8, Mathf.RoundToInt(Mathf.Min(r.height * 0.32f, Ui.Px(15)))) };
+                Ui.Shadow(new Rect(r.x, r.y, r.width - 3 * s, r.height - 1 * s), "<b><color=#" + ColorUtility.ToHtmlStringRGB(tc) + ">+" + g.plus + "</color></b>", style);
+            }
         }
 
         public static void Icon(Rect r, string icon)

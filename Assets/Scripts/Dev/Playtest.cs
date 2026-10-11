@@ -92,6 +92,7 @@ namespace MoonlightPost
             if (scenery) yield return MonsterLineup(player);
             if (scenery) yield return GearTest(player);
             if (scenery) yield return HuntTest(player);
+            if (scenery) yield return WeaponLook(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
@@ -622,6 +623,42 @@ namespace MoonlightPost
             if (Time.timeScale != 1f) Problem("게시판을 닫았는데 게임이 멈춰 있음");
             Log("   사냥 검사: " + levels + ", 정예 의뢰 " + before + " → " + (eliteBounty != null ? eliteBounty.have : 0)
                 + ", 보상 " + claimed + "개 (은화 " + silver + " → " + GameState.Silver + ", 레벨 " + lv + " → " + Stats.Level + ", 장비 " + gear + " → " + GameState.Gear.Count + ")");
+        }
+
+        /// <summary>
+        /// 등에 멘 무기와 강화 빛: 낀 무기를 +0 · +4 · +7 · +10 으로 바꿔 가며 가까이서 찍는다(+10 은 베기 궤적도).
+        /// 끝나면 원래 단계로 돌린다.
+        /// </summary>
+        IEnumerator WeaponLook(PlayerController player)
+        {
+            var w = GameState.EquippedIn(GearSlot.Weapon);
+            if (w == null)
+            {
+                Problem("무기 모습: 낀 무기가 없음");
+                yield break;
+            }
+            if (WeaponVisual.I == null) Problem("무기 모습: WeaponVisual 이 없음");
+            int original = w.plus;
+            Vector2 p = player.transform.position;
+            yield return MoveCamera(p + new Vector2(0f, 0.3f), 2.2f);
+            foreach (int plus in new[] { 0, 4, 7, 10 })
+            {
+                w.plus = plus;
+                GameState.GearChanged();
+                if (WeaponVisual.Tier != WeaponVisual.TierOf(plus)) Problem("무기 모습: +" + plus + " 인데 빛의 단계가 " + WeaponVisual.Tier);
+                HUD.ClearToasts();
+                yield return Seconds(0.6f);
+                if (plus == 10)
+                {
+                    WeaponVisual.OnSwing(p, Vector2.right, true);
+                    WeaponVisual.OnHit(p + Vector2.right * 1.2f, true);
+                    yield return Frames(3);
+                }
+                yield return Shot("weapon_plus" + plus);
+            }
+            yield return CameraRestore();
+            w.plus = original;
+            GameState.GearChanged();
         }
 
         /// <summary>몬스터 그림 확인: 배달부 옆에 종류마다 하나씩 세워 두고 가까이서 찍는다.</summary>

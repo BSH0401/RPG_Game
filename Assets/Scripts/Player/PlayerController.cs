@@ -85,6 +85,7 @@ namespace MoonlightPost
             animator = GetComponent<SpriteAnimator>();
             swordSheet = animator != null && animator.sheet != null && animator.sheet.HasAction("slash1");
             slashFrames = GameAssets.Available ? GameAssets.SlashFrames : null;
+            gameObject.AddComponent<WeaponVisual>().Init(body);
             if (slashFrames != null)
             {
                 // 에셋의 베기 그림은 아래쪽으로 휜 반달이라 회전 기준이 반대다.
@@ -242,7 +243,9 @@ namespace MoonlightPost
                 int dmg = Stats.RollDamage(finisher ? finisherMul : 1f, out bool crit);
                 anyCrit |= crit;
                 enemy.TakeHit(dmg, transform.position, finisher ? 9f : 6f, crit);
+                WeaponVisual.OnHit(enemy.transform.position, crit);
             }
+            WeaponVisual.OnSwing(transform.position, aim, finisher);
             if (hitSet.Count > 0)
             {
                 Juice.HitStop(finisher || anyCrit ? 0.07f : 0.03f);
@@ -253,6 +256,7 @@ namespace MoonlightPost
             {
                 // 칼 동작에 베기 궤적이 그려져 있다: 1·2타는 베기, 3타는 찌르기
                 animator.PlaySequence(comboStep == 1 ? "slash1" : comboStep == 2 ? "slash2" : "thrust", Mathf.Max(0.22f, cooldown * 0.95f));
+                WeaponVisual.Hide(Mathf.Max(0.22f, cooldown * 0.95f));
                 Sound.Play("Attack", finisher ? 1f : 0.7f);
                 return;
             }
@@ -317,7 +321,11 @@ namespace MoonlightPost
 
             Vector2 aim = Aim();
             FaceToward(aim, 0.3f);
-            if (swordSheet) animator.PlaySequence(effect == "bind" ? "bash" : effect == "throw" ? "thrust" : "slash2", 0.3f);
+            if (swordSheet)
+            {
+                animator.PlaySequence(effect == "bind" ? "bash" : effect == "throw" ? "thrust" : "slash2", 0.3f);
+                WeaponVisual.Hide(0.3f);
+            }
             switch (effect)
             {
                 case "throw": ThrowLetter(aim); break;

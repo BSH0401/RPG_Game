@@ -203,6 +203,11 @@ namespace MoonlightPost
             if (lastSuccess)
             {
                 resultText = g.plus >= Upgrade.GearMax ? "★ +" + g.plus + " 최대 강화! ★" : "+" + g.plus + " 강화 성공!";
+                // 빛의 단계가 오르면(+3 · +6 · +9) 알린다. 무기는 등에 멘 모습과 공격 이펙트가 바뀐다.
+                int tier = WeaponVisual.TierOf(g.plus);
+                if (tier > WeaponVisual.TierOf(g.plus - 1))
+                    HUD.Toast("<color=#" + ColorUtility.ToHtmlStringRGB(WeaponVisual.TierColor(tier)) + ">" + g.Name + "에 " + WeaponVisual.TierName(tier) + "이 깃들었다!</color>"
+                              + (g.Slot == GearSlot.Weapon ? " 휘두를 때 빛의 궤적이 남는다." : ""));
                 flash = g.plus >= 7 ? 1.3f : 1f;
                 Sound.Play("Delivered", 1f);
                 if (g.plus >= 7 && PlayerController.I != null) RingFx.Spawn(PlayerController.I.transform.position, 2f, new Color(1f, 0.85f, 0.4f), 0.5f);

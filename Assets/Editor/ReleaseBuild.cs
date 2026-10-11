@@ -99,7 +99,7 @@ WASD / 방향키      이동
 Space / Shift       회피
 E                   조사 · 대화 · 배달
 C                   캐릭터 (스탯 올리기 · 스킬 고르기)
-R                   크루아상 먹기 (체력 회복)
+R                   먹기 · 마시기 (체력 회복)
 I                   가방
 Tab / M             지도
 F1                  조작법 보이기/숨기기
@@ -109,8 +109,15 @@ Esc                 메뉴 (설정 · 타이틀로 · 저장하고 종료)
 편지를 받거나 배달할 때 자동으로 저장된다.
 저장 위치: %USERPROFILE%\AppData\LocalLow\BSH0401\달빛 우체국
 
+[즐길 거리]
+편지 18통의 이야기 + 사냥: 레벨·스탯, 장비 파밍(6부위·5등급·세트 3종), 상점(떠돌이 상인 루카),
+강화 작업대(장비 +10), 사냥 게시판(밤마다 의뢰 3개), 정예 그림자, 그림자 균열(단계별 사냥터)과 보스 재도전.
+
 [만든 사람과 에셋]
 그림·소리: Ninja Adventure Asset Pack — Pixel-boy & AAA (CC0)
+땅·나무·소품: Pixel Art Top Down – Basic — Cainos
+캐릭터: Mana Seed Character Base (무료 데모) — Seliel the Shaper
+몬스터: Pixel Monsters Free Pack — Matthew Ashworth (Matseb2611)
 글꼴: Noto Sans KR (SIL Open Font License)
 ";
     }

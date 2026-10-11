@@ -39,6 +39,8 @@ namespace MoonlightPost
         public List<BountyData> bounties = new List<BountyData>();
         public int bountyNight = -1;
         public int bountiesDone;
+        /// <summary>그림자 균열에서 가장 높이 깬 단계.</summary>
+        public int riftBest;
     }
 
     /// <summary>
@@ -265,6 +267,12 @@ namespace MoonlightPost
         {
             if (string.IsNullOrEmpty(flag)) return;
             if (flags.Add(flag)) Changed?.Invoke();
+        }
+
+        /// <summary>플래그를 지운다(자동 플레이테스트가 잠깐 세운 것을 되돌릴 때).</summary>
+        public static void ClearFlag(string flag)
+        {
+            if (flags.Remove(flag)) Changed?.Invoke();
         }
 
         public static void SetCarrying(string letterId)

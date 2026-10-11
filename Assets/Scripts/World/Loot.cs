@@ -31,14 +31,14 @@ namespace MoonlightPost
             int ilvl = e.level;
             if (e.IsElite)
             {
-                LootDrop.SpawnGear(p, Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Rare : Gear.Uncommon));
+                LootDrop.SpawnGear(p, Random.value < 0.08f * Stats.LootMul ? GearSets.Roll(ilvl) : Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Rare : Gear.Uncommon));
                 if (Random.value < 0.35f * Stats.LootMul) LootDrop.SpawnGear(p, Gear.Roll(ilvl));
             }
             else if (e.isBoss)
             {
                 LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Epic));
                 LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Rare));
-                LootDrop.SpawnGear(p, Gear.Roll(ilvl + 1, Gear.Rare));
+                LootDrop.SpawnGear(p, GearSets.Roll(ilvl + 1));
             }
             else if (Random.value < e.gearChance * Stats.LootMul) LootDrop.SpawnGear(p, Gear.Roll(ilvl));
             if (e.lootCrystals <= 0) return;
@@ -76,7 +76,7 @@ namespace MoonlightPost
             DropSilver(p, Mathf.RoundToInt(Random.Range(20, 31) * (1f + level * 0.12f) * Stats.LootMul));
             int ilvl = level + 1;
             LootDrop.SpawnGear(p, Gear.Roll(ilvl, Gear.Rare));
-            LootDrop.SpawnGear(p, Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Epic : Gear.Rare));
+            LootDrop.SpawnGear(p, Random.value < 0.15f ? GearSets.Roll(ilvl) : Gear.Roll(ilvl, Random.value < 0.3f ? Gear.Epic : Gear.Rare));
             var legend = RollLegendary();
             if (legend != null) LootDrop.Spawn(p, legend, 1, true);
             HUD.Toast("황금 그림자를 쓰러뜨렸다! 전리품이 쏟아진다." + (legend != null ? "  <color=#ffd34a>★ 무언가 눈부시게 빛난다!</color>" : ""));
@@ -228,7 +228,7 @@ namespace MoonlightPost
             }
         }
 
-        void Collect()
+        public void Collect()
         {
             var def = GameData.GetItem(itemId);
             Vector2 at = (Vector2)transform.position + Vector2.up * 1.1f;

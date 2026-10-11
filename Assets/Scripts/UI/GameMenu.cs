@@ -14,14 +14,14 @@ namespace MoonlightPost
     {
         public static GameMenu I { get; private set; }
         public static bool IsOpen => I != null && I.page != Page.None;
-        public static bool TitleOpen => I != null && (I.page == Page.Title || I.page == Page.ConfirmNew || (I.page == Page.Settings && I.settingsBack == Page.Title));
+        public static bool TitleOpen => I != null && (I.page == Page.Title || I.page == Page.ConfirmNew || I.page == Page.Credits || (I.page == Page.Settings && I.settingsBack == Page.Title));
         /// <summary>메뉴가 닫힌 프레임(같은 키 입력이 게임 조작으로 이어지지 않게 막는다).</summary>
         public static int LastClosedFrame { get; private set; } = -1;
         /// <summary>자동 플레이테스트처럼 타이틀 없이 바로 시작할 때 true.</summary>
         public static bool SkipTitle;
         static bool titleShownOnce;
 
-        enum Page { None, Title, Pause, Settings, ConfirmNew }
+        enum Page { None, Title, Pause, Settings, ConfirmNew, Credits }
 
         struct Item
         {
@@ -88,6 +88,7 @@ namespace MoonlightPost
             I.Open(Page.Settings);
         }
         public static void Hide() => I?.Close();
+        public static void ShowCredits() => I?.Open(Page.Credits);
 
         void BuildItems()
         {
@@ -102,6 +103,7 @@ namespace MoonlightPost
                         else Close();
                     }));
                     items.Add(Button("설정", () => OpenSettings(Page.Title)));
+                    items.Add(Button("만든 사람들", () => Open(Page.Credits)));
                     items.Add(Button("종료", Quit));
                     break;
                 case Page.Pause:
@@ -129,6 +131,9 @@ namespace MoonlightPost
                     }));
                     items.Add(Toggle("전체 화면", () => Settings.Fullscreen, v => Settings.Fullscreen = v));
                     items.Add(Button("돌아가기", () => Open(settingsBack)));
+                    break;
+                case Page.Credits:
+                    items.Add(Button("돌아가기", () => Open(Page.Title)));
                     break;
                 case Page.ConfirmNew:
                     items.Add(Button("새로 시작하기", () =>
@@ -170,7 +175,8 @@ namespace MoonlightPost
         void Update()
         {
             if (fading || UpgradeMenu.IsOpen || ShopMenu.IsOpen || Time.frameCount == ShopMenu.LastClosedFrame
-                || BountyMenu.IsOpen || Time.frameCount == BountyMenu.LastClosedFrame) return;
+                || BountyMenu.IsOpen || Time.frameCount == BountyMenu.LastClosedFrame
+                || RiftMenu.IsOpen || Time.frameCount == RiftMenu.LastClosedFrame) return;
             if (page == Page.None)
             {
                 if (!GameInput.PausePressed) return;
@@ -184,7 +190,7 @@ namespace MoonlightPost
             {
                 if (page == Page.Pause) Close();
                 else if (page == Page.Settings) Open(settingsBack);
-                else if (page == Page.ConfirmNew) Open(Page.Title);
+                else if (page == Page.ConfirmNew || page == Page.Credits) Open(Page.Title);
                 return;
             }
             if (items.Count == 0) return;
@@ -271,10 +277,36 @@ namespace MoonlightPost
             if (fadeAlpha > 0f) Ui.Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0.01f, 0.01f, 0.04f, fadeAlpha));
         }
 
+        /// <summary>만든 사람들과 에셋 출처. 다음 버튼이 놓일 y 를 돌려준다.</summary>
+        float DrawCredits(float s)
+        {
+            string text =
+                "<b>달빛 우체국</b>  ·  기획 · 제작 BSH0401  (Claude 와 함께)\n\n" +
+                "<color=#ffd98a>그림 · 소리</color>\n" +
+                "Ninja Adventure Asset Pack — Pixel-boy & AAA (CC0)\n" +
+                "    건물 · 물 · 주민(대체 그림) · 보스 2·3 · 아이템과 장비 아이콘 · 효과 · 음악 · 효과음\n" +
+                "Pixel Art Top Down – Basic — Cainos\n" +
+                "    풀밭 · 돌길 · 나무 · 덤불 · 소품\n" +
+                "Mana Seed Character Base (무료 데모) — Seliel the Shaper\n" +
+                "    배달부와 주민 캐릭터\n" +
+                "Pixel Monsters Free Pack — Matthew Ashworth (Matseb2611)\n" +
+                "    그림자 고블린 · 먹물 모기 · 땅굴 머리 · 먹물 그림자\n\n" +
+                "<color=#9fb3ff>만든 엔진: Unity  ·  글꼴: Noto Sans KR (SIL Open Font License)</color>\n" +
+                "<color=#9aa0b8>플레이해 주셔서 고맙습니다.</color>";
+            var style = new GUIStyle(itemStyle) { alignment = TextAnchor.UpperCenter, wordWrap = true, fontSize = Ui.Px(17), richText = true };
+            float w = Mathf.Min(Screen.width - 60 * s, 900 * s);
+            float h = style.CalcHeight(new GUIContent(text), w);
+            float y = 110 * s;
+            var box = new Rect((Screen.width - w) * 0.5f - 20 * s, y - 12 * s, w + 40 * s, h + 24 * s);
+            Ui.Panel(box);
+            GUI.Label(new Rect((Screen.width - w) * 0.5f, y, w, h), text, style);
+            return box.yMax + 20 * s;
+        }
+
         void DrawMenu()
         {
             float s = Ui.S;
-            bool title = TitleOpen;
+            bool title = TitleOpen && page != Page.Credits;
             Ui.Fill(new Rect(0, 0, Screen.width, Screen.height), new Color(0.01f, 0.02f, 0.06f, title ? 0.55f : 0.7f));
 
             float cx = Screen.width * 0.5f;
@@ -298,8 +330,9 @@ namespace MoonlightPost
             }
             else
             {
-                Ui.Shadow(new Rect(0, 90 * s, Screen.width, 60 * s), page == Page.Settings ? "설정" : "일시정지", new GUIStyle(bigTitle) { fontSize = Ui.Px(40) });
-                top = 180 * s;
+                Ui.Shadow(new Rect(0, (page == Page.Credits ? 40 : 90) * s, Screen.width, 60 * s),
+                    page == Page.Settings ? "설정" : page == Page.Credits ? "만든 사람들" : "일시정지", new GUIStyle(bigTitle) { fontSize = Ui.Px(40) });
+                top = page == Page.Credits ? DrawCredits(s) : 180 * s;
             }
 
             if (page == Page.ConfirmNew)

@@ -99,7 +99,7 @@ namespace MoonlightPost
 
         void Update()
         {
-            if (GameMenu.IsOpen || UpgradeMenu.IsOpen || ShopMenu.IsOpen || BountyMenu.IsOpen) return;
+            if (GameMenu.IsOpen || UpgradeMenu.IsOpen || ShopMenu.IsOpen || BountyMenu.IsOpen || RiftMenu.IsOpen) return;
             UpdateCharacterKeys();
             if (BagOpen)
             {
@@ -148,6 +148,7 @@ namespace MoonlightPost
             DrawLetterPanel();
             DrawNameLabels(player);
             if (!AnyOverlay) DrawEnemyTags(player);
+            if (RiftManager.Active) DrawRiftStatus();
             DrawBossBar(player);
             if (!DialogueSystem.IsOpen && !AnyOverlay) DrawPrompt(player);
             DrawPopups();
@@ -367,6 +368,13 @@ namespace MoonlightPost
             var letter = LetterManager.Carrying;
             foreach (var it in Interactable.All)
             {
+                if (it is RiftPortal || it is RiftExit)
+                {
+                    if (Vector2.Distance(player.transform.position, it.transform.position) > 8f) continue;
+                    Vector3 rsp = cam.WorldToScreenPoint(it.transform.position + Vector3.up * 2.4f);
+                    Ui.Shadow(new Rect(rsp.x - 140 * s, Screen.height - rsp.y - 26 * s, 280 * s, 26 * s), "<color=#c58bff>[" + it.DisplayName + "]</color>", Ui.Center);
+                    continue;
+                }
                 if (it is BountyBoard board)
                 {
                     if (Vector2.Distance(player.transform.position, board.transform.position) > 7f) continue;
@@ -413,6 +421,21 @@ namespace MoonlightPost
             }
         }
 
+        /// <summary>균열 안: 위쪽 가운데에 단계 · 파도 · 남은 적.</summary>
+        void DrawRiftStatus()
+        {
+            float s = Ui.S;
+            int left = 0;
+            foreach (var g in RiftManager.Live)
+                if (g != null) left++;
+            string text = RiftManager.Cleared ? "<color=#c58bff>정화 완료!</color>  가운데의 돌아가는 균열로 [E]"
+                : (RiftManager.Tier > 0 ? "<color=#c58bff>그림자 균열 " + RiftManager.Tier + "단계</color>  ·  파도 " + RiftManager.Wave + "/3"
+                    : "<color=#c58bff>보스 재도전</color>") + "  ·  남은 적 " + left;
+            var r = new Rect(Screen.width * 0.5f - 230 * s, 70 * s, 460 * s, 32 * s);
+            Ui.Panel(r);
+            GUI.Label(r, text, Ui.Center);
+        }
+
         /// <summary>몬스터 레벨 색: 내 레벨보다 많이 낮으면 회색, 비슷하면 흰색, 높으면 노랑 · 빨강.</summary>
         static string LevelColor(int lv)
         {
@@ -455,7 +478,7 @@ namespace MoonlightPost
         {
             float s = Ui.S;
             toasts.RemoveAll(t => Time.unscaledTime > t.until);
-            float y = 80 * s;
+            float y = (RiftManager.Active ? 108 : 80) * s;
             // 오른쪽 위 편지 칸과 겹치지 않도록, 화면이 좁으면 알림 폭을 줄인다.
             float w = Mathf.Min(600 * s, Screen.width - 2 * (380 + 32) * s);
             for (int i = 0; i < toasts.Count; i++)
@@ -584,6 +607,8 @@ namespace MoonlightPost
             if (NightDirector.I != null)
                 foreach (var el in NightDirector.I.Elites())
                     Marker(map, el.transform.position, EnemyController.AffixColor(el.elite), "정예");
+            var portalObj = FindAnyObjectByType<RiftPortal>();
+            if (portalObj != null) Marker(map, portalObj.transform.position, new Color(0.8f, 0.5f, 1f), "그림자 균열");
             var boardObj = FindAnyObjectByType<BountyBoard>();
             if (boardObj != null) Marker(map, boardObj.transform.position, new Color(1f, 0.85f, 0.55f), Bounties.ClaimableCount > 0 ? "게시판 (보상!)" : "게시판");
             Marker(map, player.transform.position, new Color(0.5f, 0.9f, 1f), "나");

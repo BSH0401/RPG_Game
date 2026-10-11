@@ -65,6 +65,7 @@ namespace MoonlightPost
                 if (i == 1) sb.Append("<color=#9aa0b0>────────</color>\n");
                 sb.Append(i == 0 ? "<b>" : "<color=#b8c8ff>").Append(Gear.StatLine((GearStat)g.stats[i], g.Value(i))).Append(i == 0 ? "</b>" : "</color>").Append('\n');
             }
+            if (g.set > 0) sb.Append(GearSets.Describe(g.set));
             var cur = GameState.EquippedIn(g.Slot);
             if (compare && cur != null && cur != g)
             {

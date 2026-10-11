@@ -93,6 +93,7 @@ namespace MoonlightPost
             if (scenery) yield return GearTest(player);
             if (scenery) yield return HuntTest(player);
             if (scenery) yield return WeaponLook(player);
+            if (scenery) yield return EndgameTest(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
@@ -369,7 +370,7 @@ namespace MoonlightPost
             else if (gained != 20) Problem("강화 검사: 우편가방 +5인데 최대 체력이 " + gained + " 늘어남(20 기대)");
             else Log("   강화 검사: 우편가방 +5 (" + tries + "번 시도, 실패 " + fails + "번), 최대 체력 +" + gained);
 
-            // 주운 장비 강화: 낀 무기를 +10까지. 공격력이 올라야 하고, +6 부터는 실패하면 한 단계 떨어질 수 있다.
+            // 주운 장비 강화: 낀 무기를 +10까지. 공격력이 올라야 하고, +7 부터는 실패하면 절반 확률로 한 단계 떨어진다.
             var weapon = GameState.EquippedIn(GearSlot.Weapon);
             if (weapon == null)
             {
@@ -395,7 +396,7 @@ namespace MoonlightPost
                 if (ok && weapon.plus != before + 1) Problem("장비 강화: 성공했는데 단계가 오르지 않음");
                 if (!ok) gFails++;
                 if (dropped) drops++;
-                if (dropped && before < 6) Problem("장비 강화: +" + before + " 에서 실패했는데 단계가 떨어짐");
+                if (dropped && before < 7) Problem("장비 강화: +" + before + " 에서 실패했는데 단계가 떨어짐");
             }
             if (!Upgrade.IsMax(weapon)) Problem("장비 강화: 120번 안에 +10에 닿지 못함 (+" + weapon.plus + ")");
             if (Stats.Attack <= atk0) Problem("장비 강화: 무기를 강화했는데 공격력이 그대로 (" + atk0 + " → " + Stats.Attack + ")");
@@ -470,6 +471,8 @@ namespace MoonlightPost
         /// </summary>
         IEnumerator GearTest(PlayerController player)
         {
+            // 앞선 검사에서 주운 무기가 있으면 벗기고 시작한다(맨손 → 약한 무기 → 센 무기).
+            if (GameState.EquippedIn(GearSlot.Weapon) != null) GameState.Unequip(GearSlot.Weapon);
             int atk0 = Stats.Attack;
             for (int r = Gear.Common; r <= Gear.Legendary; r++) Gear.Pickup(Gear.Roll(Stats.Level, r, GearSlot.Ring));
             Gear.Pickup(Gear.Roll(Stats.Level, Gear.Rare, GearSlot.Body));
@@ -659,6 +662,109 @@ namespace MoonlightPost
             yield return CameraRestore();
             w.plus = original;
             GameState.GearChanged();
+        }
+
+        /// <summary>
+        /// 엔드게임: 만든 사람들 화면, 세트 장비(별똥별 4부위 → 치명타 +8%), 그림자 균열 1단계(세 파도 → 보상 → 돌아오기),
+        /// 보스 재도전(세트 장비 2개). 보스 플래그는 잠깐 세웠다가 되돌린다.
+        /// </summary>
+        IEnumerator EndgameTest(PlayerController player)
+        {
+            GameMenu.ShowCredits();
+            yield return Frames(3);
+            yield return Shot("menu_credits");
+            GameMenu.Hide();
+            yield return Frames(2);
+
+            // 세트 장비
+            float crit0 = Stats.CritChance;
+            var slots = new[] { GearSlot.Weapon, GearSlot.Head, GearSlot.Body, GearSlot.Feet };
+            foreach (var slot in slots)
+            {
+                var g = GearSets.Roll(Stats.Level, GearSets.Meteor, slot);
+                if (g.set != GearSets.Meteor || g.rarity < Gear.Rare) Problem("세트 장비: 세트·등급이 이상함 (" + g.Name + ")");
+                Gear.Pickup(g);
+                GameState.Equip(g);
+            }
+            if (!GearSets.Has(GearSets.Meteor, 4)) Problem("세트 장비: 4부위를 꼈는데 세트로 세지 않음 (" + GearSets.Equipped(GearSets.Meteor) + ")");
+            if (Stats.CritChance < crit0 + 0.079f && Stats.CritChance < 0.75f) Problem("세트 장비: 2부위 효과(치명타 +8%)가 붙지 않음 (" + crit0 + " → " + Stats.CritChance + ")");
+            HUD.ShowBag(true, 0);
+            yield return Frames(3);
+            yield return Shot("set_gear_bag");
+            HUD.ShowBag(false);
+            yield return Frames(2);
+
+            // 그림자 균열 1단계
+            var portal = FindAnyObjectByType<RiftPortal>();
+            if (portal == null)
+            {
+                Problem("그림자 균열: 마을에 균열이 없음");
+                yield break;
+            }
+            yield return Visit(player, portal.transform.position);
+            HUD.ClearToasts();
+            yield return Frames(3);
+            yield return Shot("rift_portal");
+            portal.Interact(player);
+            yield return Frames(3);
+            yield return Shot("rift_menu");
+            int best0 = RiftManager.Best, gear0 = GameState.Gear.Count, silver0 = GameState.Silver;
+            if (!RiftMenu.ChooseTier(1)) Problem("그림자 균열: 1단계로 들어가지 못함");
+            yield return Seconds(2.2f);
+            if (!RiftManager.Active) Problem("그림자 균열: 들어갔는데 균열 안이 아님");
+            if (Vector2.Distance(player.transform.position, RiftManager.Center) > RiftManager.Radius) Problem("그림자 균열: 배달부가 마당에 있지 않음");
+            yield return Shot("rift_wave");
+            yield return KillRift(40f);
+            if (!RiftManager.Cleared) Problem("그림자 균열: 40초 안에 세 파도가 끝나지 않음 (파도 " + RiftManager.Wave + ")");
+            if (RiftManager.Best < 1) Problem("그림자 균열: 1단계를 깼는데 기록되지 않음");
+            HUD.ClearToasts();
+            yield return Seconds(0.8f);
+            yield return Shot("rift_clear");
+            var exit = FindAnyObjectByType<RiftExit>();
+            if (exit == null) Problem("그림자 균열: 돌아가는 균열이 열리지 않음");
+            else exit.Interact(player);
+            yield return Frames(3);
+            if (RiftManager.Active) Problem("그림자 균열: 돌아가는 균열로 나왔는데 아직 균열 안");
+            if (Vector2.Distance(player.transform.position, portal.transform.position) > 4f) Problem("그림자 균열: 나왔는데 마을 균열 앞이 아님");
+            string riftLog = "균열 1단계 깸(최고 " + best0 + " → " + RiftManager.Best + ", 장비 " + gear0 + " → " + GameState.Gear.Count + ", 은화 " + silver0 + " → " + GameState.Silver + ")";
+
+            // 보스 재도전 (첫 보스 플래그를 잠깐 세운다)
+            bool hadFlag = GameState.HasFlag(RiftManager.BossFlags[0]);
+            GameState.SetFlag(RiftManager.BossFlags[0]);
+            int sets0 = 0;
+            foreach (var g in GameState.Gear) if (g.set > 0) sets0++;
+            if (!RiftMenu.ChooseBoss(0)) Problem("보스 재도전: 들어가지 못함");
+            yield return Seconds(2.2f);
+            yield return Shot("rift_boss");
+            yield return KillRift(30f);
+            if (!RiftManager.Cleared) Problem("보스 재도전: 보스를 쓰러뜨렸는데 끝나지 않음");
+            if (!RiftManager.BossDoneTonight(0)) Problem("보스 재도전: 오늘 밤 했다는 기록이 없음");
+            yield return Seconds(0.6f);
+            RiftManager.Leave();
+            yield return Frames(3);
+            int sets1 = 0;
+            foreach (var g in GameState.Gear) if (g.set > 0) sets1++;
+            if (sets1 < sets0 + 2 && GameState.Gear.Count < Gear.BagSize) Problem("보스 재도전: 세트 장비 2개를 받지 못함 (" + sets0 + " → " + sets1 + ")");
+            if (!hadFlag) GameState.ClearFlag(RiftManager.BossFlags[0]);
+            Log("   엔드게임 검사: 별똥별 4부위(치명타 " + Mathf.RoundToInt(crit0 * 100) + "% → " + Mathf.RoundToInt(Stats.CritChance * 100) + "%), "
+                + riftLog + ", 보스 재도전 세트 장비 " + sets0 + " → " + sets1);
+        }
+
+        /// <summary>균열의 적을 모두 쓰러뜨리며 끝날 때까지 기다린다.</summary>
+        IEnumerator KillRift(float timeout)
+        {
+            float end = Time.realtimeSinceStartup + timeout;
+            while (RiftManager.Active && !RiftManager.Cleared && Time.realtimeSinceStartup < end)
+            {
+                foreach (var g in new List<GameObject>(RiftManager.Live))
+                {
+                    if (g == null) continue;
+                    var e = g.GetComponent<EnemyController>();
+                    e.Health.Invulnerable = false;
+                    e.Health.TakeDamage(9999999, e.transform.position + Vector3.up);
+                }
+                yield return Seconds(0.4f);
+            }
         }
 
         /// <summary>몬스터 그림 확인: 배달부 옆에 종류마다 하나씩 세워 두고 가까이서 찍는다.</summary>

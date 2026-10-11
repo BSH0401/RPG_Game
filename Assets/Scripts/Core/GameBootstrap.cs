@@ -85,6 +85,8 @@ namespace MoonlightPost
             systems.AddComponent<UpgradeMenu>();
             systems.AddComponent<ShopMenu>();
             systems.AddComponent<BountyMenu>();
+            systems.AddComponent<RiftManager>();
+            systems.AddComponent<RiftMenu>();
 
             // Assets/Resources/Art/NinjaAdventure 가 있으면 그 그림을, 없으면 코드로 그린 그림을 쓴다.
             useAssets = GameAssets.Available;
@@ -273,6 +275,7 @@ namespace MoonlightPost
             Spawner.Glow(new Vector2(4.6f, 5.6f), 2.6f, new Color(1f, 0.6f, 0.3f, 0.3f));
             BuildMerchant(new Vector2(-6.6f, -2.9f));
             BuildBountyBoard(new Vector2(-3.2f, 5.0f));
+            BuildRift();
 
             Spawner.Lamp(new Vector2(-3.6f, 1.6f), true);
             Spawner.Lamp(new Vector2(5.6f, 1.6f), true);

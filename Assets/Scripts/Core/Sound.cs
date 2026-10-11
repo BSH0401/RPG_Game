@@ -57,6 +57,7 @@ namespace MoonlightPost
         AudioClip RegionMusic(Vector2 p)
         {
             AudioClip clip;
+            if (RiftManager.Active && quarry != null) return quarry;
             if (p.x > 52.5f) clip = p.y > 11f ? pass : quarry;           // 2부: 별빛 고개 / 옛 채석장
             else if (p.x < -16.5f) clip = coast;                         // 서쪽 해안·북쪽 갯바위
             else if (p.x > forestStartX) clip = forest;                  // 동쪽 숲·북쪽 숲

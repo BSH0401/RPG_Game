@@ -98,8 +98,8 @@ namespace MoonlightPost
         public static int Crystals(GearItem g) => 3 + g.plus * 3;
         public static int Shards(GearItem g) => g.plus >= 5 ? g.plus - 4 : 0;
         public static int Chance(GearItem g) => IsMax(g) ? 0 : Mathf.Min(100, GearBaseChance[g.plus] + FailBonus * g.fails);
-        /// <summary>+6 부터는 실패하면 한 단계 떨어진다.</summary>
-        public static bool Risky(GearItem g) => g.plus >= 6;
+        /// <summary>+7 부터는 실패하면 절반 확률로 한 단계 떨어진다.</summary>
+        public static bool Risky(GearItem g) => g.plus >= 7;
 
         public static bool Affordable(GearItem g) =>
             GameState.Silver >= Silver(g) && GameState.ItemCount(Crystal) >= Crystals(g) && GameState.ItemCount(Shard) >= Shards(g);
@@ -122,7 +122,7 @@ namespace MoonlightPost
             else
             {
                 g.fails++;
-                if (Risky(g))
+                if (Risky(g) && Random.value < 0.5f)
                 {
                     g.plus--;
                     dropped = true;

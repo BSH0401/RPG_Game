@@ -129,7 +129,7 @@ namespace MoonlightPost
             bool busy = Time.timeScale == 0f || DialogueSystem.IsOpen || Health.IsDead
                         || Time.frameCount == DialogueSystem.LastClosedFrame || Time.frameCount == GameMenu.LastClosedFrame
                         || Time.frameCount == UpgradeMenu.LastClosedFrame || Time.frameCount == ShopMenu.LastClosedFrame
-                        || Time.frameCount == BountyMenu.LastClosedFrame;
+                        || Time.frameCount == BountyMenu.LastClosedFrame || Time.frameCount == RiftMenu.LastClosedFrame;
             if (busy)
             {
                 moveInput = Vector2.zero;
@@ -209,6 +209,7 @@ namespace MoonlightPost
 
         void StartDodge()
         {
+            GearSets.OnDodge();
             dodgeDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : Facing;
             dodgeEnd = Time.time + dodgeTime * (1f + DodgeBonus);
             nextDodge = dodgeEnd + dodgeCooldown;
@@ -240,9 +241,10 @@ namespace MoonlightPost
             {
                 var enemy = col.GetComponentInParent<EnemyController>();
                 if (enemy == null || !hitSet.Add(enemy)) continue;
-                int dmg = Stats.RollDamage(finisher ? finisherMul : 1f, out bool crit);
+                int dmg = Stats.RollDamage((finisher ? finisherMul : 1f) * GearSets.DamageMul, out bool crit);
                 anyCrit |= crit;
                 enemy.TakeHit(dmg, transform.position, finisher ? 9f : 6f, crit);
+                if (crit) GearSets.OnCrit(enemy, dmg, hitSet);
                 WeaponVisual.OnHit(enemy.transform.position, crit);
             }
             WeaponVisual.OnSwing(transform.position, aim, finisher);
@@ -282,7 +284,7 @@ namespace MoonlightPost
         {
             if (Health.IsDead || Health.Invulnerable) return AttackResult.Ignored;
             // 방어가 피해를 줄인다(최소 1).
-            int dmg = Mathf.Max(1, Mathf.RoundToInt(damage * power * EnemyDamageScale * (1f - Stats.DamageReduction)));
+            int dmg = Mathf.Max(1, Mathf.RoundToInt(damage * power * EnemyDamageScale * (1f - Stats.DamageReduction) * GearSets.DamageTakenMul));
             if (Health.TakeDamage(dmg, from))
                 HUD.Popup((Vector2)transform.position + Vector2.up * 1.1f, "-" + dmg, new Color(1f, 0.4f, 0.4f));
             return AttackResult.Hit;
@@ -413,6 +415,7 @@ namespace MoonlightPost
 
         void OnDied()
         {
+            RiftManager.PlayerDied();
             HUD.Toast("쓰러졌다... 우체국에서 눈을 떴다.");
             StartCoroutine(Respawn());
         }

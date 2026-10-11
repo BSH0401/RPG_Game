@@ -635,6 +635,7 @@ namespace MoonlightPost
             Stats.AddExp(ExpGain(), transform.position);
             Loot.FromEnemy(this);
             Bounties.OnKill(this);
+            if (!noLoot) GearSets.OnKill();
             if (elite == EliteAffix.Splitting) Split();
             // 장비 옵션 「처치할 때 체력」
             int life = Mathf.RoundToInt(Gear.Total(GearStat.LifeOnKill));

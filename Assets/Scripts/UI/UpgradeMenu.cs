@@ -366,7 +366,7 @@ namespace MoonlightPost
                 (bonus > 0 ? "   <color=#9fe0ff>(실패 보정 +" + bonus + "%)</color>" : ""), Ui.Text);
             y += 46 * s;
             GUI.Label(new Rect(r.x + 6 * s, y, r.width - 12 * s, 30 * s), Upgrade.Risky(g)
-                ? "<color=#ff9a70>주의: 실패하면 +" + (g.plus - 1) + " 으로 한 단계 떨어진다.</color>"
+                ? "<color=#ff9a70>주의: 실패하면 절반 확률로 +" + (g.plus - 1) + " 으로 떨어진다.</color>"
                 : "<color=#9fb3ff>실패해도 단계는 그대로, 재료만 사라진다.</color>", Ui.Small);
 
             var btn = new Rect(r.x + 6 * s, r.yMax - 60 * s, r.width - 12 * s, 52 * s);

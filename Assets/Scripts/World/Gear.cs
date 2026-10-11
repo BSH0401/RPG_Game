@@ -28,6 +28,8 @@ namespace MoonlightPost
         /// <summary>강화 단계(+0 ~ +10)와 연속 실패 횟수(실패 보정).</summary>
         public int plus;
         public int fails;
+        /// <summary>세트(GearSets, 0 = 없음).</summary>
+        public int set;
 
         /// <summary>강화가 반영된 i 번째 능력 값: 주 능력은 단계마다 +10%, 옵션은 +5%.</summary>
         public float Value(int i) => ValueAt(i, plus);
@@ -37,7 +39,7 @@ namespace MoonlightPost
 
         public GearSlot Slot => (GearSlot)slot;
         public GearBase Base => Gear.Bases(Slot)[Mathf.Clamp(baseIndex, 0, Gear.Bases(Slot).Length - 1)];
-        public string Name => (rarity >= Gear.Legendary ? "★ " : "") + (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + Base.name + (plus > 0 ? " +" + plus : "");
+        public string Name => (set > 0 ? "◆ " : rarity >= Gear.Legendary ? "★ " : "") + (string.IsNullOrEmpty(prefix) ? "" : prefix + " ") + Base.name + (plus > 0 ? " +" + plus : "");
         public string RichName => "<color=" + Gear.RarityColor(rarity) + ">" + Name + "</color>";
 
         public float Sum(GearStat s)
@@ -306,6 +308,7 @@ namespace MoonlightPost
                 Array.Clear(sums, 0, sums.Length);
                 foreach (var g in GameState.Equipped())
                     for (int i = 0; i < g.stats.Count; i++) sums[g.stats[i]] += g.Value(i);
+                GearSets.AddBonuses(sums);
                 sumsVersion = GameState.GearVersion;
             }
             return sums[(int)s];

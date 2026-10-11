@@ -63,6 +63,8 @@ namespace MoonlightPost
         SpriteAnimator animator;
         Sprite[] slashFrames;
         float slashAngleOffset = -90f;
+        /// <summary>캐릭터 그림에 칼 공격 동작이 있으면(Mana Seed) 따로 그리던 베기 효과 대신 그것을 쓴다.</summary>
+        bool swordSheet;
         const float SlashDuration = 0.15f;
         Color bodyColor;
         Vector2 moveInput;
@@ -81,6 +83,7 @@ namespace MoonlightPost
             slash = slashRenderer;
             slash.enabled = false;
             animator = GetComponent<SpriteAnimator>();
+            swordSheet = animator != null && animator.sheet != null && animator.sheet.HasAction("slash1");
             slashFrames = GameAssets.Available ? GameAssets.SlashFrames : null;
             if (slashFrames != null)
             {
@@ -207,6 +210,7 @@ namespace MoonlightPost
             dodgeDir = moveInput.sqrMagnitude > 0.01f ? moveInput.normalized : Facing;
             dodgeEnd = Time.time + dodgeTime * (1f + DodgeBonus);
             nextDodge = dodgeEnd + dodgeCooldown;
+            if (animator != null) animator.PlaySequence("run", dodgeEnd - Time.time);
         }
 
         // ------------------------------------------------------------------ 공격 (3연타)
@@ -242,6 +246,14 @@ namespace MoonlightPost
             {
                 Juice.HitStop(finisher || anyCrit ? 0.07f : 0.03f);
                 if (finisher || anyCrit) CameraFollow.Shake(0.12f, 0.12f);
+            }
+
+            if (swordSheet)
+            {
+                // 칼 동작에 베기 궤적이 그려져 있다: 1·2타는 베기, 3타는 찌르기
+                animator.PlaySequence(comboStep == 1 ? "slash1" : comboStep == 2 ? "slash2" : "thrust", Mathf.Max(0.22f, cooldown * 0.95f));
+                Sound.Play("Attack", finisher ? 1f : 0.7f);
+                return;
             }
 
             // 노린 방향으로 반달 모양 베기 효과 (강타는 크게)
@@ -303,6 +315,7 @@ namespace MoonlightPost
 
             Vector2 aim = Aim();
             FaceToward(aim, 0.3f);
+            if (swordSheet) animator.PlaySequence(effect == "bind" ? "bash" : effect == "throw" ? "thrust" : "slash2", 0.3f);
             switch (effect)
             {
                 case "throw": ThrowLetter(aim); break;
@@ -380,6 +393,7 @@ namespace MoonlightPost
         void OnDamaged(Vector2 from)
         {
             hurtUntil = Time.time + 0.9f;
+            if (animator != null) animator.PlaySequence("hurt", 0.25f);
             knockback = ((Vector2)transform.position - from).normalized * 8f;
             knockUntil = Time.time + 0.12f;
             CameraFollow.Shake(0.15f);

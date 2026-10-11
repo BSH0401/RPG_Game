@@ -73,6 +73,7 @@ namespace MoonlightPost
         {
             var root = new GameObject("Ground").transform;
             root.SetParent(worldRoot.transform, false);
+            bool cainos = GameAssets.CainosAvailable;
 
             int w = GroundX1 - GroundX0, h = GroundY1 - GroundY0;
             var path = new bool[w, h];
@@ -113,6 +114,23 @@ namespace MoonlightPost
                         if (PixelCanvas.Hash(x, y, 31) > 0.95f) Detail(root, x, y, 0);
                         continue;
                     }
+                    if (cainos)
+                    {
+                        // Cainos: 올리브빛 풀밭, 마을은 촘촘한 돌길, 숲·북쪽은 풀 사이로 돌이 박힌 옛길, 역·채석장은 돌바닥
+                        Color tint = forest ? CainosForestTint : CainosGrassTint;
+                        Spawner.GroundTile(root, x, y, CainosGrassTile(x, y), -1000, tint);
+                        if (Gravel(x, y) && !Path(x, y))
+                            Spawner.GroundTile(root, x, y, CainosBlob("StoneGround", Gravel, x, y), -995, CainosStoneTint);
+                        if (Path(x, y))
+                        {
+                            // 마을 안은 반듯한 돌바닥, 바깥은 풀 사이로 돌판이 박힌 옛길
+                            if (x > -17 && x < 17 && y < 11) Spawner.GroundTile(root, x, y, CainosBlob("StoneGround", Path, x, y), -990, CainosStoneTint);
+                            else Spawner.GroundTile(root, x, y, CainosPathTile(Path, x, y, false), -990, CainosTrailTint);
+                        }
+                        else if (PixelCanvas.Hash(x, y, 31) > 0.9f)
+                            CainosTuftDetail(root, x, y, tint);
+                        continue;
+                    }
                     Spawner.GroundTile(root, x, y, GrassTile(x, y, forest), -1000);
                     if (Gravel(x, y) && !Path(x, y))
                         Spawner.GroundTile(root, x, y, BlobTile(Floor, 11, 14, Gravel, x, y, true), -995);
@@ -131,6 +149,60 @@ namespace MoonlightPost
                     int gx = x - GroundX0, gy = y - GroundY0;
                     if (gx >= 0 && gy >= 0 && gx < grid.GetLength(0) && gy < grid.GetLength(1)) grid[gx, gy] = true;
                 }
+        }
+
+        // ------------------------------------------------------------------ Cainos 바닥
+
+        /// <summary>밤빛: 낮 색인 Cainos 올리브 풀을 푸르스름하게 가라앉힌다. 숲은 더 어둡게.</summary>
+        static readonly Color CainosGrassTint = new Color(0.46f, 0.6f, 0.78f);
+        static readonly Color CainosForestTint = new Color(0.34f, 0.46f, 0.64f);
+        static readonly Color CainosStoneTint = new Color(0.5f, 0.54f, 0.7f);
+        static readonly Color CainosTrailTint = new Color(0.4f, 0.5f, 0.66f);
+
+        /// <summary>풀밭: 대부분 민무늬·풀잎(왼쪽 위 4x4), 가끔 자갈·꽃(오른쪽 위 4x4).</summary>
+        static Sprite CainosGrassTile(int x, int y)
+        {
+            float h = PixelCanvas.Hash(x, y, 40);
+            int v = (int)(PixelCanvas.Hash(x, y, 41) * 15.99f);
+            if (h < 0.45f) return GameAssets.CainosTile("Grass", 0, 0);
+            if (h < 0.93f) return GameAssets.CainosTile("Grass", v % 4, v / 4);
+            return GameAssets.CainosTile("Grass", 4 + v % 4, v / 4);
+        }
+
+        static readonly Vector2Int[] DenseStones = { new Vector2Int(0, 4), new Vector2Int(1, 4), new Vector2Int(0, 5), new Vector2Int(4, 4), new Vector2Int(4, 5), new Vector2Int(5, 4) };
+        static readonly Vector2Int[] LooseStones = { new Vector2Int(1, 5), new Vector2Int(5, 5), new Vector2Int(6, 4), new Vector2Int(7, 4), new Vector2Int(6, 5), new Vector2Int(7, 5), new Vector2Int(0, 6), new Vector2Int(1, 6), new Vector2Int(3, 6), new Vector2Int(0, 7), new Vector2Int(1, 7) };
+        static readonly Vector2Int[] EdgeStones = { new Vector2Int(2, 4), new Vector2Int(3, 4), new Vector2Int(2, 5), new Vector2Int(3, 5), new Vector2Int(2, 6), new Vector2Int(2, 7), new Vector2Int(3, 7), new Vector2Int(4, 6), new Vector2Int(5, 6), new Vector2Int(4, 7), new Vector2Int(5, 7) };
+
+        /// <summary>길: 풀 사이에 돌판이 박힌 타일. 마을은 촘촘하게, 바깥은 성기게, 길 가장자리는 더 성기게.</summary>
+        static Sprite CainosPathTile(System.Func<int, int, bool> path, int x, int y, bool village)
+        {
+            bool edge = !path(x + 1, y) || !path(x - 1, y) || !path(x, y + 1) || !path(x, y - 1);
+            var set = edge ? (village ? LooseStones : EdgeStones) : DenseStones;
+            var c = set[(int)(PixelCanvas.Hash(x, y, 42) * (set.Length - 0.01f))];
+            return GameAssets.CainosTile("Grass", c.x, c.y);
+        }
+
+        /// <summary>돌바닥 3x3 덩어리 자동 타일(Cainos StoneGround 의 왼쪽 위 3x3).</summary>
+        static Sprite CainosBlob(string file, System.Func<int, int, bool> same, int x, int y)
+        {
+            bool n = same(x, y + 1), s = same(x, y - 1), e = same(x + 1, y), w = same(x - 1, y);
+            int tx = 1, ty = 1;
+            if (!n) ty = 0;
+            else if (!s) ty = 2;
+            if (!w) tx = 0;
+            else if (!e) tx = 2;
+            return GameAssets.CainosTile(file, tx, ty);
+        }
+
+        void CainosTuftDetail(Transform root, int x, int y, Color tint)
+        {
+            var go = new GameObject("Detail");
+            go.transform.SetParent(root, false);
+            go.transform.position = new Vector3(x + 0.2f + PixelCanvas.Hash(x, y, 44) * 0.6f, y - 0.1f, 0f);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = GameAssets.CainosTuft((int)(PixelCanvas.Hash(x, y, 43) * 13.99f));
+            sr.color = tint;
+            sr.sortingOrder = -980;
         }
 
         static Sprite GrassTile(int x, int y, bool forest)
@@ -199,12 +271,18 @@ namespace MoonlightPost
             for (float y = 2f; y < 11f; y += 1.3f) Spawner.Prop("Hedge", new Vector2(17f, y), Mathf.Repeat(y, 2.6f) < 1.3f ? hedge : conifer);
             for (float y = -11.4f; y < -2.4f; y += 1.3f) Spawner.Prop("Hedge", new Vector2(17f, y), Mathf.Repeat(y, 2.6f) < 1.3f ? hedge : conifer);
 
-            // 숲 가운데 덤불: 소나무 무리를 겹쳐 세운다
+            // 숲 가운데 덤불: 소나무 무리를 겹쳐 세운다 (Cainos 가 있으면 둥근 나무와 덤불)
             var cluster = GameAssets.Tile(Nature, 0, 2, 3, 3);
+            bool cainos = GameAssets.CainosAvailable;
             int i = 0;
             for (float y = -3.2f; y < 2.5f; y += 1.7f)
                 for (float x = 21.2f; x < 41.5f; x += 2.5f, i++)
-                    Spawner.Prop("Thicket", new Vector2(x + (i % 2) * 0.6f, y), cluster);
+                {
+                    var p = new Vector2(x + (i % 2) * 0.6f, y);
+                    if (!cainos) Spawner.Prop("Thicket", p, cluster);
+                    else if (i % 3 == 0) Spawner.Prop("Thicket", p, GameAssets.CainosTree(i)).GetComponent<SpriteRenderer>().color = CainosForestTint;
+                    else Spawner.Prop("Thicket", p, GameAssets.CainosBush(i)).GetComponent<SpriteRenderer>().color = CainosForestTint;
+                }
 
             // 옛 섬과 북쪽 띠 사이: 침엽수 줄(능선의 세 틈은 비운다). 맨 위 가장자리도 침엽수 줄.
             i = 0;
@@ -236,6 +314,7 @@ namespace MoonlightPost
 
         static Sprite VillageTreeSprite(int v)
         {
+            if (GameAssets.CainosAvailable) return GameAssets.CainosTree(v);
             switch (v % 3)
             {
                 case 0: return GameAssets.Tile(Nature, 3, 18, 3, 3);
@@ -246,6 +325,7 @@ namespace MoonlightPost
 
         static Sprite ForestTreeSprite(int v)
         {
+            if (GameAssets.CainosAvailable) return GameAssets.CainosTree(v + 1);
             switch (v % 3)
             {
                 case 0: return GameAssets.Tile(Nature, 6, 8, 2, 2);

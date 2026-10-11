@@ -151,11 +151,13 @@ namespace MoonlightPost
         }
 
         /// <summary>에셋 캐릭터 시트로 몸을 만든다(4방향 걷기 애니메이션).</summary>
-        public static SpriteRenderer Character(GameObject go, CharacterSheet sheet, float feetOffset = 0.4f)
+        public static SpriteRenderer Character(GameObject go, CharacterSheet sheet, float feetOffset = 0.4f, float scale = 1f)
         {
             const float Px = 1f / 16f;
             var bodyGo = new GameObject("Body");
             bodyGo.transform.SetParent(go.transform, false);
+            // 아이처럼 작은 주민은 몸만 줄인다(발밑 기준점이라 그대로 바닥에 선다).
+            if (!Mathf.Approximately(scale, 1f)) bodyGo.transform.localScale = Vector3.one * scale;
             // 1픽셀 띄우고 바로 아래에 그림자를 깔아 발이 바닥에 묻혀 보이지 않게 한다.
             bodyGo.transform.localPosition = new Vector3(0f, -feetOffset + Px, 0f);
             var body = bodyGo.AddComponent<SpriteRenderer>();
@@ -183,7 +185,7 @@ namespace MoonlightPost
             var sheet = actor != null && GameAssets.Available ? GameAssets.Sheet(actor) : null;
             if (sheet != null)
             {
-                var body = Character(go, sheet);
+                var body = Character(go, sheet, 0.4f, scale);
                 if (actorTint.HasValue) body.color *= actorTint.Value;
             }
             else Character(go, sprite, scale);

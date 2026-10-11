@@ -17,6 +17,9 @@ namespace MoonlightPost
         float walkTime;
         float actionUntil;
         int actionRow;
+        /// <summary>이름 붙은 동작(Mana Seed 칼 공격 등)을 재생 중이면 그 이름과 시작 시각·길이.</summary>
+        string sequence;
+        float sequenceStart, sequenceLength;
         Vector3 lastPos;
 
         public void Init(SpriteRenderer renderer, CharacterSheet characterSheet)
@@ -24,7 +27,8 @@ namespace MoonlightPost
             body = renderer;
             sheet = characterSheet;
             lastPos = transform.position;
-            body.sprite = sheet.Get(dir, 0);
+            body.sprite = sheet.Stand(dir);
+            fps = sheet.WalkFps;
         }
 
         /// <summary>바라보는 방향을 직접 정한다(플레이어).</summary>
@@ -45,6 +49,16 @@ namespace MoonlightPost
             actionUntil = Time.time + duration;
         }
 
+        /// <summary>이름 붙은 동작을 duration 동안 한 번 재생한다. 시트에 없으면 false.</summary>
+        public bool PlaySequence(string name, float duration)
+        {
+            if (sheet == null || !sheet.HasAction(name)) return false;
+            sequence = name;
+            sequenceStart = Time.time;
+            sequenceLength = Mathf.Max(0.05f, duration);
+            return true;
+        }
+
         static int DirOf(Vector2 v, int fallback)
         {
             if (v.sqrMagnitude < 0.0001f) return fallback;
@@ -60,6 +74,16 @@ namespace MoonlightPost
             bool moving = delta.magnitude / Time.deltaTime > 0.3f;
             if (moving && !facingLocked) dir = DirOf(delta, dir);
 
+            if (sequence != null)
+            {
+                float t = (Time.time - sequenceStart) / sequenceLength;
+                if (t < 1f)
+                {
+                    body.sprite = sheet.Action(sequence, dir, t);
+                    return;
+                }
+                sequence = null;
+            }
             if (Time.time < actionUntil)
             {
                 body.sprite = sheet.Get(dir, actionRow);
@@ -73,7 +97,7 @@ namespace MoonlightPost
             else
             {
                 walkTime = 0f;
-                body.sprite = sheet.Get(dir, 0);
+                body.sprite = sheet.Stand(dir);
             }
         }
     }

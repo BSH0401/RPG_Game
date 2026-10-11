@@ -186,9 +186,9 @@
 
 | 적 | 행동 | 공략 |
 |---|---|---|
-| 그림자 들쥐 | 다가와서 돌진(빨간 띠) | 옆으로 피한 뒤 3연타 |
-| 먹물 박쥐 | 거리를 두고 옆으로 돌며 먹물 구슬을 쏜다(얇은 빨간 선) | 선에서 비켜서고, 날아가는 편지(스킬)로 저격 |
-| 그림자 두더지 | 땅속(흙더미)으로 다가와 발밑에서 튀어나오며 내려찍기(주황 원, 막을 수 없음) | 흙더미가 다가오면 피하고, 튀어나온 뒤 1.5초 무방비일 때 공격 |
+| 그림자 고블린 | 다가와서 돌진(빨간 띠) | 옆으로 피한 뒤 3연타 |
+| 먹물 모기 | 거리를 두고 옆으로 돌며 먹물 구슬을 쏜다(얇은 빨간 선) | 선에서 비켜서고, 날아가는 편지(스킬)로 저격 |
+| 땅굴 머리 | 땅속(흙더미)으로 다가와 발밑에서 튀어나오며 내려찍기(주황 원, 막을 수 없음) | 흙더미가 다가오면 피하고, 튀어나온 뒤 1.5초 무방비일 때 공격 |
 | 먹물 그림자(보스 1) | 내려찍기 · 돌진 · 먹물 구슬 | 예고를 보고 회피한 뒤 반격 |
 | 부치지 못한 편지의 그림자(보스 3) | 내려찍기 · 부채꼴 구슬 4발 · 돌진, 그리고 **보라색 원**을 그리며 작은 그림자(들쥐·박쥐)를 불러낸다. 체력 절반 아래에서 분노 | 보라색 원은 피해가 없는 틈이니 이때 공격. 불러낸 그림자는 보스를 쓰러뜨리면 함께 사라진다 |
 | 심해 먹물 문어(보스 2) | 부채꼴 구슬 3발 · 촉수 내리꽂기(주황 원이 차례로 차오름) · 물속으로 잠겨 다가와 튀어나오기. 체력 절반 아래에서 **분노**(빨라지고 구슬 5발, 촉수 5개) | 구슬은 옆으로 비키기, 촉수는 원 밖으로, 웅덩이가 다가오면 회피 후 튀어나온 직후 공격 |
@@ -365,6 +365,27 @@ Docs/GameDesign.md       기획서
 - [ ] 사람이 직접 하는 플레이테스트: 전투 난이도, "다음 편지가 궁금해지는가"
 
 ## 에셋 사용법과 출처
+
+### 고해상도 무료 에셋 (저장소에는 없음)
+
+캐릭터·땅·몬스터는 아래 무료 팩을 쓴다. 셋 다 원본 파일의 재배포를 금지하거나 조건을 밝히지 않아, 저장소(공개)에는 넣지 않고
+`.gitignore`로 뺐다. 드라이브의 `달빛우체국_에셋` 폴더에 있는 zip 으로 한 번 만들어 넣는다(Python 3 + Pillow):
+
+```
+python Tools/import_art.py "<달빛우체국_에셋 폴더>"
+```
+
+| 팩 | 만든 이 | 쓰는 곳 | 들어가는 폴더 |
+|---|---|---|---|
+| [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) | Cainos | 풀밭, 마을 돌길, 숲 옛길, 역·채석장 돌바닥, 나무·덤불·풀포기 | `Resources/Art/Cainos` |
+| [Mana Seed Character Base (무료 데모)](https://seliel-the-shaper.itch.io/character-base) | Seliel the Shaper | 배달부(걷기·칼과 방패 공격), 주민 8명과 초상화 | `Resources/Art/ManaSeed` |
+| [Pixel Monsters Free Pack](https://matseb2611.itch.io/pixel-monsters-free-pack) | Matthew Ashworth (Matseb2611) | 그림자 고블린, 먹물 모기, 땅굴 머리, 보스 1 먹물 그림자(칼 든 유령) | `Resources/Art/Monsters` |
+
+- Mana Seed 는 페이퍼돌 층(몸·옷·머리·모자·칼·방패)을 스크립트가 미리 겹쳐 캐릭터마다 완성된 페이지로 만든다. 옷·머리 조합은 `Tools/import_art.py`의 `CHARS`.
+- 폴더가 없으면 게임은 아래 Ninja Adventure 그림으로 자동으로 돌아간다(`GameAssets.Sheet`, `CainosAvailable`, `MonsterSheet`).
+- 건물·물·모래·울타리·보스 2·3 은 아직 Ninja Adventure 그림이다.
+
+### Ninja Adventure
 
 - 사용 에셋: **Ninja Adventure Asset Pack** — Pixel-boy & AAA, CC0 ([itch.io](https://pixel-boy.itch.io/ninja-adventure-asset-pack)).
   라이선스 전문은 `Assets/Resources/Art/NinjaAdventure/LICENSE.txt`.

@@ -292,6 +292,50 @@ namespace MoonlightPost
             return Cainos("Plant", (i % 4) * 32, 384 + (i / 4) * 32, 32, 32, 0.5f, 0f);
         }
 
+        // ---------------------------------------------------------------- 몬스터 (Matseb2611 「Pixel Monsters Free Pack」)
+
+        /// <summary>
+        /// Resources/Art/Monsters: 3x4 걷기 시트(열 = 걸음 0·1·2, 행 = 아래·왼쪽·오른쪽·위). 재배포 조건이 적혀 있지 않아
+        /// 저장소에는 넣지 않고 Tools/import_art.py 로 가져온다. 몬스터들은 그림 크기가 제각각이라 1 유닛 = 44 픽셀로 맞춘다.
+        /// </summary>
+        const string MonsterRoot = "Art/Monsters/";
+        const float MonsterPpu = 44f;
+        /// <summary>시트의 행(아래, 왼쪽, 오른쪽, 위) → 게임의 방향(아래, 위, 왼쪽, 오른쪽).</summary>
+        static readonly int[] MonsterRowOf = { 0, 3, 1, 2 };
+
+        public static CharacterSheet MonsterSheet(string name)
+        {
+            string key = "~monster/" + name;
+            if (sheets.TryGetValue(key, out var cached)) return cached;
+            var tex = Resources.Load<Texture2D>(MonsterRoot + name);
+            CharacterSheet sheet = null;
+            if (tex != null)
+            {
+                tex.filterMode = FilterMode.Point;
+                tex.wrapMode = TextureWrapMode.Clamp;
+                int fw = tex.width / 3, fh = tex.height / 4;
+                // 발밑: 프레임 아래에서 비어 있는 줄 수(그림마다 잰 값)
+                int gap = name == "Goblin" ? 1 : name == "Mosquito" ? 8 : name == "EvilHead" ? 9 : name == "Skull" ? 9 : 4;
+                var pivot = new Vector2(0.5f, gap / (float)fh);
+                System.Func<int, int, Sprite> cell = (c, r) =>
+                    Sprite.Create(tex, new Rect(c * fw, tex.height - (r + 1) * fh, fw, fh), pivot, MonsterPpu, 0, SpriteMeshType.FullRect);
+                var walk = new Sprite[4, 4];
+                var stand = new Sprite[4];
+                for (int dir = 0; dir < 4; dir++)
+                {
+                    int row = MonsterRowOf[dir];
+                    stand[dir] = cell(1, row);
+                    walk[dir, 0] = cell(0, row);
+                    walk[dir, 1] = stand[dir];
+                    walk[dir, 2] = cell(2, row);
+                    walk[dir, 3] = stand[dir];
+                }
+                sheet = new CharacterSheet(walk, 4, stand, 7f);
+            }
+            sheets[key] = sheet;
+            return sheet;
+        }
+
         /// <summary>Mana Seed 초상화(서 있는 그림의 머리를 키운 것). 없으면 null.</summary>
         public static Texture2D ManaFace(string actor) => ManaTexture(actor + "_face");
 

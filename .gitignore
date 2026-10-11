@@ -39,3 +39,5 @@ Assets/**/*.zip
 # 재배포가 금지된 무료 에셋(Cainos, Mana Seed). Tools/import_art.py 로 드라이브의 zip 에서 만든다.
 Assets/Resources/Art/Cainos/
 Assets/Resources/Art/ManaSeed/
+
+Assets/Resources/Art/Monsters/

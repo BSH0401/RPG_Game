@@ -6,7 +6,8 @@
 필요한 zip (itch.io 에서 무료로 받은 그대로):
   - Pixel Art Top Down - Basic v*.zip            (Cainos)          → Assets/Resources/Art/Cainos
   - FREE Mana Seed Character Base Demo *.zip     (Seliel the Shaper) → Assets/Resources/Art/ManaSeed
-두 폴더는 .gitignore 에 들어 있어 저장소(공개)에는 올라가지 않는다. 없으면 게임은 Ninja Adventure 그림을 쓴다.
+  - Pixel Monsters Free Pack.zip                 (Matseb2611 / Matthew Ashworth) → Assets/Resources/Art/Monsters
+세 폴더는 .gitignore 에 들어 있어 저장소(공개)에는 올라가지 않는다. 없으면 게임은 Ninja Adventure 그림을 쓴다.
 Mana Seed 는 페이퍼돌 층(몸·옷·머리·모자·칼·방패)을 미리 겹쳐 캐릭터마다 완성된 페이지 PNG 를 만든다.
 칼·방패가 몸 앞/뒤 어느 쪽인지는 가이드 그림(layer order, …)의 칸 색(빨강 = 앞, 파랑 = 뒤)으로 정한다.
 필요: Python 3, Pillow
@@ -112,6 +113,15 @@ def main():
         for n, s in CHARS.items():
             compose(n, s)
         print('Mana Seed →', outdir, '(캐릭터 %d명)' % len(CHARS))
+
+        mon = unzip('Pixel Monsters Free Pack*.zip', folder, os.path.join(tmp, 'monsters'))
+        pack = os.path.join(mon, 'Pixel Monsters Free Pack')
+        out = os.path.join(PROJECT, 'Assets', 'Resources', 'Art', 'Monsters')
+        os.makedirs(out, exist_ok=True)
+        for src, dst in [('Goblin/$Goblin', 'Goblin'), ('Mosquito/$Mosquito', 'Mosquito'), ('Evil Head/$Evil Head', 'EvilHead'),
+                         ('Evil Skull/$Skull', 'Skull'), ('Armed Ghost/$Ghost Sword', 'GhostSword'), ('Armed Ghost/$Ghost Spear', 'GhostSpear')]:
+            shutil.copy(os.path.join(pack, src + '.png'), os.path.join(out, dst + '.png'))
+        print('Monsters →', out)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

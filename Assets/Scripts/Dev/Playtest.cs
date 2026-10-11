@@ -89,6 +89,7 @@ namespace MoonlightPost
             if (scenery) yield return Overviews("start");
             if (scenery) yield return MenuShots();
             if (scenery) yield return GrowthTest(player);
+            if (scenery) yield return MonsterLineup(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
 
@@ -415,6 +416,31 @@ namespace MoonlightPost
             yield return Frames(2);
             if (Time.timeScale != 1f) Problem("캐릭터 창을 닫았는데 게임이 멈춰 있음");
             Log("   성장 검사: 레벨 " + Stats.Level + ", 공격력 " + Stats.Attack + ", 최대 체력 " + player.Health.Max + ", 남은 포인트 " + Stats.Points);
+        }
+
+        /// <summary>몬스터 그림 확인: 배달부 옆에 종류마다 하나씩 세워 두고 가까이서 찍는다.</summary>
+        IEnumerator MonsterLineup(PlayerController player)
+        {
+            Vector2 p = (Vector2)player.transform.position + new Vector2(0f, -3.5f);
+            var made = new List<GameObject>();
+            var kinds = new[] { EnemyKind.Rat, EnemyKind.Bat, EnemyKind.Mole, EnemyKind.Boss };
+            for (int i = 0; i < kinds.Length; i++)
+            {
+                var go = Spawner.Enemy(p + new Vector2(-3f + i * 2f, 0f), kinds[i]);
+                made.Add(go);
+                var e = go.GetComponent<EnemyController>();
+                e.enabled = false;
+                // 땅속형도 몸이 보이게
+                foreach (var sr in go.GetComponentsInChildren<SpriteRenderer>(true))
+                    if (sr.name == "Body") sr.enabled = true;
+                    else if (sr.name == "Mound") sr.enabled = false;
+            }
+            yield return MoveCamera(p + new Vector2(0f, 0.8f), 3.2f);
+            yield return Frames(4);
+            yield return Shot("monster_lineup");
+            yield return CameraRestore();
+            foreach (var go in made) Destroy(go);
+            yield return Frames(2);
         }
 
         /// <summary>타이틀·일시정지·설정 화면 스크린샷.</summary>

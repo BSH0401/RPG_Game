@@ -96,7 +96,7 @@ namespace MoonlightPost
         {
             // 미라: 그림자 들쥐가 끌고 간 반죽 그릇 (동쪽 숲 남쪽 길 끝)
             QuestItemWhen("req:mira_bowl,!got:dough_bowl", "dough_bowl", new Vector2(26f, -9.5f), "Croissant", Art.FlourSack, "반죽 그릇",
-                "들쥐 발자국 사이에 하얀 반죽 그릇이 엎어져 있다. 이가 하나 빠졌지만 멀쩡하다.");
+                "고블린 발자국 사이에 하얀 반죽 그릇이 엎어져 있다. 이가 하나 빠졌지만 멀쩡하다.");
             // 도라: 폐역 역사 뒤에 떨어뜨린 옛 날짜 도장
             QuestItemWhen("req:dora_stamp,!got:date_stamp", "date_stamp", new Vector2(-13.4f, 30.6f), "SilverSeal", Art.Chest(false), "옛 날짜 도장",
                 "마른 나무 뿌리 사이에 녹슨 날짜 도장이 박혀 있다. 손잡이에 '달빛 우체국'.");

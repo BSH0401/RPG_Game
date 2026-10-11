@@ -15,7 +15,7 @@
       "completeCondition": "has:dough_bowl",
       "acceptLines": [
         { "speaker": "미라", "text": "우체부님, 부탁 하나 해도 돼? 할머니가 쓰시던 반죽 그릇이 없어졌어." },
-        { "speaker": "미라", "text": "밤에 그림자 들쥐가 부엌을 뒤지고 숲 쪽으로 도망가는 걸 봤거든. 동쪽 숲 남쪽 길 끝 어딘가일 거야." }
+        { "speaker": "미라", "text": "밤에 그림자 고블린이 부엌을 뒤지고 숲 쪽으로 도망가는 걸 봤거든. 동쪽 숲 남쪽 길 끝 어딘가일 거야." }
       ],
       "completeLines": [
         { "speaker": "미라", "text": "이거야! 이 빠진 자리까지 그대로네." },

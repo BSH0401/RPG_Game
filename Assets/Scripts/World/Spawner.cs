@@ -236,8 +236,15 @@ namespace MoonlightPost
                     enemy.slamRadius = 2.8f;
                     enemy.hitRadius = 1.2f;
                     enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Lunge, EnemyAttack.Shoot, EnemyAttack.Lunge };
+                    var ghost = GameAssets.MonsterSheet("GhostSword");
                     var bossFrames = GameAssets.Available ? GameAssets.BossFrames : null;
-                    if (bossFrames != null)
+                    if (ghost != null)
+                    {
+                        // 칼을 든 유령을 먹물색으로 물들인다.
+                        body = Character(go, ghost, 0.7f);
+                        body.color = new Color(0.62f, 0.5f, 1f, 0.92f);
+                    }
+                    else if (bossFrames != null)
                     {
                         body = Character(go, bossFrames[0], 1f, 0.7f);
                         // 하얀 영혼 그림을 먹물색으로 물들인다.
@@ -339,9 +346,11 @@ namespace MoonlightPost
                     enemy.windupTime = 0.7f;
                     enemy.recoverTime = 1.1f;
                     enemy.pattern = new[] { EnemyAttack.Shoot };
-                    sheet = GameAssets.Available ? GameAssets.Sheet("BlueBat") : null;
+                    var mosquito = GameAssets.MonsterSheet("Mosquito");
+                    sheet = mosquito ?? (GameAssets.Available ? GameAssets.Sheet("BlueBat") : null);
                     body = sheet != null ? Character(go, sheet, 0.6f) : Character(go, Art.ShadowRat, 0.8f, 0.5f);
-                    body.color = sheet != null ? new Color(0.7f, 0.55f, 1f) : new Color(0.6f, 0.5f, 1f);
+                    body.color = mosquito != null ? new Color(0.85f, 0.75f, 1f) : sheet != null ? new Color(0.7f, 0.55f, 1f) : new Color(0.6f, 0.5f, 1f);
+                    if (mosquito != null) enemy.displayName = "먹물 모기";
                     // 날아다니므로 조금 떠 있다
                     body.transform.localPosition += new Vector3(0f, 0.25f, 0f);
                     Glow(pos, 1.6f, new Color(0.6f, 0.4f, 1f, 0.2f), go.transform);
@@ -358,16 +367,24 @@ namespace MoonlightPost
                     enemy.slamRadius = 1.6f;
                     enemy.slamDamage = 1;
                     enemy.pattern = new[] { EnemyAttack.Slam };
-                    sheet = GameAssets.Available ? GameAssets.Sheet("Mole") : null;
+                    var head = GameAssets.MonsterSheet("EvilHead");
+                    sheet = head ?? (GameAssets.Available ? GameAssets.Sheet("Mole") : null);
                     body = sheet != null ? Character(go, sheet, 0.4f) : Character(go, Art.ShadowRat, 1.1f, 0.35f);
-                    body.color = sheet != null ? new Color(0.85f, 0.7f, 0.8f) : new Color(0.8f, 0.5f, 0.4f);
+                    body.color = head != null ? new Color(0.85f, 0.75f, 0.95f) : sheet != null ? new Color(0.85f, 0.7f, 0.8f) : new Color(0.8f, 0.5f, 0.4f);
+                    if (head != null) enemy.displayName = "땅굴 머리";
                     break;
 
                 default:
                     health.SetMax(30, true);
-                    sheet = GameAssets.Available ? GameAssets.Sheet("MouseBlack") : null;
+                    var goblin = GameAssets.MonsterSheet("Goblin");
+                    sheet = goblin ?? (GameAssets.Available ? GameAssets.Sheet("MouseBlack") : null);
                     body = sheet != null ? Character(go, sheet, 0.4f) : Character(go, Art.ShadowRat, 1f, 0.35f);
-                    if (sheet != null) body.color = new Color(0.75f, 0.7f, 0.95f);
+                    if (goblin != null)
+                    {
+                        body.color = new Color(0.78f, 0.74f, 1f);
+                        enemy.displayName = "그림자 고블린";
+                    }
+                    else if (sheet != null) body.color = new Color(0.75f, 0.7f, 0.95f);
                     Glow(pos, 1.6f, new Color(1f, 0.4f, 0.6f, 0.18f), go.transform);
                     break;
             }

@@ -266,7 +266,7 @@
       "condition": "delivered:lighthouse_letter",
       "deliverCondition": "cleared:teo_camp",
       "blockedLines": [
-        { "speaker": "", "text": "테오가 꺼져 가는 모닥불 뒤에 웅크려 있다. 먹물 박쥐들이 모닥불을 빙빙 돌고 있다!" },
+        { "speaker": "", "text": "테오가 꺼져 가는 모닥불 뒤에 웅크려 있다. 먹물 모기들이 모닥불을 빙빙 돌고 있다!" },
         { "speaker": "테오", "text": "편지고 뭐고, 저것들부터 어떻게 좀 해 주게!" }
       ],
       "receiveLines": [

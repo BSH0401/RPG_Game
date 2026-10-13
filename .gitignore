@@ -36,7 +36,8 @@ Thumbs.db
 # 에셋 원본 압축 파일은 저장소에 넣지 않는다(필요한 파일만 풀어서 넣기)
 Assets/**/*.zip
 
-# 재배포가 금지된 무료 에셋(Cainos, Mana Seed). Tools/import_art.py 로 드라이브의 zip 에서 만든다.
+# 재배포가 금지된 무료 에셋(Cainos). Tools/import_art.py 로 드라이브의 zip 에서 만든다.
+# ManaSeed 는 라이선스상 쓰지 않지만, 예전에 가져온 폴더가 실수로 올라가지 않게 막아 둔다.
 Assets/Resources/Art/Cainos/
 Assets/Resources/Art/ManaSeed/
 

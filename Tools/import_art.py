@@ -1,88 +1,58 @@
 """
-달빛 우체국 — 재배포가 금지된 무료 에셋을 드라이브의 zip 에서 프로젝트로 가져온다.
+달빛 우체국 — 드라이브의 무료 에셋 zip 을 프로젝트로 가져온다.
 
     python Tools/import_art.py "<달빛우체국_에셋 폴더>"
 
 필요한 zip (itch.io 에서 무료로 받은 그대로):
-  - Pixel Art Top Down - Basic v*.zip            (Cainos)          → Assets/Resources/Art/Cainos
-  - FREE Mana Seed Character Base Demo *.zip     (Seliel the Shaper) → Assets/Resources/Art/ManaSeed
-  - Pixel Monsters Free Pack.zip                 (Matseb2611 / Matthew Ashworth) → Assets/Resources/Art/Monsters
-세 폴더는 .gitignore 에 들어 있어 저장소(공개)에는 올라가지 않는다. 없으면 게임은 Ninja Adventure 그림을 쓴다.
-Mana Seed 는 페이퍼돌 층(몸·옷·머리·모자·칼·방패)을 미리 겹쳐 캐릭터마다 완성된 페이지 PNG 를 만든다.
-칼·방패가 몸 앞/뒤 어느 쪽인지는 가이드 그림(layer order, …)의 칸 색(빨강 = 앞, 파랑 = 뒤)으로 정한다.
+  - Pixel Art Top Down - Basic v*.zip    (Cainos, 재배포 금지)             → Assets/Resources/Art/Cainos   (저장소에 넣지 않음)
+  - Pixel Monsters Free Pack.zip         (Matthew Ashworth, 조건 없음)     → Assets/Resources/Art/Monsters (저장소에 넣지 않음)
+  - puny-characters.zip                  (Shade 「Puny Characters」, CC0)  → Assets/Resources/Art/Puny     (CC0 라 저장소에 들어 있다)
+Cainos·Monsters 두 폴더는 .gitignore 에 들어 있다. 없으면 게임은 Ninja Adventure 그림을 쓴다.
+
+Mana Seed(Seliel the Shaper)는 쓰지 않는다: 그 라이선스가 AI 로 만든 코드·글과 함께 쓰는 것을 금지한다.
+Puny 캐릭터는 배역 이름으로 복사하고(PUNY), 대화창 초상화(<배역>_face.png)를 아래를 보고 선 그림의 머리에서 만든다.
 필요: Python 3, Pillow
 """
 import sys, os, glob, shutil, tempfile, zipfile
 from PIL import Image
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-C = 64
 
-PAGES = {'p1': 'char_a_p1', 'pONE1': 'char_a_pONE1', 'pONE2': 'char_a_pONE2', 'pONE3': 'char_a_pONE3'}
-GUIDE = {'pONE1': 'ONE-hand 1', 'pONE2': 'ONE-hand 2', 'pONE3': 'ONE-hand 3'}
-
-# 이름: (피부, 옷, 머리, 모자, 무기?)
-CHARS = {
-    'Inspector':     ('v01', 'pfpn_v04', 'dap1_v11', None, True),   # 배달부(플레이어)
-    'Woman':         ('v02', 'pfpn_v02', 'bob1_v05', None, False),        # 미라(빵집)
-    'Child':         ('v03', 'fstr_v05', 'bob1_v03', None, False),        # 노아
-    'Hunter':        ('v04', 'fstr_v01', 'dap1_v11', 'pfht_v04', False),  # 오웬
-    'Princess':      ('v01', 'pfpn_v05', 'bob1_v13', None, False),        # 세린(등대지기)
-    'OldWoman':      ('v02', 'pfpn_v03', 'bob1_v01', None, False),        # 도라
-    'OldMan':        ('v06', 'fstr_v03', 'dap1_v10', 'pfht_v03', False),  # 테오
-    'OldMan2':       ('v03', 'pfpn_v01', 'dap1_v01', 'pfht_v02', False),  # 바우
-    'SorcererBlack': ('v01', 'fstr_v04', 'bob1_v07', None, False),        # 유나
-    'Merchant':      ('v05', 'pfpn_v03', 'dap1_v13', 'pfht_v05', False),  # 떠돌이 상인 루카
+# 배역 → Puny 시트
+PUNY = {
+    'Inspector':     'Archer-Green',    # 배달부(플레이어): 두건 쓴 초록 옷
+    'Woman':         'Mage-Red',        # 미라(빵집)
+    'Child':         'Soldier-Yellow',  # 노아(노란 옷, 작게)
+    'Hunter':        'Archer-Purple',   # 오웬
+    'Princess':      'Mage-Cyan',       # 세린(등대지기)
+    'OldWoman':      'Mage-Cyan',       # 도라(옷을 보랏빛으로 바꾼다, HUE)
+    'OldMan':        'Warrior-Red',     # 테오
+    'OldMan2':       'Soldier-Red',     # 바우
+    'SorcererBlack': 'Warrior-Blue',    # 유나
+    'Merchant':      'Soldier-Blue',    # 떠돌이 상인 루카
 }
 
 
-def load(page, rel):
-    path = os.path.join(root, PAGES[page], rel)
-    return Image.open(path).convert('RGBA') if os.path.exists(path) else None
+# 같은 시트를 쓰는 배역은 옷 색(청록 계열)을 돌려 구별한다: 배역 → 색상환에서 돌릴 각도(도)
+HUE = {'OldWoman': 95}
 
 
-def guide_front(page, kind):
-    """칸마다 True(몸 앞) / False(몸 뒤)."""
-    g = Image.open(os.path.join(root, 'guides', 'layer order, page %s (%s).png' % (GUIDE[page], kind))).convert('RGB')
-    res = {}
-    for r in range(8):
-        for c in range(8):
-            px = g.getpixel((c * C + 2, r * C + 2))
-            res[(r, c)] = px[0] > px[2]
-    return res
-
-
-def compose(name, spec):
-    skin, outfit, hair, hat, armed = spec
-    pages = ['p1', 'pONE1', 'pONE2', 'pONE3'] if armed else ['p1']
-    for page in pages:
-        pfx = PAGES[page]
-        body = [load(page, '%s_0bas_humn_%s.png' % (pfx, skin)),
-                load(page, '1out/%s_1out_%s.png' % (pfx, outfit)),
-                load(page, '4har/%s_4har_%s.png' % (pfx, hair))]
-        if hat:
-            body.append(load(page, '5hat/%s_5hat_%s.png' % (pfx, hat)))
-        body = [b for b in body if b is not None]
-        sword = load(page, '6tla/%s_6tla_sw01_v01.png' % pfx) if page != 'p1' else None
-        shield = load(page, '7tlb/%s_7tlb_sh01_v01.png' % pfx) if page != 'p1' else None
-        if sword is not None:
-            sf, hf = guide_front(page, 'sword'), guide_front(page, 'shield')
-        out = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
-        for r in range(8):
-            for c in range(8):
-                box = (c * C, r * C, c * C + C, r * C + C)
-                cell = Image.new('RGBA', (C, C), (0, 0, 0, 0))
-                behind = [] if sword is None else [l for l, f in ((shield, hf), (sword, sf)) if not f[(r, c)]]
-                front = [] if sword is None else [l for l, f in ((shield, hf), (sword, sf)) if f[(r, c)]]
-                for l in behind + body + front:
-                    cell.alpha_composite(l.crop(box))
-                out.alpha_composite(cell, (c * C, r * C))
-        out.save(os.path.join(outdir, '%s_%s.png' % (name, page)))
-    # 대화창 초상화: 아래를 보고 선 프레임의 머리·어깨를 잘라 4배로
-    p1 = Image.open(os.path.join(outdir, '%s_p1.png' % name))
-    face = p1.crop((20, 9, 44, 33)).resize((120, 120), Image.NEAREST)
-    face.save(os.path.join(outdir, '%s_face.png' % name))
-
+def shift_hue(im, degrees):
+    """청록·파랑 계열 픽셀만 색상을 돌린다(피부·머리·외곽선은 그대로)."""
+    import colorsys
+    px = im.load()
+    for y in range(im.height):
+        for x in range(im.width):
+            r, g, b, a = px[x, y]
+            if a == 0:
+                continue
+            h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
+            if s < 0.25 or not (0.42 < h < 0.72):
+                continue
+            h = (h + degrees / 360.0) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(h, s, v)
+            px[x, y] = (round(r * 255), round(g * 255), round(b * 255), a)
+    return im
 
 
 def unzip(pattern, folder, dest):
@@ -92,6 +62,22 @@ def unzip(pattern, folder, dest):
     with zipfile.ZipFile(found[-1]) as z:
         z.extractall(dest)
     return dest
+
+
+def puny(folder, tmp):
+    src = os.path.join(unzip('puny-characters*.zip', folder, os.path.join(tmp, 'puny')), 'Puny-Characters')
+    out = os.path.join(PROJECT, 'Assets', 'Resources', 'Art', 'Puny')
+    os.makedirs(out, exist_ok=True)
+    for actor, sheet in PUNY.items():
+        im = Image.open(os.path.join(src, sheet + '.png')).convert('RGBA')
+        if actor in HUE:
+            im = shift_hue(im, HUE[actor])
+        im.save(os.path.join(out, actor + '.png'))
+        # 초상화: 아래를 보고 선 칸(0행 0열)의 머리와 어깨를 7배로
+        face = im.crop((8, 2, 24, 18)).resize((112, 112), Image.NEAREST)
+        face.save(os.path.join(out, actor + '_face.png'))
+    shutil.copy(os.path.join(src, 'Slime.png'), os.path.join(out, 'Slime.png'))
+    print('Puny →', out, '(배역 %d명 + 슬라임)' % len(PUNY))
 
 
 def main():
@@ -107,13 +93,7 @@ def main():
             shutil.copy(os.path.join(tex, src + '.png'), os.path.join(out, dst + '.png'))
         print('Cainos →', out)
 
-        global root, outdir
-        root = unzip('FREE Mana Seed Character Base Demo*.zip', folder, os.path.join(tmp, 'manaseed'))
-        outdir = os.path.join(PROJECT, 'Assets', 'Resources', 'Art', 'ManaSeed')
-        os.makedirs(outdir, exist_ok=True)
-        for n, s in CHARS.items():
-            compose(n, s)
-        print('Mana Seed →', outdir, '(캐릭터 %d명)' % len(CHARS))
+        puny(folder, tmp)
 
         mon = unzip('Pixel Monsters Free Pack*.zip', folder, os.path.join(tmp, 'monsters'))
         pack = os.path.join(mon, 'Pixel Monsters Free Pack')
@@ -123,6 +103,14 @@ def main():
                          ('Evil Skull/$Skull', 'Skull'), ('Armed Ghost/$Ghost Sword', 'GhostSword'), ('Armed Ghost/$Ghost Spear', 'GhostSpear')]:
             shutil.copy(os.path.join(pack, src + '.png'), os.path.join(out, dst + '.png'))
         print('Monsters →', out)
+
+        # 예전에 가져온 Mana Seed 그림이 남아 있으면 지운다(라이선스상 이 게임에 쓸 수 없다).
+        old = os.path.join(PROJECT, 'Assets', 'Resources', 'Art', 'ManaSeed')
+        if os.path.isdir(old):
+            shutil.rmtree(old)
+            if os.path.exists(old + '.meta'):
+                os.remove(old + '.meta')
+            print('Mana Seed 폴더를 지웠다:', old)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

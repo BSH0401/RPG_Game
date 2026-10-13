@@ -159,7 +159,7 @@ namespace MoonlightPost
             // 아이처럼 작은 주민은 몸만 줄인다(발밑 기준점이라 그대로 바닥에 선다).
             if (!Mathf.Approximately(scale, 1f)) bodyGo.transform.localScale = Vector3.one * scale;
             // 16픽셀 그림: 1픽셀 띄우고 바로 아래에 그림자를 깔아 발이 바닥에 묻혀 보이지 않게 한다.
-            // Mana Seed(걸음을 거리로 맞추는 시트): 발을 그대로 땅에 딛고, 그림자 가운데가 발밑에 오게 해서 떠 보이지 않게 한다.
+            // Puny(걸음을 거리로 맞추는 시트): 발을 그대로 땅에 딛고, 그림자 가운데가 발밑에 오게 해서 떠 보이지 않게 한다.
             bool grounded = sheet.WalkStride > 0f;
             bodyGo.transform.localPosition = new Vector3(0f, -feetOffset + (grounded ? 0f : Px), 0f);
             var body = bodyGo.AddComponent<SpriteRenderer>();
@@ -321,10 +321,12 @@ namespace MoonlightPost
                     enemy.spreadCount = 4;
                     enemy.summonKinds = new[] { EnemyKind.Rat, EnemyKind.Bat };
                     enemy.pattern = new[] { EnemyAttack.Slam, EnemyAttack.Spread, EnemyAttack.Summon, EnemyAttack.Lunge, EnemyAttack.Slam, EnemyAttack.Spread };
-                    var wraithFrames = GameAssets.Available ? GameAssets.SlimeFrames : null;
+                    // Puny 슬라임을 크게 키워 쓰고, 없으면 Ninja Adventure 의 큰 슬라임
+                    var punySlime = GameAssets.PunySlimeFrames;
+                    var wraithFrames = punySlime ?? (GameAssets.Available ? GameAssets.SlimeFrames : null);
                     if (wraithFrames != null)
                     {
-                        body = Character(go, wraithFrames[0], 1.1f, 0.6f);
+                        body = Character(go, wraithFrames[0], punySlime != null ? 3.6f : 1.1f, 0.6f);
                         // 갱도에 고인 먹물 덩어리: 보랏빛 먹물
                         body.color = new Color(0.72f, 0.55f, 1f);
                         Object.Destroy(go.GetComponent<CharacterAnimator>());

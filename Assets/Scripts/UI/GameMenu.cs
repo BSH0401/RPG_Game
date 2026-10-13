@@ -296,11 +296,11 @@ namespace MoonlightPost
                 "<b>달빛 우체국</b>  ·  기획 · 제작 BSH0401  (Claude 와 함께)\n\n" +
                 "<color=#ffd98a>그림 · 소리</color>\n" +
                 "Ninja Adventure Asset Pack — Pixel-boy & AAA (CC0)\n" +
-                "    건물 · 물 · 주민(대체 그림) · 보스 2·3 · 아이템과 장비 아이콘 · 효과 · 음악 · 효과음\n" +
+                "    건물 · 물 · 보스 2 · 아이템과 장비 아이콘 · 효과 · 음악 · 효과음\n" +
                 "Pixel Art Top Down – Basic — Cainos\n" +
                 "    풀밭 · 돌길 · 나무 · 덤불 · 소품\n" +
-                "Mana Seed Character Base (무료 데모) — Seliel the Shaper\n" +
-                "    배달부와 주민 캐릭터\n" +
+                "Puny Characters — Shade (CC0)\n" +
+                "    배달부와 주민 캐릭터 · 보스 3 슬라임\n" +
                 "Pixel Monsters Free Pack — Matthew Ashworth (Matseb2611)\n" +
                 "    그림자 고블린 · 먹물 모기 · 땅굴 머리 · 먹물 그림자\n\n" +
                 "<color=#9fb3ff>만든 엔진: Unity  ·  글꼴: Noto Sans KR (SIL Open Font License)</color>\n" +

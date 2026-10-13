@@ -65,7 +65,7 @@ namespace MoonlightPost
         SpriteAnimator animator;
         Sprite[] slashFrames;
         float slashAngleOffset = -90f;
-        /// <summary>캐릭터 그림에 칼 공격 동작이 있으면(Mana Seed) 따로 그리던 베기 효과 대신 그것을 쓴다.</summary>
+        /// <summary>캐릭터 그림에 칼 공격 동작이 있으면(Puny) 따로 그리던 베기 효과 대신 그것을 쓴다.</summary>
         bool swordSheet;
         const float SlashDuration = 0.15f;
         Color bodyColor;

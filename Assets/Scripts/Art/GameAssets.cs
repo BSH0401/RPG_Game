@@ -5,7 +5,7 @@ namespace MoonlightPost
 {
     /// <summary>
     /// 캐릭터 시트: 열 = 방향(아래, 위, 왼쪽, 오른쪽), 행 = 프레임(0~3 걷기, 4 공격 …).
-    /// Mana Seed 캐릭터는 서 있는 그림이 따로 있고(stand), 걷기가 6프레임이며, 칼 공격 같은 이름 붙은 동작(actions)을 가진다.
+    /// Puny 캐릭터는 서 있는 그림이 따로 있고(stand), 걷기가 4프레임이며, 칼 공격 같은 이름 붙은 동작(actions)을 가진다.
     /// </summary>
     public class CharacterSheet
     {
@@ -52,7 +52,7 @@ namespace MoonlightPost
         public bool HasAction(string name) => actions.ContainsKey(name);
 
         /// <summary>
-        /// 움직인 거리로 발걸음을 맞추는 시트(Mana Seed): 걷기 한 바퀴(두 걸음)에 WalkStride 유닛,
+        /// 움직인 거리로 발걸음을 맞추는 시트(Puny): 걷기 한 바퀴(두 걸음)에 WalkStride 유닛,
         /// 달리기 한 바퀴에 RunStride 유닛을 간다. 0 이면 예전처럼 시간(WalkFps)으로 돌린다.
         /// </summary>
         public float WalkStride, RunStride;
@@ -161,22 +161,26 @@ namespace MoonlightPost
             return result;
         }
 
-        // ---------------------------------------------------------------- Mana Seed 캐릭터 (Seliel the Shaper)
+        // ---------------------------------------------------------------- Puny 캐릭터 (Shade, CC0)
 
-        /// <summary>Resources/Art/ManaSeed: 페이퍼돌 층을 미리 겹쳐 만든 캐릭터 페이지(512x512, 64x64 칸 8x8).</summary>
-        const string ManaRoot = "Art/ManaSeed/";
-        /// <summary>Mana Seed 캐릭터는 키가 32픽셀이라, 1 유닛 = 32 픽셀로 잘라 지금 캐릭터와 같은 키(1 유닛)로 맞춘다.</summary>
-        public const float ManaPpu = 32f;
-        /// <summary>칸 안에서 발밑의 높이(아래에서 20픽셀).</summary>
-        const float ManaPivotY = 20f / 64f;
-        /// <summary>시트의 방향 순서(아래, 위, 오른쪽, 왼쪽) → 게임의 방향(아래, 위, 왼쪽, 오른쪽).</summary>
-        static readonly int[] ManaRowOf = { 0, 1, 3, 2 };
+        /// <summary>
+        /// Resources/Art/Puny: Shade 「Puny Characters」(CC0)를 배역 이름으로 복사한 시트(768x256, 32x32 칸 24열 x 8행).
+        /// 행은 8방향(아래, 오른쪽 아래, 오른쪽, 오른쪽 위, 위, 왼쪽 위, 왼쪽, 왼쪽 아래), 열은 서기 0~1 · 걷기 2~3 · 칼 4~7 ·
+        /// 활 8~11 · 지팡이 12~14 · 맞음 20 · 쓰러짐 22~23. 캐릭터 키가 약 18픽셀이라 1 유닛 = 16 픽셀로 자른다.
+        /// (예전의 Mana Seed 는 라이선스가 AI 로 만든 코드와 함께 쓰는 것을 금지해서 뺐다.)
+        /// </summary>
+        const string PunyRoot = "Art/Puny/";
+        public const float PunyPpu = 16f;
+        /// <summary>칸 안에서 발밑의 높이(아래에서 9픽셀).</summary>
+        const float PunyPivotY = 9f / 32f;
+        /// <summary>게임의 방향(아래, 위, 왼쪽, 오른쪽) → 시트의 행.</summary>
+        static readonly int[] PunyRowOf = { 0, 4, 6, 2 };
 
-        static Texture2D ManaTexture(string file)
+        static Texture2D PunyTexture(string file)
         {
-            string key = "~mana/" + file;
+            string key = "~puny/" + file;
             if (textures.TryGetValue(key, out var tex) && tex != null) return tex;
-            tex = Resources.Load<Texture2D>(ManaRoot + file);
+            tex = Resources.Load<Texture2D>(PunyRoot + file);
             if (tex != null)
             {
                 tex.filterMode = FilterMode.Point;
@@ -186,50 +190,56 @@ namespace MoonlightPost
             return tex;
         }
 
-        static Sprite ManaCell(Texture2D tex, int col, int row)
+        static Sprite PunyCell(Texture2D tex, int col, int row, float pivotY = PunyPivotY)
         {
-            const int C = 64;
-            return Sprite.Create(tex, new Rect(col * C, tex.height - (row + 1) * C, C, C), new Vector2(0.5f, ManaPivotY), ManaPpu, 0, SpriteMeshType.FullRect);
+            const int C = 32;
+            return Sprite.Create(tex, new Rect(col * C, tex.height - (row + 1) * C, C, C), new Vector2(0.5f, pivotY), PunyPpu, 0, SpriteMeshType.FullRect);
         }
 
-        /// <summary>block 안의 4방향 x frames 칸(방향은 행, 프레임은 열).</summary>
-        static Sprite[,] ManaBlock(Texture2D tex, int col0, int row0, params int[] cols)
+        /// <summary>4방향 x cols 칸.</summary>
+        static Sprite[,] PunyBlock(Texture2D tex, params int[] cols)
         {
             var f = new Sprite[4, cols.Length];
             for (int dir = 0; dir < 4; dir++)
                 for (int i = 0; i < cols.Length; i++)
-                    f[dir, i] = ManaCell(tex, col0 + cols[i], row0 + ManaRowOf[dir]);
+                    f[dir, i] = PunyCell(tex, cols[i], PunyRowOf[dir]);
             return f;
         }
 
-        static CharacterSheet ManaSheet(string actor)
+        static CharacterSheet PunySheet(string actor)
         {
-            var p1 = ManaTexture(actor + "_p1");
-            if (p1 == null) return null;
+            var tex = PunyTexture(actor);
+            if (tex == null || tex.width < 768) return null;
             var stand = new Sprite[4];
-            for (int dir = 0; dir < 4; dir++) stand[dir] = ManaCell(p1, 0, ManaRowOf[dir]);
-            // 걷기: 4~7행의 앞 6칸, 135ms 씩
-            var sheet = new CharacterSheet(ManaBlock(p1, 0, 4, 0, 1, 2, 3, 4, 5), 6, stand, 7.4f);
-            // 달리기(회피): 1,2,7,4,5,8 번째 칸
-            sheet.AddAction("run", ManaBlock(p1, 0, 4, 0, 1, 6, 3, 4, 7), new[] { 80f, 55f, 125f, 80f, 55f, 125f });
-            // 걸음을 움직인 거리에 맞춘다: 걷기 한 바퀴 1.1 유닛, 달리기 한 바퀴 1.9 유닛(발이 미끄러지지 않게)
-            sheet.WalkStride = 1.1f;
-            sheet.RunStride = 1.9f;
-
-            var one1 = ManaTexture(actor + "_pONE1");
-            var one3 = ManaTexture(actor + "_pONE3");
-            if (one1 != null && one3 != null)
-            {
-                // 칼과 방패: 1·2타 베기, 3타 찌르기, 방패 치기. 160/65/65/200ms 비율로 공격 시간에 맞춰 늘이고 줄인다.
-                var attack = new[] { 160f, 65f, 65f, 200f };
-                sheet.AddAction("slash1", ManaBlock(one3, 0, 0, 0, 1, 2, 3), attack);
-                sheet.AddAction("slash2", ManaBlock(one3, 4, 0, 0, 1, 2, 3), attack);
-                sheet.AddAction("thrust", ManaBlock(one3, 0, 4, 0, 1, 2, 3), attack);
-                sheet.AddAction("bash", ManaBlock(one3, 4, 4, 0, 1, 2, 3), attack);
-                sheet.AddAction("evade", ManaBlock(one1, 4, 0, 0));
-                sheet.AddAction("hurt", ManaBlock(one1, 5, 0, 0));
-            }
+            for (int dir = 0; dir < 4; dir++) stand[dir] = PunyCell(tex, 0, PunyRowOf[dir]);
+            // 걷기: 왼발(2) · 숨 고르기(1) · 오른발(3) · 숨 고르기(1). 걸음은 움직인 거리에 맞춘다.
+            var walk = PunyBlock(tex, 2, 1, 3, 1);
+            var sheet = new CharacterSheet(walk, 4, stand, 8f);
+            sheet.AddAction("run", walk);
+            sheet.WalkStride = 1f;
+            sheet.RunStride = 1.6f;
+            // 칼: 들기 · 치켜들기 · 휘두르기(궤적) · 마무리. 3타 찌르기와 날아가는 편지는 활, 봉인끈은 지팡이.
+            var swing = new[] { 120f, 60f, 90f, 160f };
+            sheet.AddAction("slash1", PunyBlock(tex, 4, 5, 6, 7), swing);
+            sheet.AddAction("slash2", PunyBlock(tex, 5, 4, 6, 7), swing);
+            sheet.AddAction("thrust", PunyBlock(tex, 8, 9, 10, 11), new[] { 80f, 80f, 120f, 120f });
+            sheet.AddAction("bash", PunyBlock(tex, 12, 13, 14), new[] { 120f, 120f, 160f });
+            sheet.AddAction("evade", PunyBlock(tex, 2));
+            sheet.AddAction("hurt", PunyBlock(tex, 20));
             return sheet;
+        }
+
+        /// <summary>Puny 슬라임(보스 3): 통통 튀는 6 프레임.</summary>
+        public static Sprite[] PunySlimeFrames
+        {
+            get
+            {
+                var tex = PunyTexture("Slime");
+                if (tex == null) return null;
+                var f = new Sprite[6];
+                for (int i = 0; i < 6; i++) f[i] = PunyCell(tex, i, 0, 12f / 32f);
+                return f;
+            }
         }
 
         // ---------------------------------------------------------------- Cainos 바닥·식물·소품 (32x32)
@@ -347,13 +357,13 @@ namespace MoonlightPost
             return sheet;
         }
 
-        /// <summary>Mana Seed 초상화(서 있는 그림의 머리를 키운 것). 없으면 null.</summary>
-        public static Texture2D ManaFace(string actor) => ManaTexture(actor + "_face");
+        /// <summary>Puny 초상화(서 있는 그림의 머리를 키운 것, Tools/import_art.py 가 만든다). 없으면 null.</summary>
+        public static Texture2D PunyFace(string actor) => PunyTexture(actor + "_face");
 
         public static CharacterSheet Sheet(string actor)
         {
             if (sheets.TryGetValue(actor, out var sheet)) return sheet;
-            sheet = ManaSheet(actor);
+            sheet = PunySheet(actor);
             if (sheet != null)
             {
                 sheets[actor] = sheet;
@@ -373,7 +383,7 @@ namespace MoonlightPost
             return sheet;
         }
 
-        public static Texture2D Faceset(string actor) => ManaFace(actor) ?? Texture("Facesets/" + actor);
+        public static Texture2D Faceset(string actor) => PunyFace(actor) ?? Texture("Facesets/" + actor);
 
         /// <summary>대화창 초상화: 말하는 사람 이름 → 얼굴 그림.</summary>
         public static Texture2D PortraitFor(string speaker)

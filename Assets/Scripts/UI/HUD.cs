@@ -323,12 +323,12 @@ namespace MoonlightPost
             float w = 380 * s;
             float iw = w - 28 * s;
             var lines = new List<string>();
+            // 사냥 의뢰: 진행 중인 것은 하나씩, 다 채운 것은 한 줄로 묶는다(보상을 쌓아 두어도 칸이 길어지지 않게).
+            int ready = Bounties.ClaimableCount;
+            if (ready > 0) lines.Add("<b>사냥</b> <color=#7fd68a>게시판 보상 " + ready + "개 → 마을 사냥 게시판</color>");
             foreach (var b in Bounties.All)
-            {
-                if (b.claimed) continue;
-                lines.Add(b.Done ? "<b>사냥</b> " + Bounties.Title(b) + "\n  <color=#7fd68a>→ 마을 게시판에서 보상 받기</color>"
-                    : "<b>사냥</b> " + Bounties.Title(b) + "  <color=#9fb3ff>" + b.have + "/" + b.need + "</color>");
-            }
+                if (!b.claimed && !b.Done)
+                    lines.Add("<b>사냥</b> " + Bounties.Title(b) + "  <color=#9fb3ff>" + b.have + "/" + b.need + "</color>");
             foreach (var r in RequestManager.Active())
             {
                 string next = null;

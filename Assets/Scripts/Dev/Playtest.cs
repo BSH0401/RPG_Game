@@ -690,7 +690,11 @@ namespace MoonlightPost
                 GameState.Equip(g);
             }
             if (!GearSets.Has(GearSets.Meteor, 4)) Problem("세트 장비: 4부위를 꼈는데 세트로 세지 않음 (" + GearSets.Equipped(GearSets.Meteor) + ")");
-            if (Stats.CritChance < crit0 + 0.079f && Stats.CritChance < 0.75f) Problem("세트 장비: 2부위 효과(치명타 +8%)가 붙지 않음 (" + crit0 + " → " + Stats.CritChance + ")");
+            // 낀 장비 각각의 치명타 옵션을 뺀 나머지가 세트 효과(+8)여야 한다(바꿔 낀 장비의 옵션 때문에 전체 증가량은 달라질 수 있다).
+            float itemCrit = 0f;
+            foreach (var g in GameState.Equipped()) itemCrit += g.Sum(GearStat.Crit);
+            float setCrit = Gear.Total(GearStat.Crit) - itemCrit;
+            if (Mathf.Abs(setCrit - 8f) > 0.05f) Problem("세트 장비: 2부위 효과(치명타 +8%)가 붙지 않음 (세트 몫 " + setCrit + ")");
             HUD.ShowBag(true, 0);
             yield return Frames(3);
             yield return Shot("set_gear_bag");

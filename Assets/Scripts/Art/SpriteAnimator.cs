@@ -17,7 +17,7 @@ namespace MoonlightPost
         float walkTime;
         float actionUntil;
         int actionRow;
-        /// <summary>이름 붙은 동작(Mana Seed 칼 공격 등)을 재생 중이면 그 이름과 시작 시각·길이.</summary>
+        /// <summary>이름 붙은 동작(칼 공격 등)을 재생 중이면 그 이름과 시작 시각·길이.</summary>
         string sequence;
         float sequenceStart, sequenceLength;
         Vector3 lastPos;

@@ -16,7 +16,7 @@ namespace MoonlightPost.EditorTools
     /// </summary>
     public static class ReleaseBuild
     {
-        public const string Version = "0.4.1";
+        public const string Version = "0.4.2";
         const string TempDir = "Assets/_ReleaseTemp";
         const string ScenePath = TempDir + "/Main.unity";
         const string OutDir = "Build/Release/MoonlightPost";
@@ -116,7 +116,7 @@ Esc                 메뉴 (설정 · 타이틀로 · 저장하고 종료)
 [만든 사람과 에셋]
 그림·소리: Ninja Adventure Asset Pack — Pixel-boy & AAA (CC0)
 땅·나무·소품: Pixel Art Top Down – Basic — Cainos
-캐릭터: Mana Seed Character Base (무료 데모) — Seliel the Shaper
+캐릭터: Puny Characters — Shade (CC0)
 몬스터: Pixel Monsters Free Pack — Matthew Ashworth (Matseb2611)
 글꼴: Noto Sans KR (SIL Open Font License)
 ";

@@ -45,6 +45,8 @@ namespace MoonlightPost
 
         IEnumerator Start()
         {
+            // 창이 뒤로 가도 멈추지 않게(게임 본편은 창을 떠나면 멈춘다)
+            Application.runInBackground = true;
             DialogueSystem.Shown += OnShown;
             yield return Frames(10);
             for (int route = 0; route < 2; route++)
@@ -93,6 +95,7 @@ namespace MoonlightPost
             if (scenery) yield return GearTest(player);
             if (scenery) yield return HuntTest(player);
             if (scenery) yield return WeaponLook(player);
+            if (scenery) yield return RunLook(player);
             if (scenery) yield return EndgameTest(player);
             if (scenery) yield return BurrowWallTest(player);
             CheckReach("시작");
@@ -765,6 +768,33 @@ namespace MoonlightPost
                 }
                 yield return Seconds(0.4f);
             }
+        }
+
+        /// <summary>달리는 모습: 오른쪽으로 달리게 하고 가까이서 몇 장 찍는다(발이 땅에 붙어 보이는지, 흙먼지).</summary>
+        IEnumerator RunLook(PlayerController player)
+        {
+            var counter = FindAnyObjectByType<PostOfficeCounter>();
+            yield return Visit(player, (Vector2)counter.transform.position + new Vector2(-4f, -3.5f), false);
+            HUD.ClearToasts();
+            PlayerController.ForcedMove = Vector2.right;
+            for (int i = 0; i < 3; i++)
+            {
+                yield return Seconds(0.23f);
+                if (CameraFollow.I != null) CameraFollow.I.SnapToTarget();
+                yield return MoveCamera(player.transform.position, 2f);
+                yield return Shot("run_" + i);
+                yield return CameraRestore();
+            }
+            PlayerController.ForcedMove = Vector2.down;
+            yield return Seconds(0.3f);
+            yield return MoveCamera(player.transform.position, 2f);
+            yield return Shot("run_down");
+            yield return CameraRestore();
+            PlayerController.ForcedMove = null;
+            yield return Seconds(0.3f);
+            yield return MoveCamera(player.transform.position, 2f);
+            yield return Shot("stand");
+            yield return CameraRestore();
         }
 
         /// <summary>몬스터 그림 확인: 배달부 옆에 종류마다 하나씩 세워 두고 가까이서 찍는다.</summary>

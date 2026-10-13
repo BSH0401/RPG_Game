@@ -76,7 +76,12 @@ namespace MoonlightPost
             Time.timeScale = HUD.AnyOverlay ? 0f : 1f;
         }
 
-        static bool HasProgress => GameState.Night > 0;
+        /// <summary>이어 할 것이 있는가: 밤이 지났거나, 레벨·경험치·장비·편지 진행이 조금이라도 있으면.</summary>
+        static bool HasProgress => GameState.Night > 0 || GameState.Data.level > 1 || GameState.Data.exp > 0
+                                   || GameState.Gear.Count > 0 || LetterManager.Carrying != null;
+
+        /// <summary>새 게임 확인 화면에서 「취소」를 누르면 돌아갈 곳(타이틀 또는 일시정지).</summary>
+        Page confirmBack = Page.Title;
 
         // 자동 플레이테스트의 스크린샷용
         public static void ShowTitle() => I?.Open(Page.Title);
@@ -97,8 +102,9 @@ namespace MoonlightPost
             {
                 case Page.Title:
                     if (HasProgress) items.Add(Button("이어하기", Close));
-                    items.Add(Button(HasProgress ? "새 게임" : "시작하기", () =>
+                    items.Add(Button(HasProgress ? "새 게임 (처음부터)" : "시작하기", () =>
                     {
+                        confirmBack = Page.Title;
                         if (HasProgress) Open(Page.ConfirmNew);
                         else Close();
                     }));
@@ -113,6 +119,11 @@ namespace MoonlightPost
                     {
                         GameState.Save();
                         Open(Page.Title);
+                    }));
+                    items.Add(Button("처음부터 다시", () =>
+                    {
+                        confirmBack = Page.Pause;
+                        Open(Page.ConfirmNew);
                     }));
                     items.Add(Button("저장하고 종료", Quit));
                     break;
@@ -141,7 +152,7 @@ namespace MoonlightPost
                         Close();
                         GameBootstrap.RestartNewGame();
                     }));
-                    items.Add(Button("취소", () => Open(Page.Title)));
+                    items.Add(Button("취소", () => Open(confirmBack)));
                     break;
             }
         }
@@ -190,7 +201,8 @@ namespace MoonlightPost
             {
                 if (page == Page.Pause) Close();
                 else if (page == Page.Settings) Open(settingsBack);
-                else if (page == Page.ConfirmNew || page == Page.Credits) Open(Page.Title);
+                else if (page == Page.ConfirmNew) Open(confirmBack);
+                else if (page == Page.Credits) Open(Page.Title);
                 return;
             }
             if (items.Count == 0) return;
@@ -337,7 +349,7 @@ namespace MoonlightPost
 
             if (page == Page.ConfirmNew)
             {
-                GUI.Label(new Rect(0, top - 8 * s, Screen.width, 34 * s), "저장된 진행 상황이 지워집니다. 처음부터 시작할까요?", itemStyle);
+                GUI.Label(new Rect(0, top - 8 * s, Screen.width, 34 * s), "레벨 · 장비 · 편지 진행이 모두 지워집니다. 처음부터 시작할까요?", itemStyle);
                 top += 44 * s;
             }
 

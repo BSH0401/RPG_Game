@@ -21,6 +21,10 @@ namespace MoonlightPost
         string sequence;
         float sequenceStart, sequenceLength;
         Vector3 lastPos;
+        /// <summary>거리로 맞추는 걸음의 진행(0~1, 한 바퀴 = 두 걸음).</summary>
+        float stridePhase;
+        /// <summary>발이 땅에 닿을 때 흙먼지(플레이어만).</summary>
+        public bool dust;
 
         public void Init(SpriteRenderer renderer, CharacterSheet characterSheet)
         {
@@ -89,7 +93,18 @@ namespace MoonlightPost
                 body.sprite = sheet.Get(dir, actionRow);
                 return;
             }
-            if (moving)
+            if (moving && sheet.WalkStride > 0f)
+            {
+                // 움직인 거리만큼 발을 내딛는다. 빠르면 달리기 동작.
+                float speed = delta.magnitude / Time.deltaTime;
+                bool run = speed > sheet.RunAbove && sheet.HasAction("run");
+                float before = stridePhase;
+                stridePhase = Mathf.Repeat(stridePhase + delta.magnitude / (run ? sheet.RunStride : sheet.WalkStride), 1f);
+                body.sprite = run ? sheet.Action("run", dir, stridePhase) : sheet.Get(dir, Mathf.Min((int)(stridePhase * sheet.WalkFrames), sheet.WalkFrames - 1));
+                // 두 걸음마다(0 과 0.5 를 지날 때) 발밑에 작은 흙먼지
+                if (dust && run && (stridePhase < before || (before < 0.5f && stridePhase >= 0.5f))) Dust();
+            }
+            else if (moving)
             {
                 walkTime += Time.deltaTime;
                 body.sprite = sheet.Get(dir, (int)(walkTime * fps) % sheet.WalkFrames);
@@ -97,8 +112,16 @@ namespace MoonlightPost
             else
             {
                 walkTime = 0f;
+                stridePhase = 0f;
                 body.sprite = sheet.Stand(dir);
             }
+        }
+
+        void Dust()
+        {
+            if (!GameAssets.Available) return;
+            Vector2 feet = body.transform.position;
+            FrameAnimator.PlayOnce(GameAssets.SmokeFrames, feet + new Vector2(Random.Range(-0.1f, 0.1f), 0.05f), 20f, new Color(0.75f, 0.72f, 0.8f, 0.45f), -430, 0.45f);
         }
     }
 

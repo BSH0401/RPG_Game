@@ -158,13 +158,16 @@ namespace MoonlightPost
             bodyGo.transform.SetParent(go.transform, false);
             // 아이처럼 작은 주민은 몸만 줄인다(발밑 기준점이라 그대로 바닥에 선다).
             if (!Mathf.Approximately(scale, 1f)) bodyGo.transform.localScale = Vector3.one * scale;
-            // 1픽셀 띄우고 바로 아래에 그림자를 깔아 발이 바닥에 묻혀 보이지 않게 한다.
-            bodyGo.transform.localPosition = new Vector3(0f, -feetOffset + Px, 0f);
+            // 16픽셀 그림: 1픽셀 띄우고 바로 아래에 그림자를 깔아 발이 바닥에 묻혀 보이지 않게 한다.
+            // Mana Seed(걸음을 거리로 맞추는 시트): 발을 그대로 땅에 딛고, 그림자 가운데가 발밑에 오게 해서 떠 보이지 않게 한다.
+            bool grounded = sheet.WalkStride > 0f;
+            bodyGo.transform.localPosition = new Vector3(0f, -feetOffset + (grounded ? 0f : Px), 0f);
             var body = bodyGo.AddComponent<SpriteRenderer>();
             body.color = CharacterTint;
             var shadow = new GameObject("Shadow");
             shadow.transform.SetParent(go.transform, false);
-            shadow.transform.localPosition = new Vector3(0f, -feetOffset - Px, 0f);
+            shadow.transform.localPosition = new Vector3(0f, -feetOffset + (grounded ? 0.03f : -Px), 0f);
+            if (grounded) shadow.transform.localScale = new Vector3(1.1f * scale, 1.15f * scale, 1f);
             var shadowRenderer = shadow.AddComponent<SpriteRenderer>();
             shadowRenderer.sprite = Art.FootShadow;
             shadowRenderer.sortingOrder = ShadowOrder;

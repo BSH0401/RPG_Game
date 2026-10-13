@@ -48,6 +48,8 @@ namespace MoonlightPost
         /// <summary>배달부 주변을 밝히는 손등불(반딧불이 병이 있으면 커진다).</summary>
         public SpriteRenderer lightGlow;
         public Vector3 RespawnPoint { get; set; }
+        /// <summary>자동 플레이테스트가 키 대신 넣는 이동 방향(null 이면 키보드).</summary>
+        public static Vector2? ForcedMove;
 
         // 장비 효과 (items.json 의 effect 값, 퍼센트)
         static float DodgeBonus => Inventory.EffectSum("dodge") / 100f;
@@ -136,7 +138,7 @@ namespace MoonlightPost
                 return;
             }
 
-            moveInput = GameInput.Move;
+            moveInput = ForcedMove ?? GameInput.Move;
             if (moveInput.sqrMagnitude > 0.01f && Time.time >= faceLockUntil) Facing = moveInput.normalized;
             if (animator != null) animator.SetFacing(Facing);
 

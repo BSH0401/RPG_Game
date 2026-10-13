@@ -608,6 +608,8 @@ namespace MoonlightPost
             go.AddComponent<Health>();
             var playerSheet = useAssets ? GameAssets.Sheet("Inspector") : null;
             var body = playerSheet != null ? Spawner.Character(go, playerSheet) : Spawner.Character(go, Art.Player);
+            var playerAnim = go.GetComponent<SpriteAnimator>();
+            if (playerAnim != null) playerAnim.dust = true;
             // 배달부 주변을 은은하게 밝히는 손등불
             var playerLight = Spawner.Glow(PlayerSpawn, 4.5f, new Color(1f, 0.9f, 0.7f, 0.12f), go.transform);
 

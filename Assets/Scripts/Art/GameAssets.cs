@@ -51,6 +51,14 @@ namespace MoonlightPost
 
         public bool HasAction(string name) => actions.ContainsKey(name);
 
+        /// <summary>
+        /// 움직인 거리로 발걸음을 맞추는 시트(Mana Seed): 걷기 한 바퀴(두 걸음)에 WalkStride 유닛,
+        /// 달리기 한 바퀴에 RunStride 유닛을 간다. 0 이면 예전처럼 시간(WalkFps)으로 돌린다.
+        /// </summary>
+        public float WalkStride, RunStride;
+        /// <summary>이 속도(유닛/초)보다 빠르면 걷기 대신 달리기 동작.</summary>
+        public float RunAbove = 2.6f;
+
         /// <summary>동작 name 을 t(0~1) 만큼 진행했을 때의 그림.</summary>
         public Sprite Action(string name, int dir, float t)
         {
@@ -204,6 +212,9 @@ namespace MoonlightPost
             var sheet = new CharacterSheet(ManaBlock(p1, 0, 4, 0, 1, 2, 3, 4, 5), 6, stand, 7.4f);
             // 달리기(회피): 1,2,7,4,5,8 번째 칸
             sheet.AddAction("run", ManaBlock(p1, 0, 4, 0, 1, 6, 3, 4, 7), new[] { 80f, 55f, 125f, 80f, 55f, 125f });
+            // 걸음을 움직인 거리에 맞춘다: 걷기 한 바퀴 1.1 유닛, 달리기 한 바퀴 1.9 유닛(발이 미끄러지지 않게)
+            sheet.WalkStride = 1.1f;
+            sheet.RunStride = 1.9f;
 
             var one1 = ManaTexture(actor + "_pONE1");
             var one3 = ManaTexture(actor + "_pONE3");

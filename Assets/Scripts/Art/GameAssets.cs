@@ -229,6 +229,33 @@ namespace MoonlightPost
             return sheet;
         }
 
+        /// <summary>
+        /// Resources/Art/Houses: Szadi art 「Houses Pack」(퍼블릭 도메인)의 지붕 · 벽 · 문을 이어 붙인 건물(Tools/import_art.py).
+        /// 원래 크기가 커서 1 유닛 = 48 픽셀로 줄여 쓴다. 발밑(문 아래) 가운데가 기준점. 없으면 null.
+        /// </summary>
+        public static Sprite House(string name)
+        {
+            string key = "~house/" + name;
+            if (sprites.TryGetValue(key, out var s)) return s;
+            var tex = PunyTextureAt("Art/Houses/" + name);
+            s = tex != null ? Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0f), 48f, 0, SpriteMeshType.FullRect) : null;
+            sprites[key] = s;
+            return s;
+        }
+
+        static Texture2D PunyTextureAt(string path)
+        {
+            if (textures.TryGetValue(path, out var tex) && tex != null) return tex;
+            tex = Resources.Load<Texture2D>(path);
+            if (tex != null)
+            {
+                tex.filterMode = FilterMode.Point;
+                tex.wrapMode = TextureWrapMode.Clamp;
+            }
+            textures[path] = tex;
+            return tex;
+        }
+
         /// <summary>Puny 슬라임(보스 3): 통통 튀는 6 프레임.</summary>
         public static Sprite[] PunySlimeFrames
         {

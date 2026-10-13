@@ -115,12 +115,12 @@ namespace MoonlightPost
 
             // 고개 마을의 집 두 채
             Spawner.Building("PassHouse_A", new Vector2(56f, 29.6f), new Vector2(3.8f, 2f),
-                useAssets ? GameAssets.Tile(House, 4, 0, 4, 3) : Art.Building("pass_house_a", new Art.BuildingLook
+                useAssets ? GameAssets.House("PassHouseA") ?? GameAssets.Tile(House, 4, 0, 4, 3) : Art.Building("pass_house_a", new Art.BuildingLook
                 {
                     widthTiles = 4, heightTiles = 4, wallPx = 32, wall = "#6a5a50", roof = "#3e3a5a", windows = 1, windowsLit = true, door = true
                 }));
             Spawner.Building("PassHouse_B", new Vector2(65.6f, 30f), new Vector2(2.8f, 2f),
-                useAssets ? GameAssets.Tile(House, 23, 0, 3, 3) : Art.Building("pass_house_b", new Art.BuildingLook
+                useAssets ? GameAssets.House("PassHouseB") ?? GameAssets.Tile(House, 23, 0, 3, 3) : Art.Building("pass_house_b", new Art.BuildingLook
                 {
                     widthTiles = 4, heightTiles = 4, wallPx = 30, wall = "#5a6a62", roof = "#4a3a3a", windows = 1, windowsLit = true, door = true
                 }));

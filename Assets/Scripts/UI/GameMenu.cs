@@ -296,7 +296,9 @@ namespace MoonlightPost
                 "<b>달빛 우체국</b>  ·  기획 · 제작 BSH0401  (Claude 와 함께)\n\n" +
                 "<color=#ffd98a>그림 · 소리</color>\n" +
                 "Ninja Adventure Asset Pack — Pixel-boy & AAA (CC0)\n" +
-                "    건물 · 물 · 보스 2 · 아이템과 장비 아이콘 · 효과 · 음악 · 효과음\n" +
+                "    역 · 물 · 보스 2 · 아이템과 장비 아이콘 · 효과 · 음악 · 효과음\n" +
+                "Houses Pack — Szadi art (퍼블릭 도메인)\n" +
+                "    우체국 · 빵집 · 마을의 집\n" +
                 "Pixel Art Top Down – Basic — Cainos\n" +
                 "    풀밭 · 돌길 · 나무 · 덤불 · 소품\n" +
                 "Puny Characters — Shade (CC0)\n" +

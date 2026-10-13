@@ -7,6 +7,7 @@
   - Pixel Art Top Down - Basic v*.zip    (Cainos, 재배포 금지)             → Assets/Resources/Art/Cainos   (저장소에 넣지 않음)
   - Pixel Monsters Free Pack.zip         (Matthew Ashworth, 조건 없음)     → Assets/Resources/Art/Monsters (저장소에 넣지 않음)
   - puny-characters.zip                  (Shade 「Puny Characters」, CC0)  → Assets/Resources/Art/Puny     (CC0 라 저장소에 들어 있다)
+  - Houses_Pack.zip                      (Szadi art, 퍼블릭 도메인)        → Assets/Resources/Art/Houses   (조립한 건물, 저장소에 들어 있다)
 Cainos·Monsters 두 폴더는 .gitignore 에 들어 있다. 없으면 게임은 Ninja Adventure 그림을 쓴다.
 
 Mana Seed(Seliel the Shaper)는 쓰지 않는다: 그 라이선스가 AI 로 만든 코드·글과 함께 쓰는 것을 금지한다.
@@ -80,6 +81,44 @@ def puny(folder, tmp):
     print('Puny →', out, '(배역 %d명 + 슬라임)' % len(PUNY))
 
 
+# Szadi art 「Houses Pack」: 조각(지붕 · 2층 벽 · 문)을 이어 붙여 건물 하나씩 만든다. 색은 보라 · 회색 · 빨강.
+HOUSE_OFF = {'purple': 0, 'grey': 320, 'red': 672}
+HOUSE_ROOF = {'gable': (77, 438, 243, 640), 'flat': (72, 23, 248, 128), 'cross': (32, 160, 288, 416)}
+HOUSE_FACADE = (83, 672, 237, 744)
+HOUSE_DOOR = (256, 704, 288, 746)
+HOUSES = {
+    'PostOffice': ('cross', 'purple'),
+    'Bakery':     ('flat', 'red'),
+    'HouseA':     ('gable', 'grey'),
+    'HouseB':     ('gable', 'red'),
+    'HouseC':     ('flat', 'grey'),
+    'PassHouseA': ('gable', 'purple'),
+    'PassHouseB': ('flat', 'purple'),
+}
+
+
+def houses(folder, tmp):
+    src_dir = unzip('Houses_Pack*.zip', folder, os.path.join(tmp, 'houses'))
+    src = Image.open(os.path.join(src_dir, 'houses.png')).convert('RGBA')
+    out_dir = os.path.join(PROJECT, 'Assets', 'Resources', 'Art', 'Houses')
+    os.makedirs(out_dir, exist_ok=True)
+
+    def piece(box, color):
+        o = HOUSE_OFF[color]
+        x0, y0, x1, y1 = box
+        return src.crop((x0 + o, y0, x1 + o, y1))
+
+    for name, (roof, color) in HOUSES.items():
+        r, f, d = piece(HOUSE_ROOF[roof], color), piece(HOUSE_FACADE, color), piece(HOUSE_DOOR, color)
+        w, h = max(r.width, f.width), r.height + f.height
+        img = Image.new('RGBA', (w, h))
+        img.alpha_composite(f, ((w - f.width) // 2, r.height))
+        img.alpha_composite(r, ((w - r.width) // 2, 0))
+        img.alpha_composite(d, (w // 2 - d.width // 2, h - d.height))
+        img.save(os.path.join(out_dir, name + '.png'))
+    print('Houses →', out_dir, '(건물 %d채)' % len(HOUSES))
+
+
 def main():
     folder = sys.argv[1]
     tmp = tempfile.mkdtemp()
@@ -94,6 +133,7 @@ def main():
         print('Cainos →', out)
 
         puny(folder, tmp)
+        houses(folder, tmp)
 
         mon = unzip('Pixel Monsters Free Pack*.zip', folder, os.path.join(tmp, 'monsters'))
         pack = os.path.join(mon, 'Pixel Monsters Free Pack')

@@ -359,14 +359,15 @@ namespace MoonlightPost
         void BuildVillageBuildingsFromAssets(WorldVisuals visuals)
         {
             // 우체국: 큰 초가 건물. 아래쪽 2.6칸만 막는다.
-            Spawner.Building("PostOffice", new Vector2(0f, 5.75f + 1.3f), new Vector2(3.8f, 2.6f), GameAssets.Tile(House, 25, 7, 4, 7));
+            // 건물은 Szadi art 「Houses Pack」을 조립한 그림(GameAssets.House), 없으면 Ninja Adventure 타일.
+            Spawner.Building("PostOffice", new Vector2(0f, 5.75f + 1.3f), new Vector2(3.8f, 2.6f), GameAssets.House("PostOffice") ?? GameAssets.Tile(House, 25, 7, 4, 7));
             var counter = Spawner.Prop("Counter", new Vector2(0f, 3.7f), GameAssets.Tile(House, 16, 16, 3, 2));
             counter.AddComponent<PostOfficeCounter>().rangeScale = 1.2f;
 
             // 빵집: 빵 간판이 달린 가게. 닫혀 있을 때는 어둡고 문에 판자.
             var bakeryBottom = new Vector2(-9f, 4.5f);
             Spawner.Collider("Bakery_Collider", bakeryBottom + new Vector2(0f, 1f), new Vector2(2.8f, 2f));
-            var shop = GameAssets.Tile(House, 16, 0, 3, 3);
+            var shop = GameAssets.House("Bakery") ?? GameAssets.Tile(House, 16, 0, 3, 3);
             visuals.Register(Group("Bakery_Closed", () =>
             {
                 var b = Spawner.Prop("Bakery", bakeryBottom, shop);
@@ -386,9 +387,9 @@ namespace MoonlightPost
             }), "bakery_open");
 
             // 그 밖의 집
-            Spawner.Building("House_A", new Vector2(9f, 6f), new Vector2(3.8f, 2f), GameAssets.Tile(House, 8, 0, 4, 3));
-            Spawner.Building("House_B", new Vector2(-11f, -4.5f), new Vector2(3.8f, 2f), GameAssets.Tile(House, 4, 0, 4, 3));
-            Spawner.Building("House_C", new Vector2(11f, -5.3f), new Vector2(2.8f, 2f), GameAssets.Tile(House, 23, 0, 3, 3));
+            Spawner.Building("House_A", new Vector2(9f, 6f), new Vector2(3.8f, 2f), GameAssets.House("HouseA") ?? GameAssets.Tile(House, 8, 0, 4, 3));
+            Spawner.Building("House_B", new Vector2(-11f, -4.5f), new Vector2(3.8f, 2f), GameAssets.House("HouseB") ?? GameAssets.Tile(House, 4, 0, 4, 3));
+            Spawner.Building("House_C", new Vector2(11f, -5.3f), new Vector2(2.8f, 2f), GameAssets.House("HouseC") ?? GameAssets.Tile(House, 23, 0, 3, 3));
             Spawner.Glow(new Vector2(9f, 5.6f), 3.5f, new Color(1f, 0.8f, 0.45f, 0.25f));
             Spawner.Glow(new Vector2(11f, -5.6f), 3f, new Color(1f, 0.8f, 0.45f, 0.25f));
         }

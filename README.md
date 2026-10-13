@@ -451,7 +451,7 @@ Docs/GameDesign.md       기획서
 ### 고해상도 무료 에셋 (저장소에는 없음)
 
 캐릭터·땅·몬스터는 아래 무료 팩을 쓴다. Cainos·Pixel Monsters 는 원본 파일의 재배포를 금지하거나 조건을 밝히지 않아
-저장소(공개)에는 넣지 않고 `.gitignore`로 뺐다. Puny Characters 는 CC0 라 저장소에 들어 있다.
+저장소(공개)에는 넣지 않고 `.gitignore`로 뺐다. Puny Characters(CC0)와 Houses Pack(퍼블릭 도메인)으로 만든 그림은 저장소에 들어 있다.
 드라이브의 `달빛우체국_에셋` 폴더에 있는 zip 으로 한 번 만들어 넣는다(Python 3 + Pillow):
 
 ```
@@ -462,13 +462,14 @@ python Tools/import_art.py "<달빛우체국_에셋 폴더>"
 |---|---|---|---|
 | [Pixel Art Top Down – Basic](https://cainos.itch.io/pixel-art-top-down-basic) | Cainos | 풀밭, 마을 돌길, 숲 옛길, 역·채석장 돌바닥, 나무·덤불·풀포기 | `Resources/Art/Cainos` |
 | [Puny Characters](https://opengameart.org/content/puny-characters) (CC0) | Shade | 배달부(걷기·칼·활·지팡이 동작), 주민 9명과 초상화(도라는 옷 색을 보랏빛으로 바꿈), 보스 3 슬라임 | `Resources/Art/Puny` |
+| [Houses Pack](https://szadiart.itch.io/houses-pack) (퍼블릭 도메인) | Szadi art | 우체국 · 빵집 · 마을 집 세 채 · 고개 마을 집 두 채(지붕 · 2층 벽 · 문을 이어 붙여 만든다, `HOUSES`) | `Resources/Art/Houses` |
 | [Pixel Monsters Free Pack](https://matseb2611.itch.io/pixel-monsters-free-pack) | Matthew Ashworth (Matseb2611) | 그림자 고블린, 먹물 모기, 땅굴 머리, 보스 1 먹물 그림자(칼 든 유령) | `Resources/Art/Monsters` |
 
 - Puny 시트는 배역 이름으로 복사하고(`Tools/import_art.py`의 `PUNY`), 대화창 초상화는 서 있는 그림의 머리를 키워 만든다.
 - **Mana Seed(Seliel the Shaper)는 쓰지 않는다.** 그 [사용 허락](https://selieltheshaper.weebly.com/user-license.html)이
   AI 로 만든 그림·글·코드와 함께 쓰는 것을 금지하는데, 이 게임의 코드는 Claude 와 함께 만들었다. (v0.4.0·v0.4.1 빌드까지 쓰였다.)
 - 폴더가 없으면 게임은 아래 Ninja Adventure 그림으로 자동으로 돌아간다(`GameAssets.Sheet`, `CainosAvailable`, `MonsterSheet`).
-- 건물·물·모래·울타리·보스 2 는 아직 Ninja Adventure 그림이다.
+- 역 · 천문대 · 오두막 같은 특별한 건물과 물 · 모래 · 울타리 · 보스 2 는 아직 Ninja Adventure 그림이다.
 
 ### Ninja Adventure
 

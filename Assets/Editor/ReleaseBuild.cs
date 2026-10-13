@@ -16,7 +16,7 @@ namespace MoonlightPost.EditorTools
     /// </summary>
     public static class ReleaseBuild
     {
-        public const string Version = "0.4.2";
+        public const string Version = "0.4.3";
         const string TempDir = "Assets/_ReleaseTemp";
         const string ScenePath = TempDir + "/Main.unity";
         const string OutDir = "Build/Release/MoonlightPost";
@@ -117,6 +117,7 @@ Esc                 메뉴 (설정 · 타이틀로 · 저장하고 종료)
 그림·소리: Ninja Adventure Asset Pack — Pixel-boy & AAA (CC0)
 땅·나무·소품: Pixel Art Top Down – Basic — Cainos
 캐릭터: Puny Characters — Shade (CC0)
+건물: Houses Pack — Szadi art (퍼블릭 도메인)
 몬스터: Pixel Monsters Free Pack — Matthew Ashworth (Matseb2611)
 글꼴: Noto Sans KR (SIL Open Font License)
 ";
